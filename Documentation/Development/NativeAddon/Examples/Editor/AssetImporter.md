@@ -14,7 +14,7 @@ This example demonstrates:
 ```json
 {
     "name": "Asset Pipeline Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Custom asset importers and drag-drop handlers.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

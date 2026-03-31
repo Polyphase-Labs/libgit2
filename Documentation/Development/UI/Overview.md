@@ -1,6 +1,6 @@
 # Widget System Overview
 
-Octave's 2D UI is built on a hierarchy of **Widget** nodes. Every widget inherits from `Node`, so you create, parent, and manage widgets the same way you manage any other node in the scene tree.
+Polyphase's 2D UI is built on a hierarchy of **Widget** nodes. Every widget inherits from `Node`, so you create, parent, and manage widgets the same way you manage any other node in the scene tree.
 
 ---
 

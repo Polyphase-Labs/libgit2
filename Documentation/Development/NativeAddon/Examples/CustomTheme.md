@@ -21,7 +21,7 @@ This example demonstrates:
 ```json
 {
     "name": "Custom Theme",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Applies custom visual themes to the editor.",
     "version": "1.0.0",
     "tags": ["editor", "theme", "ui"],

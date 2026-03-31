@@ -31,7 +31,7 @@ Sig: `System.DeleteSave(name)`
  - Arg: `string name` Save file name
 ---
 ### UnmountMemoryCard
-Unmount the memory card. Octave only uses the first memory card right now.
+Unmount the memory card. Polyphase only uses the first memory card right now.
 
 Sig: `System.UnmountMemoryCard()`
 

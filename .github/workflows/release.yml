@@ -44,7 +44,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build Engine (ReleaseEditor x64)
-        run: msbuild Octave.sln /p:Configuration=ReleaseEditor /p:Platform=x64 /m
+        run: msbuild Polyphase.sln /p:Configuration=ReleaseEditor /p:Platform=x64 /m
 
       - name: Stage distribution files
         run: python Installers/stage_distribution.py --platform windows --verbose
@@ -53,13 +53,13 @@ jobs:
         run: choco install innosetup -y --no-progress
 
       - name: Build installer
-        run: iscc Installers\Windows\OctaveSetup.iss
+        run: iscc Installers\Windows\PolyphaseSetup.iss
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: dist/OctaveSetup-*.exe
+          path: dist/PolyphaseSetup-*.exe
 
   # =========================================================================
   #  Linux: Build engine + create .deb and tarball
@@ -114,13 +114,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-deb
-          path: dist/octave-engine_*_amd64.deb
+          path: dist/polyphase-engine_*_amd64.deb
 
       - name: Upload tarball artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-tarball
-          path: dist/OctaveEditor-linux-x64.tar.gz
+          path: dist/PolyphaseEditor-linux-x64.tar.gz
 
   # =========================================================================
   #  Create GitHub Release with all artifacts

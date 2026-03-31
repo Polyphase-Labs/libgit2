@@ -2,7 +2,7 @@
 
 ## Overview
 
-Octave uses Lua as its scripting language. C++ classes are exposed to Lua through a macro-based binding layer with automatic registration. A stub generator produces EmmyLua-annotated files for IDE IntelliSense.
+Polyphase uses Lua as its scripting language. C++ classes are exposed to Lua through a macro-based binding layer with automatic registration. A stub generator produces EmmyLua-annotated files for IDE IntelliSense.
 
 ## Key Files
 

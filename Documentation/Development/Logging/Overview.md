@@ -1,6 +1,6 @@
 # Logging System Overview
 
-The Octave Engine provides a thread-safe logging system with three severity levels, multiple output channels, and both Lua and C++ interfaces.
+The Polyphase Engine provides a thread-safe logging system with three severity levels, multiple output channels, and both Lua and C++ interfaces.
 
 ## Severity Levels
 

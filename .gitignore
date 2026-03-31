@@ -3,7 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# Octave-specific files
+# Polyphase-specific files
 Local_*/
 Engine/Assets/*/*.oct
 Packaged/
@@ -315,9 +315,9 @@ __pycache__/
 .*.swp
 /.claude
 
-# Octave builds at the root level
-Octave.ex*
-Octave.lib
+# Polyphase builds at the root level
+Polyphase.ex*
+Polyphase.lib
 dist/
 dist/*
 dist/Editor/
@@ -343,3 +343,6 @@ site/
 doxygen_xml/
 Documentation/api/
 .dev/
+Octave.exe
+Octave.exp
+Octave.lib

@@ -11,7 +11,7 @@
  */
 struct ReleaseAsset
 {
-    std::string mName;              // e.g., "OctaveSetup-6.0.0.exe"
+    std::string mName;              // e.g., "PolyphaseSetup-6.0.0.exe"
     std::string mDownloadUrl;       // Direct download URL
     std::string mContentType;       // e.g., "application/octet-stream"
     size_t mSize = 0;               // File size in bytes

@@ -11,7 +11,7 @@ This example demonstrates how to add a custom top-level menu to the editor's vie
 ```json
 {
     "name": "Custom Menu Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds a custom top-level menu to the editor.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

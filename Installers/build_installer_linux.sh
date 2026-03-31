@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==========================================================================
 #  build_installer_linux.sh
-#  Full build pipeline for Octave Engine Linux 64-bit packages.
+#  Full build pipeline for Polyphase Engine Linux 64-bit packages.
 #
 #  This script performs the complete build process:
 #    1. Initialize git submodules
@@ -27,7 +27,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "============================================"
-echo " Octave Engine - Linux 64-bit Full Build"
+echo " Polyphase Engine - Linux 64-bit Full Build"
 echo "============================================"
 echo ""
 

@@ -211,7 +211,7 @@ HttpResponse HttpClient::Get(const std::string& url, int timeoutMs)
     p_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void*)WriteCallback);
     p_curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseData);
     p_curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)timeoutMs);
-    p_curl_easy_setopt(curl, CURLOPT_USERAGENT, "OctaveEngine/1.0");
+    p_curl_easy_setopt(curl, CURLOPT_USERAGENT, "PolyphaseEngine/1.0");
     p_curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
     // Add headers for GitHub API
@@ -290,7 +290,7 @@ bool HttpClient::DownloadFile(
     p_curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     p_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void*)FileWriteCallback);
     p_curl_easy_setopt(curl, CURLOPT_WRITEDATA, &writeData);
-    p_curl_easy_setopt(curl, CURLOPT_USERAGENT, "OctaveEngine/1.0");
+    p_curl_easy_setopt(curl, CURLOPT_USERAGENT, "PolyphaseEngine/1.0");
     p_curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     p_curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 

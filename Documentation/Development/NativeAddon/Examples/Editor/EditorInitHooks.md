@@ -11,7 +11,7 @@ This example demonstrates the two editor initialization callbacks available on t
 ```json
 {
     "name": "Init Timing Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Demonstrates editor initialization timing hooks.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

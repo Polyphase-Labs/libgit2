@@ -11,7 +11,7 @@ This example demonstrates how to register a custom gizmo tool that appears along
 ```json
 {
     "name": "Gizmo Tool Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds a custom gizmo tool to the viewport toolbar.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

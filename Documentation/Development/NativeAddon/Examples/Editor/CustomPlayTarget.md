@@ -11,7 +11,7 @@ This example demonstrates how to add custom play targets to the play dropdown me
 ```json
 {
     "name": "Custom Play Target Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds a custom play target to the play dropdown.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

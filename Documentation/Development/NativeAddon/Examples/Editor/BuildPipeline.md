@@ -21,7 +21,7 @@ When a build is triggered, hooks fire in this order:
 ```json
 {
     "name": "Build Pipeline Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Pre/post build hooks for validation and automation.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

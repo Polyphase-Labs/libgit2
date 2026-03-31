@@ -11,7 +11,7 @@ This example demonstrates how to hook into asset drag-and-drop events using `Reg
 ```json
 {
     "name": "Drag and Drop Asset Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Hooks into asset drag-and-drop events for post-processing.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

@@ -27,7 +27,7 @@ This example demonstrates how to register custom keyboard shortcuts that trigger
 ```json
 {
     "name": "Keyboard Shortcuts Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Registers custom keyboard shortcuts.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

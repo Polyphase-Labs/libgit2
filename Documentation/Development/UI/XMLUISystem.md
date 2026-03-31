@@ -1,6 +1,6 @@
 # XML/CSS UI System
 
-Octave supports declarative UI authoring through XML layouts and CSS stylesheets. This system builds on the existing Widget hierarchy, letting you define UI trees in markup instead of (or alongside) code.
+Polyphase supports declarative UI authoring through XML layouts and CSS stylesheets. This system builds on the existing Widget hierarchy, letting you define UI trees in markup instead of (or alongside) code.
 
 ---
 

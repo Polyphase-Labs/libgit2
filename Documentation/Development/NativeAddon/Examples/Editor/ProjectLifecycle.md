@@ -11,7 +11,7 @@ This example demonstrates how to react to project lifecycle events using `Regist
 ```json
 {
     "name": "Project Watcher Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Monitors project lifecycle events.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

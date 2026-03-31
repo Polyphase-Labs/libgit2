@@ -1,12 +1,12 @@
 # NodeGraph Lua Examples
 
-Lua scripts demonstrating how to interact with the Octave Engine's NodeGraph system at runtime via the `NodeGraphPlayer` API.
+Lua scripts demonstrating how to interact with the Polyphase Engine's NodeGraph system at runtime via the `NodeGraphPlayer` API.
 
 ## Prerequisites
 
 - A scene with at least one Node to attach scripts to
 - One or more `NodeGraphAsset` files created in the editor (Material, SceneGraph, Procedural, etc.)
-- Familiarity with the Octave Lua script lifecycle: `Create()` -> `GatherProperties()` -> `Start()` -> `Tick(dt)` -> `Stop()`
+- Familiarity with the Polyphase Lua script lifecycle: `Create()` -> `GatherProperties()` -> `Start()` -> `Tick(dt)` -> `Stop()`
 
 ## How to Use
 

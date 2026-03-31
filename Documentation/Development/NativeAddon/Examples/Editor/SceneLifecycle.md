@@ -11,7 +11,7 @@ This example demonstrates how to react to scene lifecycle events using `Register
 ```json
 {
     "name": "Scene Watcher Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Monitors scene lifecycle events.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

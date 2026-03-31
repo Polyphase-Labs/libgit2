@@ -8450,7 +8450,7 @@ static void DrawMainMenuBar()
                     revealDir(scriptsDir);
                 if (ImGui::MenuItem("Project Addons Directory", nullptr, false, hasProject))
                     revealDir(addonsDir);
-                if (ImGui::MenuItem("Octave Engine Directory"))
+                if (ImGui::MenuItem("Polyphase Engine Directory"))
                     revealDir(octaveDir);
 
                 ImGui::EndMenu();
@@ -8479,7 +8479,7 @@ static void DrawMainMenuBar()
                     openInEditor(scriptsDir);
                 if (ImGui::MenuItem("Project Addons Directory", nullptr, false, hasProject && hasEditor))
                     openInEditor(addonsDir);
-                if (ImGui::MenuItem("Octave Engine Directory", nullptr, false, hasEditor))
+                if (ImGui::MenuItem("Polyphase Engine Directory", nullptr, false, hasEditor))
                     openInEditor(octaveDir);
 
                 ImGui::EndMenu();
@@ -8504,7 +8504,7 @@ static void DrawMainMenuBar()
                     openInVSCode(scriptsDir);
                 if (ImGui::MenuItem("Project Addons Directory", nullptr, false, hasProject))
                     openInVSCode(addonsDir);
-                if (ImGui::MenuItem("Octave Engine Directory"))
+                if (ImGui::MenuItem("Polyphase Engine Directory"))
                     openInVSCode(octaveDir);
 
                 ImGui::EndMenu();
@@ -10394,7 +10394,7 @@ static std::string ResolveEditorFontPath()
 
 static std::string ResolveEditorIconFontPath()
 {
-    const std::string relativePath = "Engine/Assets/Fonts/OctaveEngineIcons.ttf";
+    const std::string relativePath = "Engine/Assets/Fonts/PolyphaseEngineIcons.ttf";
     const std::string absolutePath = SYS_GetAbsolutePath(relativePath.c_str());
 
     if (!SYS_DoesFileExist(absolutePath.c_str(), false))
@@ -10444,7 +10444,7 @@ void EditorImguiInit()
     std::string iconFontPath = ResolveEditorIconFontPath();
     if (!iconFontPath.empty())
     {
-        MergeOctaveIcons(io.Fonts, 14.0f, iconFontPath.c_str());
+        MergePolyphaseIcons(io.Fonts, 14.0f, iconFontPath.c_str());
     }
 
     //ImGui::StyleColorsLight();

@@ -1,22 +1,22 @@
-; Octave Engine - Inno Setup Script
+; Polyphase Engine - Inno Setup Script
 ; Builds a Windows installer from the staged dist/Editor/ directory.
 ;
 ; Prerequisites:
 ;   1. Build the engine (ReleaseEditor x64)
 ;   2. Run: python Installers/stage_distribution.py --platform windows
-;   3. Run: ISCC Installers/Windows/OctaveSetup.iss
+;   3. Run: ISCC Installers/Windows/PolyphaseSetup.iss
 ;
 ; Or just run: Installers\build_installer_windows.bat
 
-#define MyAppName "Octave Engine"
-#define MyAppExeName "Octave.exe"
-#define MyAppPublisher "Octave Engine"
-#define MyAppURL "https://github.com/nicholasgasior/octave"
+#define MyAppName "Polyphase Engine"
+#define MyAppExeName "Polyphase.exe"
+#define MyAppPublisher "Polyphase Engine"
+#define MyAppURL "https://github.com/polyphase-engine/polyphase-engine"
 
 ; Read version from staged version.txt
 #define VersionFile AddBackslash(SourcePath) + "..\..\dist\Editor\version.txt"
 #ifexist VersionFile
-  #define MyAppVersion ReadIni(VersionFile, "Octave", "Version", "5")
+  #define MyAppVersion ReadIni(VersionFile, "Polyphase", "Version", "5")
 #else
   #define MyAppVersion "5.0.1.4"
 #endif
@@ -29,23 +29,23 @@ AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
-DefaultDirName={sd}\Octave
+DefaultDirName={sd}\Polyphase
 DefaultGroupName={#MyAppName}
 LicenseFile=..\..\dist\Editor\LICENSE
 OutputDir=..\..\dist
-OutputBaseFilename=OctaveSetup-{#MyAppVersion}
-SetupIconFile=..\..\dist\Editor\Standalone\Octave.ico
+OutputBaseFilename=PolyphaseSetup-{#MyAppVersion}
+SetupIconFile=..\..\dist\Editor\Standalone\Polyphase.ico
 Compression=lzma2
 SolidCompression=yes
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 WizardStyle=modern
-UninstallDisplayIcon={app}\Standalone\Octave.ico
+UninstallDisplayIcon={app}\Standalone\Polyphase.ico
 PrivilegesRequired=admin
 DisableProgramGroupPage=yes
-; Auto-update support: close running Octave and restart after upgrade
+; Auto-update support: close running Polyphase and restart after upgrade
 CloseApplications=yes
-CloseApplicationsFilter=Octave.exe
+CloseApplicationsFilter=Polyphase.exe
 RestartApplications=yes
 
 [Languages]
@@ -57,20 +57,20 @@ Name: "compact"; Description: "Compact installation"
 Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [Components]
-Name: "core"; Description: "Octave Engine (required)"; Types: full compact custom; Flags: fixed
+Name: "core"; Description: "Polyphase Engine (required)"; Types: full compact custom; Flags: fixed
 Name: "sdk"; Description: "Native Addon SDK (headers)"; Types: full
 Name: "tools"; Description: "Build Tools (Python scripts)"; Types: full
 Name: "docs"; Description: "Documentation"; Types: full
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "addtopath"; Description: "Add Octave to system PATH"; GroupDescription: "System integration:"
-Name: "setoctavepath"; Description: "Set OCTAVE_PATH environment variable"; GroupDescription: "System integration:"; Flags: checkedonce
-Name: "associateoctp"; Description: "Associate .octp files with Octave"; GroupDescription: "System integration:"
+Name: "addtopath"; Description: "Add Polyphase to system PATH"; GroupDescription: "System integration:"
+Name: "setpolyphasepath"; Description: "Set POLYPHASE_PATH environment variable"; GroupDescription: "System integration:"; Flags: checkedonce
+Name: "associateoctp"; Description: "Associate .octp files with Polyphase"; GroupDescription: "System integration:"
 
 [Files]
 ; --- Core: Binary ---
-Source: "..\..\dist\Editor\Octave.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "..\..\dist\Editor\Polyphase.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: core
 
 ; --- Core: Engine Assets ---
 Source: "..\..\dist\Editor\Engine\Assets\*"; DestDir: "{app}\Engine\Assets"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: core
@@ -95,10 +95,10 @@ Source: "..\..\dist\Editor\Engine\Makefile_*"; DestDir: "{app}\Engine"; Flags: i
 
 ; --- Core: Root files ---
 Source: "..\..\dist\Editor\LICENSE"; DestDir: "{app}"; Flags: ignoreversion; Components: core
-Source: "..\..\dist\Editor\OctaveLogo_128.png"; DestDir: "{app}"; Flags: ignoreversion; Components: core
-Source: "..\..\dist\Editor\OctaveLogo_256.png"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core
+Source: "..\..\dist\Editor\PolyphaseLogo_128.png"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "..\..\dist\Editor\PolyphaseLogo_256.png"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core
 Source: "..\..\dist\Editor\version.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: core
-Source: "..\..\dist\Editor\Octave.sln"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core
+Source: "..\..\dist\Editor\Polyphase.sln"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core
 
 ; --- Core: .vscode (for C++ project creation) ---
 Source: "..\..\dist\Editor\.vscode\*"; DestDir: "{app}\.vscode"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: core
@@ -132,10 +132,10 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 
 [Registry]
 ; .octp file association
-Root: HKCU; Subkey: "Software\Classes\.octp"; ValueType: string; ValueData: "OctaveProject"; Flags: uninsdeletevalue; Tasks: associateoctp
-Root: HKCU; Subkey: "Software\Classes\OctaveProject"; ValueType: string; ValueData: "Octave Engine Project"; Flags: uninsdeletekey; Tasks: associateoctp
-Root: HKCU; Subkey: "Software\Classes\OctaveProject\DefaultIcon"; ValueType: string; ValueData: "{app}\Standalone\Octave.ico,0"; Tasks: associateoctp
-Root: HKCU; Subkey: "Software\Classes\OctaveProject\shell\open\command"; ValueType: string; ValueData: """{app}\{#MyAppExeName}"" -project ""%1"""; Tasks: associateoctp
+Root: HKCU; Subkey: "Software\Classes\.octp"; ValueType: string; ValueData: "PolyphaseProject"; Flags: uninsdeletevalue; Tasks: associateoctp
+Root: HKCU; Subkey: "Software\Classes\PolyphaseProject"; ValueType: string; ValueData: "Polyphase Engine Project"; Flags: uninsdeletekey; Tasks: associateoctp
+Root: HKCU; Subkey: "Software\Classes\PolyphaseProject\DefaultIcon"; ValueType: string; ValueData: "{app}\Standalone\Polyphase.ico,0"; Tasks: associateoctp
+Root: HKCU; Subkey: "Software\Classes\PolyphaseProject\shell\open\command"; ValueType: string; ValueData: """{app}\{#MyAppExeName}"" -project ""%1"""; Tasks: associateoctp
 
 [UninstallDelete]
 ; Clean up imgui.ini and any temp files at app root, but NOT Engine/Saves
@@ -202,8 +202,8 @@ begin
   begin
     if IsTaskSelected('addtopath') then
       AddToPath(ExpandConstant('{app}'));
-    if IsTaskSelected('setoctavepath') then
-      RegWriteStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'OCTAVE_PATH', ExpandConstant('{app}'));
+    if IsTaskSelected('setpolyphasepath') then
+      RegWriteStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'POLYPHASE_PATH', ExpandConstant('{app}'));
   end;
 end;
 
@@ -212,6 +212,6 @@ begin
   if CurUninstallStep = usPostUninstall then
   begin
     RemoveFromPath(ExpandConstant('{app}'));
-    RegDeleteValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'OCTAVE_PATH');
+    RegDeleteValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'POLYPHASE_PATH');
   end;
 end;

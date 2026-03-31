@@ -1,6 +1,6 @@
 # Native Addon Development Guide
 
-This guide explains how to create C++ native addons for the Octave Engine. Native addons allow you to extend the engine with custom C++ code that can be hot-loaded in the editor and compiled into final builds.
+This guide explains how to create C++ native addons for the Polyphase Engine. Native addons allow you to extend the engine with custom C++ code that can be hot-loaded in the editor and compiled into final builds.
 
 ---
 
@@ -1164,7 +1164,7 @@ Here's a complete native addon example with tick callbacks:
 ```json
 {
     "name": "Hello Native",
-    "author": "Octave Team",
+    "author": "Polyphase Team",
     "description": "A minimal native addon example.",
     "version": "1.0.0",
     "tags": ["example"],

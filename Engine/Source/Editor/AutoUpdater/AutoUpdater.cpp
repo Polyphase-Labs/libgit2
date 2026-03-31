@@ -373,8 +373,8 @@ void AutoUpdater::LaunchInstaller()
 #if PLATFORM_WINDOWS
     // Launch the installer with silent upgrade flags
     // /SILENT = show progress bar, no wizard pages
-    // /CLOSEAPPLICATIONS = close running Octave instances
-    // /RESTARTAPPLICATIONS = restart Octave after install
+    // /CLOSEAPPLICATIONS = close running Polyphase instances
+    // /RESTARTAPPLICATIONS = restart Polyphase after install
     HINSTANCE result = ShellExecuteA(
         nullptr,
         "open",

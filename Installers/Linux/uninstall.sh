@@ -1,20 +1,20 @@
 #!/bin/bash
 # ==========================================================================
-#  Octave Engine - Linux Uninstall Script
+#  Polyphase Engine - Linux Uninstall Script
 #
-#  Removes Octave Engine from /opt/octave/ and cleans up system files.
+#  Removes Polyphase Engine from /opt/polyphase/ and cleans up system files.
 #
 #  Usage: sudo ./uninstall.sh
 # ==========================================================================
 
 set -e
 
-INSTALL_DIR="/opt/octave"
-WRAPPER="/usr/local/bin/octave-editor"
-DESKTOP_FILE="/usr/share/applications/octave-editor.desktop"
-MIME_FILE="/usr/share/mime/packages/octave-editor.xml"
-ICON_FILE="/usr/share/icons/hicolor/128x128/apps/octave-editor.png"
-PROFILE_SCRIPT="/etc/profile.d/octave.sh"
+INSTALL_DIR="/opt/polyphase"
+WRAPPER="/usr/local/bin/polyphase-editor"
+DESKTOP_FILE="/usr/share/applications/polyphase-editor.desktop"
+MIME_FILE="/usr/share/mime/packages/polyphase-editor.xml"
+ICON_FILE="/usr/share/icons/hicolor/128x128/apps/polyphase-editor.png"
+PROFILE_SCRIPT="/etc/profile.d/polyphase.sh"
 
 # Check for root
 if [ "$(id -u)" -ne 0 ]; then
@@ -23,7 +23,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 echo "============================================"
-echo " Octave Engine - Linux Uninstaller"
+echo " Polyphase Engine - Linux Uninstaller"
 echo "============================================"
 echo ""
 
@@ -59,9 +59,9 @@ if [ -f "$ICON_FILE" ]; then
     rm -f "$ICON_FILE"
 fi
 
-# --- Remove OCTAVE_PATH environment variable ---
+# --- Remove POLYPHASE_PATH environment variable ---
 if [ -f "$PROFILE_SCRIPT" ]; then
-    echo "Removing OCTAVE_PATH environment variable..."
+    echo "Removing POLYPHASE_PATH environment variable..."
     rm -f "$PROFILE_SCRIPT"
 fi
 

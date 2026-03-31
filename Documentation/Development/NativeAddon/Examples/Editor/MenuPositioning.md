@@ -24,7 +24,7 @@ This example demonstrates how to insert a custom top-level menu at a specific po
 ```json
 {
     "name": "Menu Positioning Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Inserts a custom menu between File and Edit.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

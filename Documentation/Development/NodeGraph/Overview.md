@@ -2,7 +2,7 @@
 
 ## Architecture
 
-The Octave node graph system provides a visual programming interface for connecting data-producing nodes to data-consuming nodes across multiple domains. It is designed to be domain-agnostic at its core, with specialized behavior provided by domain classes.
+The Polyphase node graph system provides a visual programming interface for connecting data-producing nodes to data-consuming nodes across multiple domains. It is designed to be domain-agnostic at its core, with specialized behavior provided by domain classes.
 
 ```
 ┌─────────────────────────────────────────────────────────┐

@@ -22,7 +22,7 @@ This example demonstrates:
 ```json
 {
     "name": "Coin",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Continuously rotates objects with configurable speed and axis.",
     "version": "1.0.0",
     "tags": ["gameplay", "utility"],

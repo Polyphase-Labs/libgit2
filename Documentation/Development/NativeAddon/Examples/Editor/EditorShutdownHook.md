@@ -11,7 +11,7 @@ This example demonstrates how to perform cleanup before the editor closes using 
 ```json
 {
     "name": "Shutdown Handler Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Handles cleanup before editor shutdown.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

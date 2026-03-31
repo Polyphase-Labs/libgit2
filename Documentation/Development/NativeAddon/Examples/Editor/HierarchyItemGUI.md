@@ -11,7 +11,7 @@ This example demonstrates how to draw custom overlays on hierarchy tree items an
 ```json
 {
     "name": "Item GUI Overlay Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds custom overlays to hierarchy and asset browser items.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

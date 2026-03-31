@@ -21,7 +21,7 @@ This example demonstrates:
 ```json
 {
     "name": "SelectHandler",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Sends signals on select actions (mouse click, touch, A button).",
     "version": "1.0.0",
     "tags": ["input", "utility"],

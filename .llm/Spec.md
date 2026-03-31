@@ -1,15 +1,15 @@
-# Octave Engine - LLM Codebase Specification
+# Polyphase Engine - LLM Codebase Specification
 
 ## Project Identity
 
-**Octave Engine** is a multi-platform game engine with an ImGui-based editor, Vulkan rendering, Lua scripting, visual node graphs, and timeline animation. It targets Windows, Linux, Android, GameCube/Wii, and Nintendo 3DS.
+**Polyphase Engine** is a multi-platform game engine with an ImGui-based editor, Vulkan rendering, Lua scripting, visual node graphs, and timeline animation. It targets Windows, Linux, Android, GameCube/Wii, and Nintendo 3DS.
 
-**Repository root:** The directory containing `Octave.sln`, `CMakeLists.txt`, and `Engine/`.
+**Repository root:** The directory containing `Polyphase.sln`, `CMakeLists.txt`, and `Engine/`.
 
 ## Directory Map
 
 ```
-octave/
+polyphase-engine/
 ├── Engine/                    # Main engine library (vcxproj + CMake)
 │   ├── Engine.vcxproj         # Visual Studio project
 │   ├── Engine.vcxproj.filters # VS filter groups
@@ -37,7 +37,7 @@ octave/
 ├── Template/                  # New project template
 ├── Tools/                     # Build scripts, Lua stub generator, XSD schema generator
 ├── Documentation/             # MkDocs site (see mkdocs.yml)
-├── Octave.sln                 # Visual Studio solution
+├── Polyphase.sln              # Visual Studio solution
 ├── CMakeLists.txt             # Root CMake
 └── mkdocs.yml                 # Documentation nav structure
 ```

@@ -11,7 +11,7 @@ This example demonstrates how to hook into the asset pipeline using `RegisterOnA
 ```json
 {
     "name": "Asset Pipeline Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Hooks into asset import/save/delete workflow.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

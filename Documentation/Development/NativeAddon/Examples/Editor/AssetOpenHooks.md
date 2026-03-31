@@ -11,7 +11,7 @@ This example demonstrates how to react to asset open events using `RegisterOnAss
 ```json
 {
     "name": "Asset Open Watcher Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Monitors asset open and opened events.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

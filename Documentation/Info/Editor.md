@@ -141,17 +141,17 @@ Headless mode requires both the `-headless` flag AND a `-project` path to be spe
 
 Build a Linux game with embedded assets:
 ```bash
-./OctaveEditor.elf -headless -project "/path/to/MyGame.octp" -build Linux embedded
+./PolyphaseEditor.elf -headless -project "/path/to/MyGame.octp" -build Linux embedded
 ```
 
 Build a GameCube game:
 ```bash
-./OctaveEditor.elf -headless -project "/path/to/MyGame.octp" -build GameCube embedded
+./PolyphaseEditor.elf -headless -project "/path/to/MyGame.octp" -build GameCube embedded
 ```
 
 Build a 3DS ROM:
 ```bash
-./OctaveEditor.elf -headless -project "/path/to/MyGame.octp" -build 3DS embedded
+./PolyphaseEditor.elf -headless -project "/path/to/MyGame.octp" -build 3DS embedded
 ```
 
 ## Build Process

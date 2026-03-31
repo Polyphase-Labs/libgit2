@@ -11,7 +11,7 @@ This example demonstrates how to register custom property drawers that override 
 ```json
 {
     "name": "Property Drawer Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Custom property drawers for the Inspector.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

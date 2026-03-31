@@ -11,7 +11,7 @@ This example demonstrates how to react to undo and redo operations using `Regist
 ```json
 {
     "name": "Undo Sync Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Syncs addon state with undo/redo operations.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

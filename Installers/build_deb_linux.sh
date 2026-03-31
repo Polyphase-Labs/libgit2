@@ -1,12 +1,12 @@
 #!/bin/bash
 # ==========================================================================
 #  build_deb_linux.sh
-#  Builds a .deb package for Octave Engine.
+#  Builds a .deb package for Polyphase Engine.
 #
 #  Prerequisites:
 #    - Python 3
 #    - dpkg-deb (standard on Debian/Ubuntu)
-#    - Engine built (OctaveEditor ELF binary)
+#    - Engine built (PolyphaseEditor ELF binary)
 #
 #  Usage: bash Installers/build_deb_linux.sh
 # ==========================================================================
@@ -19,7 +19,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "============================================"
-echo " Octave Engine - Debian Package Builder"
+echo " Polyphase Engine - Debian Package Builder"
 echo "============================================"
 echo ""
 
@@ -30,7 +30,7 @@ echo ""
 
 # --- Step 2: Read version ---
 VERSION="$(grep -oP 'Version=\K.*' dist/Editor/version.txt | tr -d '[:space:]')"
-PACKAGE_NAME="octave-engine"
+PACKAGE_NAME="polyphase-engine"
 DEB_DIR="dist/${PACKAGE_NAME}_${VERSION}_amd64"
 
 echo "[2/3] Assembling .deb structure (version ${VERSION})..."
@@ -40,19 +40,19 @@ rm -rf "$DEB_DIR"
 
 # --- Create directory structure ---
 mkdir -p "$DEB_DIR/DEBIAN"
-mkdir -p "$DEB_DIR/opt/octave"
+mkdir -p "$DEB_DIR/opt/polyphase"
 mkdir -p "$DEB_DIR/usr/share/applications"
 mkdir -p "$DEB_DIR/usr/share/mime/packages"
 mkdir -p "$DEB_DIR/usr/share/icons/hicolor/128x128/apps"
 
-# --- Copy staged files to /opt/octave ---
-cp -r dist/Editor/* "$DEB_DIR/opt/octave/"
+# --- Copy staged files to /opt/polyphase ---
+cp -r dist/Editor/* "$DEB_DIR/opt/polyphase/"
 
 # --- Copy FHS integration files ---
-cp Installers/Linux/octave-editor.desktop "$DEB_DIR/usr/share/applications/"
-cp Installers/Linux/octave-editor.xml "$DEB_DIR/usr/share/mime/packages/"
-if [ -f dist/Editor/OctaveLogo_128.png ]; then
-    cp dist/Editor/OctaveLogo_128.png "$DEB_DIR/usr/share/icons/hicolor/128x128/apps/octave-editor.png"
+cp Installers/Linux/polyphase-editor.desktop "$DEB_DIR/usr/share/applications/"
+cp Installers/Linux/polyphase-editor.xml "$DEB_DIR/usr/share/mime/packages/"
+if [ -f dist/Editor/PolyphaseLogo_128.png ]; then
+    cp dist/Editor/PolyphaseLogo_128.png "$DEB_DIR/usr/share/icons/hicolor/128x128/apps/polyphase-editor.png"
 fi
 
 # --- DEBIAN/control ---
@@ -63,8 +63,8 @@ Section: devel
 Priority: optional
 Architecture: amd64
 Depends: libvulkan1, libxcb1, libasound2
-Maintainer: Octave Engine <contact@example.com>
-Description: Octave Game Engine Editor
+Maintainer: Polyphase Engine <contact@example.com>
+Description: Polyphase Game Engine Editor
  Multi-platform game engine with ImGui editor, Vulkan rendering,
  Lua scripting, visual node graphs, and timeline animation.
  Targets Windows, Linux, GameCube, Wii, and Nintendo 3DS.
@@ -76,21 +76,21 @@ cat > "$DEB_DIR/DEBIAN/postinst" << 'EOF'
 set -e
 
 # Make binary executable
-chmod +x /opt/octave/OctaveEditor
+chmod +x /opt/polyphase/PolyphaseEditor
 
 # Create writable directories for runtime output
-mkdir -p /opt/octave/Engine/Saves
-chmod 777 /opt/octave/Engine/Saves
-mkdir -p /opt/octave/Standalone
-chmod 777 /opt/octave/Standalone
+mkdir -p /opt/polyphase/Engine/Saves
+chmod 777 /opt/polyphase/Engine/Saves
+mkdir -p /opt/polyphase/Standalone
+chmod 777 /opt/polyphase/Standalone
 
 # Create wrapper script that cds to install dir (required for path detection)
-cat > /usr/local/bin/octave-editor << 'WRAPPER'
+cat > /usr/local/bin/polyphase-editor << 'WRAPPER'
 #!/bin/bash
-cd /opt/octave
-exec /opt/octave/OctaveEditor "$@"
+cd /opt/polyphase
+exec /opt/polyphase/PolyphaseEditor "$@"
 WRAPPER
-chmod +x /usr/local/bin/octave-editor
+chmod +x /usr/local/bin/polyphase-editor
 
 # Update system caches
 if command -v update-desktop-database > /dev/null 2>&1; then
@@ -113,7 +113,7 @@ cat > "$DEB_DIR/DEBIAN/prerm" << 'EOF'
 set -e
 
 # Remove wrapper script
-rm -f /usr/local/bin/octave-editor
+rm -f /usr/local/bin/polyphase-editor
 
 # Update system caches
 if command -v update-desktop-database > /dev/null 2>&1; then

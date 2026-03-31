@@ -11,7 +11,7 @@ This example demonstrates how to extend the "Add Node" submenu that appears in t
 ```json
 {
     "name": "Custom Node Types Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds custom node types to the Add Node menu.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

@@ -13,7 +13,7 @@ This example demonstrates two viewport extension features:
 ```json
 {
     "name": "Viewport Extensions Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds viewport context menu items and overlays.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

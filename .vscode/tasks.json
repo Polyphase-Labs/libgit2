@@ -94,43 +94,43 @@
         {
             "type": "shell",
             "label": "Docker Build Container - Linux",
-            "command": "docker build -f Docker/Dockerfile -t octavegameengine ${workspaceFolder}",
+            "command": "docker build -f Docker/Dockerfile -t polyphase-engine ${workspaceFolder}",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [],
             "group": "build",
-            "detail": "Build the OctaveGameEngine Docker image"
+            "detail": "Build the Polyphase Engine Docker image"
         },
         {
             "type": "shell",
             "label": "Docker Build Editor - Linux",
-            "command": "docker run --rm -v ${workspaceFolder}:/workspace alpine sh -c 'rm -rf /workspace/dist && mkdir -p /workspace/dist/Octave'; docker build -f   Docker/Dockerfile -t octavegameengine ${workspaceFolder} && docker run --rm -v ${workspaceFolder}/dist/Octave:/game -v ${workspaceFolder}:/project octavegameengine build-editor",
+            "command": "docker run --rm -v ${workspaceFolder}:/workspace alpine sh -c 'rm -rf /workspace/dist && mkdir -p /workspace/dist/Polyphase'; docker build -f   Docker/Dockerfile -t polyphase-engine ${workspaceFolder} && docker run --rm -v ${workspaceFolder}/dist/Polyphase:/game -v ${workspaceFolder}:/project polyphase-engine build-editor",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [],
             "group": "build",
-            "detail": "Build Linux Editor using Docker and output to dist/Octave"
+            "detail": "Build Linux Editor using Docker and output to dist/Polyphase"
         },
         {
             "type": "shell",
             "label": "Docker Build Editor - WSL",
-            "command": "wsl docker run --rm -v ${workspaceFolder}:/workspace alpine sh -c 'rm -rf /workspace/dist && wsl mkdir -p /workspace/dist/Octave'; docker build -f   Docker/Dockerfile -t octavegameengine ${workspaceFolder} && wsl docker run --rm -v ${workspaceFolder}/dist/Octave:/game -v ${workspaceFolder}:/project octavegameengine build-editor",
+            "command": "wsl docker run --rm -v ${workspaceFolder}:/workspace alpine sh -c 'rm -rf /workspace/dist && wsl mkdir -p /workspace/dist/Polyphase'; docker build -f   Docker/Dockerfile -t polyphase-engine ${workspaceFolder} && wsl docker run --rm -v ${workspaceFolder}/dist/Polyphase:/game -v ${workspaceFolder}:/project polyphase-engine build-editor",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [],
             "group": "build",
-            "detail": "Build Linux Editor using Docker and output to dist/Octave"
+            "detail": "Build Linux Editor using Docker and output to dist/Polyphase"
         },
         {
             "type": "shell",
             "label": "Publish Docker Image - Linux",
-            "command": "docker build -f Docker/Dockerfile -t $OCTAVE_DOCKER_USER/octavegameengine-linux:latest . && docker push $OCTAVE_DOCKER_USER/octavegameengine-linux:latest",
+            "command": "docker build -f Docker/Dockerfile -t $POLYPHASE_DOCKER_USER/polyphase-engine-linux:latest . && docker push $POLYPHASE_DOCKER_USER/polyphase-engine-linux:latest",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -142,7 +142,7 @@
         {
             "type": "shell",
             "label": "Publish Dev Docker Image - Linux",
-            "command": "docker build -f Docker/Dockerfile -t $OCTAVE_DOCKER_USER/octavegameengine-linux:dev . && docker push $OCTAVE_DOCKER_USER/octavegameengine-linux:dev",
+            "command": "docker build -f Docker/Dockerfile -t $POLYPHASE_DOCKER_USER/polyphase-engine-linux:dev . && docker push $POLYPHASE_DOCKER_USER/polyphase-engine-linux:dev",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -154,7 +154,7 @@
         {
             "type": "shell",
             "label": "Preview Docs - Linux",
-            "command": "docker stop octave-docs &&  docker rm octave-docs && docker build -t octave-docs -f Tools/CI/docs/Dockerfile Tools/CI/docs && docker run --rm -it --user 0:0  -p 8580:8000 --name octave-docs -v ${PWD}:/repo octave-docs serve",
+            "command": "docker stop polyphase-docs &&  docker rm polyphase-docs && docker build -t polyphase-docs -f Tools/CI/docs/Dockerfile Tools/CI/docs && docker run --rm -it --user 0:0  -p 8580:8000 --name polyphase-docs -v ${PWD}:/repo polyphase-docs serve",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -166,7 +166,7 @@
         {
             "type": "shell",
             "label": "Stop Docs - Linux",
-            "command": "docker stop octave-docs &&  docker rm octave-docs ",
+            "command": "docker stop polyphase-docs &&  docker rm polyphase-docs ",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -178,7 +178,7 @@
         {
             "type": "shell",
             "label": "Stop Docs - WSL",
-            "command": "wsl docker stop octave-docs &&  wsl docker rm octave-docs ",
+            "command": "wsl docker stop polyphase-docs &&  wsl docker rm polyphase-docs ",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -190,7 +190,7 @@
         {
             "type": "shell",
             "label": "Preview Docs - WSL",
-            "command": "wsl docker build -t octave-docs -f Tools/CI/docs/Dockerfile Tools/CI/docs && wsl docker run --rm  -it --user 0:0 --name octave-docs  -p 8580:8000 -v ${PWD}:/repo octave-docs serve",
+            "command": "wsl docker build -t polyphase-docs -f Tools/CI/docs/Dockerfile Tools/CI/docs && wsl docker run --rm  -it --user 0:0 --name polyphase-docs  -p 8580:8000 -v ${PWD}:/repo polyphase-docs serve",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"

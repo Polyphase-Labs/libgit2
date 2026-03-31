@@ -21,7 +21,7 @@ This example demonstrates:
 ```json
 {
     "name": "Custom Context Menu Item",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Demonstrates adding custom context menu items to the editor.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

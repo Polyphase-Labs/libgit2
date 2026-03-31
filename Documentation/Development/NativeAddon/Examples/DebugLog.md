@@ -23,7 +23,7 @@ This example demonstrates:
 ```json
 {
     "name": "Debug Log",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "A dockable debug log window with filtering and search.",
     "version": "1.0.0",
     "tags": ["editor", "debug", "logging"],

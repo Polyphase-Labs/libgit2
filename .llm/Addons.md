@@ -2,7 +2,7 @@
 
 ## Overview
 
-Octave has two plugin systems: a **RuntimePluginManager** for game/runtime plugins and a **NativeAddonManager** (editor-only) for editor extensions. Both share the same `EditorUIHooks` API for editor integration.
+Polyphase has two plugin systems: a **RuntimePluginManager** for game/runtime plugins and a **NativeAddonManager** (editor-only) for editor extensions. Both share the same `EditorUIHooks` API for editor integration.
 
 ## Key Files
 
@@ -133,7 +133,7 @@ Located in `Engine/Source/Editor/Addons/`. Manages editor-side addon loading, in
 
 **Location:** `Plugins/Blender/octave-gameengine-connect/`
 
-A Python Blender addon that exports glTF with Octave metadata (mesh type, asset reference, script, material type). Demonstrates external tooling integration rather than runtime plugin API usage.
+A Python Blender addon that exports glTF with Polyphase metadata (mesh type, asset reference, script, material type). Demonstrates external tooling integration rather than runtime plugin API usage.
 
 ## Documentation
 

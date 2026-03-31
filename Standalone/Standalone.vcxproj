@@ -442,7 +442,7 @@
     <ResourceCompile Include="Standalone.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Octave.ico" />
+    <Image Include="Polyphase.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

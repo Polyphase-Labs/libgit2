@@ -21,7 +21,7 @@ This example demonstrates:
 ```json
 {
     "name": "Custom Menu Item",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Demonstrates adding custom menu items to the editor.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

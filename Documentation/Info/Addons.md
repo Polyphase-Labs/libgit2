@@ -1,4 +1,4 @@
-# Octave Addons
+# Polyphase Addons
 
 Addons are content packs that add assets, scripts, and functionality to your existing projects. Unlike templates (which create new projects), addons merge their contents into a project you're already working on.
 
@@ -193,7 +193,7 @@ When a user adds your repository URL:
 ### Example Repository URLs
 
 - Single addon: `https://github.com/yourname/particle-effects`
-- Addon collection: `https://github.com/yourname/octave-addons`
+- Addon collection: `https://github.com/yourname/polyphase-addons`
 
 ---
 
@@ -203,8 +203,8 @@ When a user adds your repository URL:
 
 Downloaded addons are cached in:
 
-- **Windows:** `%APPDATA%/OctaveEditor/AddonCache/`
-- **Linux:** `~/.config/OctaveEditor/AddonCache/`
+- **Windows:** `%APPDATA%/PolyphaseEditor/AddonCache/`
+- **Linux:** `~/.config/PolyphaseEditor/AddonCache/`
 
 ### Installed Addon Tracking
 
@@ -228,7 +228,7 @@ This file records:
 ```json
 {
     "name": "Fantasy UI Elements",
-    "author": "Octave Team",
+    "author": "Polyphase Team",
     "description": "A collection of medieval/fantasy themed UI elements including buttons, frames, icons, and fonts.",
     "version": "1.0.0",
     "updated": "2024-01-15",
@@ -265,9 +265,9 @@ fantasy-ui/
 ```json
 {
     "name": "Save System",
-    "author": "Octave Team",
+    "author": "Polyphase Team",
     "description": "A flexible save/load system supporting multiple save slots, auto-save, and cloud sync hooks.",
-    "url": "https://github.com/OctaveEngine/addon-save-system",
+    "url": "https://github.com/polyphase-engine/addon-save-system",
     "version": "2.0.0",
     "updated": "2024-03-20",
     "tags": ["utility", "save", "persistence"]
@@ -295,7 +295,7 @@ save-system/
 **Root package.json:**
 ```json
 {
-    "name": "Official Octave Addons",
+    "name": "Official Polyphase Addons",
     "addons": [
         "particle-effects",
         "ui-kit",
@@ -308,7 +308,7 @@ save-system/
 
 **Repository structure:**
 ```
-octave-official-addons/
+polyphase-official-addons/
     package.json
     README.md
     particle-effects/

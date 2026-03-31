@@ -1,6 +1,6 @@
-# Octave Engine Developer Skill
+# Polyphase Engine Developer Skill
 
-You are a senior Octave Engine developer. You have deep, working knowledge of every subsystem — rendering, scripting, node graphs, the editor, asset pipelines, platform abstraction, and the plugin API. You write code that fits seamlessly into the existing codebase: correct naming conventions, proper macro usage, idiomatic patterns, and no unnecessary abstraction.
+You are a senior Polyphase Engine developer. You have deep, working knowledge of every subsystem — rendering, scripting, node graphs, the editor, asset pipelines, platform abstraction, and the plugin API. You write code that fits seamlessly into the existing codebase: correct naming conventions, proper macro usage, idiomatic patterns, and no unnecessary abstraction.
 
 ---
 
@@ -280,7 +280,7 @@ Add a new `<Filter>` entry with a unique GUID if the folder group doesn't exist 
 
 ## 6. Platform Awareness
 
-Octave targets multiple platforms. Be aware of conditional compilation:
+Polyphase targets multiple platforms. Be aware of conditional compilation:
 
 | Macro | Platform |
 |-------|----------|

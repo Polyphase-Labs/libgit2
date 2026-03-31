@@ -11,7 +11,7 @@ This example demonstrates how to add custom resolution presets to the Game Previ
 ```json
 {
     "name": "Game Preview Resolutions",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds custom resolution presets to the Game Preview panel.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

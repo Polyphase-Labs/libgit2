@@ -1,8 +1,8 @@
-# Mesh Instancing in Octave Engine
+# Mesh Instancing in Polyphase Engine
 
 ## Overview
 
-Octave Engine supports mesh instancing through two distinct mechanisms:
+Polyphase Engine supports mesh instancing through two distinct mechanisms:
 
 1. **Asset-level sharing** - Multiple scene nodes reference a single `StaticMesh` asset in memory (always active, all platforms).
 2. **GPU hardware instancing** - A single draw call renders many copies of the same mesh with per-instance transforms (Vulkan only, via `InstancedMesh3D`).

@@ -23,7 +23,7 @@ This example demonstrates:
 ```json
 {
     "name": "Custom Debug Window",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Debug window showing scene hierarchy and selected object transforms.",
     "version": "1.0.0",
     "tags": ["editor", "debug", "tools"],

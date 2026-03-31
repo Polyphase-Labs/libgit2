@@ -11,7 +11,7 @@ This example demonstrates how to add custom buttons and controls to the editor's
 ```json
 {
     "name": "Toolbar Extension Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds custom toolbar buttons to the viewport.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

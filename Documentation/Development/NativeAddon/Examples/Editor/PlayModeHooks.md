@@ -11,7 +11,7 @@ This example demonstrates how to react to Play-In-Editor (PIE) state changes usi
 ```json
 {
     "name": "Play Mode Monitor Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Monitors play mode state transitions.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

@@ -11,7 +11,7 @@ This example demonstrates how to react to selection changes in the editor using 
 ```json
 {
     "name": "Selection Monitor Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Monitors and reacts to selection changes.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

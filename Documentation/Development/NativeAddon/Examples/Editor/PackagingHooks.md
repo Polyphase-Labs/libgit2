@@ -11,7 +11,7 @@ This example demonstrates how to hook into the packaging/build process using `Re
 ```json
 {
     "name": "Package Validator Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Validates and processes builds during packaging.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

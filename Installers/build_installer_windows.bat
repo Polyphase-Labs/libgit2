@@ -1,7 +1,7 @@
 @echo off
 REM =========================================================================
 REM  build_installer_windows.bat
-REM  Full build pipeline for Octave Engine Windows 64-bit installer.
+REM  Full build pipeline for Polyphase Engine Windows 64-bit installer.
 REM
 REM  This script performs the complete build process:
 REM    1. Initialize git submodules
@@ -25,7 +25,7 @@ REM Navigate to repo root
 cd /d "%~dp0.."
 
 echo ============================================
-echo  Octave Engine - Windows 64-bit Full Build
+echo  Polyphase Engine - Windows 64-bit Full Build
 echo ============================================
 echo.
 
@@ -86,7 +86,7 @@ echo.
 
 REM --- Step 3: Build Engine ---
 echo [3/5] Building Engine (ReleaseEditor x64)...
-msbuild Octave.sln /p:Configuration=ReleaseEditor /p:Platform=x64 /m
+msbuild Polyphase.sln /p:Configuration=ReleaseEditor /p:Platform=x64 /m
 if errorlevel 1 (
     echo ERROR: Engine build failed.
     exit /b 1
@@ -142,6 +142,6 @@ echo ============================================
 echo  BUILD COMPLETE!
 echo ============================================
 echo.
-echo  Installer: dist\OctaveSetup-*.exe
+echo  Installer: dist\PolyphaseSetup-*.exe
 echo.
 echo ============================================

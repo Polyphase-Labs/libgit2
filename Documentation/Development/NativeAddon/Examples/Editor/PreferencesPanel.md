@@ -11,7 +11,7 @@ This example demonstrates how to add a custom preferences panel to the editor's 
 ```json
 {
     "name": "Preferences Panel Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds a custom preferences panel to the editor.",
     "version": "1.0.0",
     "tags": ["editor", "example"],

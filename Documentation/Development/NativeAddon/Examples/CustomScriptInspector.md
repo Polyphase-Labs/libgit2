@@ -21,7 +21,7 @@ This example demonstrates:
 ```json
 {
     "name": "Custom Script Inspector",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Extends the inspector for specific scripts with custom UI.",
     "version": "1.0.0",
     "tags": ["editor", "inspector"],
