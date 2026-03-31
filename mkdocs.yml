@@ -33,11 +33,10 @@ nav:
 
   - Development:
       - Install Environment:
-          - Quick Start: Info/QuickStart.md
-          - Terminal: Development/SetupEnvironment/Terminal.md
           - Windows: Development/SetupEnvironment/Windows.md
           - Linux: Development/SetupEnvironment/Linux.md
           - VS Code: Development/SetupEnvironment/VSCode.md
+          - Terminal: Development/SetupEnvironment/Terminal.md
           - Compiling: Development/SetupEnvironment/Compiling.md
       - Mesh Instancing: Development/MeshInstancing.md
       - Packaging Flow: Development/PackagingFlow.md
