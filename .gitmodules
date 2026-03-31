@@ -1,8 +1,8 @@
 [submodule "External/bullet3"]
 	path = External/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
-[submodule "Plugins/Blender/polyphase-blender-addon"]
-	path = Plugins/Blender/polyphase-blender-addon
+[submodule "Plugins/Blender/polyshade-gameengine-connect"]
+	path = Plugins/Blender/polyshade-gameengine-connect
 	url = https://github.com/polyphase-engine/Polyphase-Blender-Addon---Connect
 [submodule "External/zep"]
 	path = External/zep
