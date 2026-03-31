@@ -939,6 +939,27 @@ void GFX_DrawTextMeshComp(TextMesh3D* textMeshComp)
     }
 }
 
+// Voxel3D
+void GFX_CreateVoxel3DResource(Voxel3D* voxel)
+{
+    // TODO: Implement GX Voxel3D support
+}
+
+void GFX_DestroyVoxel3DResource(Voxel3D* voxel)
+{
+    // TODO: Implement GX Voxel3D support
+}
+
+void GFX_UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    // TODO: Implement GX Voxel3D support
+}
+
+void GFX_DrawVoxel3D(Voxel3D* voxel)
+{
+    // TODO: Implement GX Voxel3D support
+}
+
 // ParticleComp
 void GFX_CreateParticleCompResource(Particle3D* particleComp)
 {

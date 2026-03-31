@@ -33,6 +33,7 @@
 #include "LuaBindings/ShadowMesh3d_Lua.h"
 #include "LuaBindings/InstancedMesh3d_Lua.h"
 #include "LuaBindings/TextMesh3d_Lua.h"
+#include "LuaBindings/Voxel3d_Lua.h"
 #include "LuaBindings/Sphere3d_Lua.h"
 #include "LuaBindings/Asset_Lua.h"
 #include "LuaBindings/Scene_Lua.h"
@@ -125,6 +126,7 @@ void BindLuaInterface()
     ShadowMesh3D_Lua::Bind();
     InstancedMesh3D_Lua::Bind();
     TextMesh3D_Lua::Bind();
+    Voxel3D_Lua::Bind();
     Sphere3D_Lua::Bind();
     TimelinePlayer_Lua::Bind();
     NodeGraphPlayer_Lua::Bind();

@@ -256,7 +256,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -278,7 +278,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -300,7 +300,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=0;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -325,7 +325,7 @@
       <WarningLevel>EnableWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_ANDROID=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_ANDROID_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -349,7 +349,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=0;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -376,7 +376,7 @@
       <WarningLevel>EnableWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_ANDROID=1;API_VULKAN=1;EDITOR=1;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_ANDROID_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -403,7 +403,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -429,7 +429,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -455,7 +455,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=0;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
@@ -479,7 +479,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_ANDROID=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_ANDROID_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -502,7 +502,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=0;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -527,7 +527,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(AndroidSdk)/ndk/$(AndroidNdkVersion)/sources/android/native_app_glue;$(ProjectDir)../External/Vorbis</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_ANDROID=1;API_VULKAN=1;EDITOR=1;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_ANDROID_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -545,7 +545,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseSteam|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=1;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=0;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
@@ -811,6 +811,7 @@
     <ClCompile Include="Source\Engine\Nodes\3D\StaticMesh3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\TestSpinner.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\TextMesh3d.cpp" />
+    <ClCompile Include="Source\Engine\Nodes\3D\Voxel3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\Node3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Node.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\ArrayWidget.cpp" />
@@ -1009,6 +1010,7 @@
     <ClCompile Include="Source\LuaBindings\System_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TinyLLM_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TextMesh3d_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Texture_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Text_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TimerManager_Lua.cpp" />
@@ -1211,6 +1213,7 @@
     <ClInclude Include="Source\Engine\Nodes\3D\StaticMesh3d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\TestSpinner.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\TextMesh3d.h" />
+    <ClInclude Include="Source\Engine\Nodes\3D\Voxel3d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\Node3d.h" />
     <ClInclude Include="Source\Engine\Nodes\Node.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\ArrayWidget.h" />
@@ -1413,6 +1416,7 @@
     <ClInclude Include="Source\LuaBindings\Stream_Lua.h" />
     <ClInclude Include="Source\LuaBindings\System_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TextMesh3d_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Texture_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Text_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TinyLLM_Lua.h" />

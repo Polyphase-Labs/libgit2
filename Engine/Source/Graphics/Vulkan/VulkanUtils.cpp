@@ -17,6 +17,7 @@
 #include "Nodes/3D/ShadowMesh3d.h"
 #include "Nodes/3D/InstancedMesh3d.h"
 #include "Nodes/3D/TextMesh3d.h"
+#include "Nodes/3D/Voxel3d.h"
 #include "Nodes/3D/Particle3d.h"
 #include "Nodes/Widgets/Quad.h"
 #include "Nodes/Widgets/Text.h"
@@ -2083,6 +2084,117 @@ void BindGeometryDescriptorSet(TextMesh3D* textMeshComp)
 
     UniformBlock uniformBlock = WriteUniformBlock(&ubo, sizeof(ubo));
     DescriptorSet::Begin("TextMesh3D DS")
+        .WriteUniformBuffer(GD_UNIFORM_BUFFER, uniformBlock)
+        .Build()
+        .Bind(cb, 1);
+}
+
+void CreateVoxel3DResource(Voxel3D* voxel)
+{
+    // Resource will be created on first upload
+}
+
+void DestroyVoxel3DResource(Voxel3D* voxel)
+{
+    Voxel3DResource* resource = voxel->GetResource();
+
+    if (resource->mVertexBuffer != nullptr)
+    {
+        GetDestroyQueue()->Destroy(resource->mVertexBuffer);
+        resource->mVertexBuffer = nullptr;
+    }
+
+    if (resource->mIndexBuffer != nullptr)
+    {
+        GetDestroyQueue()->Destroy(resource->mIndexBuffer);
+        resource->mIndexBuffer = nullptr;
+    }
+}
+
+void UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    Voxel3DResource* resource = voxel->GetResource();
+
+    // Vertex buffer
+    size_t vertexSize = vertices.size() * sizeof(VertexColor);
+    if (resource->mVertexBuffer != nullptr && resource->mVertexBuffer->GetSize() < vertexSize)
+    {
+        GetDestroyQueue()->Destroy(resource->mVertexBuffer);
+        resource->mVertexBuffer = nullptr;
+    }
+
+    if (resource->mVertexBuffer == nullptr && vertexSize > 0)
+    {
+        resource->mVertexBuffer = new Buffer(BufferType::Vertex, vertexSize, "Voxel3D Vertices");
+    }
+
+    if (resource->mVertexBuffer != nullptr && vertices.size() > 0)
+    {
+        resource->mVertexBuffer->Update(vertices.data(), vertexSize, 0);
+    }
+
+    // Index buffer
+    size_t indexSize = indices.size() * sizeof(IndexType);
+    if (resource->mIndexBuffer != nullptr && resource->mIndexBuffer->GetSize() < indexSize)
+    {
+        GetDestroyQueue()->Destroy(resource->mIndexBuffer);
+        resource->mIndexBuffer = nullptr;
+    }
+
+    if (resource->mIndexBuffer == nullptr && indexSize > 0)
+    {
+        resource->mIndexBuffer = new Buffer(BufferType::Index, indexSize, "Voxel3D Indices");
+    }
+
+    if (resource->mIndexBuffer != nullptr && indices.size() > 0)
+    {
+        resource->mIndexBuffer->Update(indices.data(), indexSize, 0);
+    }
+}
+
+void DrawVoxel3D(Voxel3D* voxel)
+{
+    Voxel3DResource* resource = voxel->GetResource();
+    if (resource->mVertexBuffer == nullptr || resource->mIndexBuffer == nullptr || voxel->GetNumIndices() == 0)
+        return;
+
+    VkCommandBuffer cb = GetCommandBuffer();
+
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = resource->mVertexBuffer->Get();
+    vkCmdBindVertexBuffers(cb, 0, 1, &vertexBuffer, &offset);
+    vkCmdBindIndexBuffer(cb, resource->mIndexBuffer->Get(), 0, VK_INDEX_TYPE_UINT32);
+
+    Material* material = nullptr;
+
+    if (GetVulkanContext()->AreMaterialsEnabled())
+    {
+        material = voxel->GetMaterial();
+        material = material ? material : Renderer::Get()->GetDefaultMaterial();
+    }
+
+    BindForwardVertexType(VertexType::VertexColor, material);
+    BindMaterialResource(material);
+    GetVulkanContext()->CommitPipeline();
+
+    BindGeometryDescriptorSet(voxel);
+    BindMaterialDescriptorSet(material);
+
+    vkCmdDrawIndexed(cb, voxel->GetNumIndices(), 1, 0, 0, 0);
+}
+
+void BindGeometryDescriptorSet(Voxel3D* voxel)
+{
+    VkCommandBuffer cb = GetCommandBuffer();
+
+    World* world = voxel->GetWorld();
+    GeometryData ubo = {};
+
+    WriteGeometryUniformData(ubo, world, voxel, voxel->GetRenderTransform());
+    GatherGeometryLightUniformData(ubo, voxel, voxel->GetMaterial(), false);
+
+    UniformBlock uniformBlock = WriteUniformBlock(&ubo, sizeof(ubo));
+    DescriptorSet::Begin("Voxel3D DS")
         .WriteUniformBuffer(GD_UNIFORM_BUFFER, uniformBlock)
         .Build()
         .Bind(cb, 1);

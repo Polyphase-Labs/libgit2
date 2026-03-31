@@ -680,6 +680,9 @@
     <ClCompile Include="Source\Engine\Nodes\3D\TextMesh3d.cpp">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Engine\Nodes\3D\Voxel3d.cpp">
+      <Filter>Source Files\Engine\Nodes\3D</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Engine\Nodes\3D\Node3d.cpp">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClCompile>
@@ -729,6 +732,9 @@
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
     <ClCompile Include="Source\LuaBindings\TextMesh3d_Lua.cpp">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp">
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
     <ClCompile Include="Source\LuaBindings\Node3d_Lua.cpp">
@@ -1860,6 +1866,9 @@
     <ClInclude Include="Source\Engine\Nodes\3D\TextMesh3d.h">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Engine\Nodes\3D\Voxel3d.h">
+      <Filter>Source Files\Engine\Nodes\3D</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Engine\Nodes\3D\Node3d.h">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClInclude>
@@ -1909,6 +1918,9 @@
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
     <ClInclude Include="Source\LuaBindings\TextMesh3d_Lua.h">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h">
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
     <ClInclude Include="Source\LuaBindings\Node3d_Lua.h">

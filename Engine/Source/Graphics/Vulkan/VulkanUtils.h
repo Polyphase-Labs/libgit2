@@ -27,6 +27,7 @@ class SkeletalMesh3D;
 class ShadowMesh3D;
 class InstancedMesh3D;
 class TextMesh3D;
+class Voxel3D;
 class Particle3D;
 class Primitive3D;
 class Node3D;
@@ -147,6 +148,13 @@ void DestroyTextMeshCompResource(TextMesh3D* textMeshComp);
 void UpdateTextMeshCompVertexBuffer(TextMesh3D* textMeshComp, const std::vector<Vertex>& vertices);
 void DrawTextMeshComp(TextMesh3D* textMeshComp);
 void BindGeometryDescriptorSet(TextMesh3D* textMeshComp);
+
+// Voxel3D
+void CreateVoxel3DResource(Voxel3D* voxel);
+void DestroyVoxel3DResource(Voxel3D* voxel);
+void UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
+void DrawVoxel3D(Voxel3D* voxel);
+void BindGeometryDescriptorSet(Voxel3D* voxel);
 
 // ParticleComp
 void DestroyParticleCompResource(Particle3D* particleComp);

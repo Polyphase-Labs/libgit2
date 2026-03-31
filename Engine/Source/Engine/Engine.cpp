@@ -188,6 +188,7 @@ void ForceLinkage()
     FORCE_LINK_CALL(Capsule3D);
     FORCE_LINK_CALL(ShadowMesh3D);
     FORCE_LINK_CALL(TextMesh3D);
+    FORCE_LINK_CALL(Voxel3D);
     FORCE_LINK_CALL(InstancedMesh3D);
     FORCE_LINK_CALL(TimelinePlayer);
     FORCE_LINK_CALL(NodeGraphPlayer);

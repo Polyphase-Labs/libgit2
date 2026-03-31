@@ -207,6 +207,17 @@ struct TextMeshCompResource
 #endif
 };
 
+struct Voxel3DResource
+{
+#if API_VULKAN
+    Buffer* mVertexBuffer = nullptr;
+    Buffer* mIndexBuffer = nullptr;
+#elif API_C3D
+    DoubleBuffer mVertexData;
+    DoubleBuffer mIndexData;
+#endif
+};
+
 struct QuadResource
 {
 #if API_VULKAN

@@ -398,6 +398,29 @@ void GFX_DrawTextMeshComp(TextMesh3D* textMeshComp)
     DrawTextMeshComp(textMeshComp);
 }
 
+void GFX_CreateVoxel3DResource(Voxel3D* voxel)
+{
+    if (IsHeadless()) return;
+    CreateVoxel3DResource(voxel);
+}
+
+void GFX_DestroyVoxel3DResource(Voxel3D* voxel)
+{
+    if (IsHeadless()) return;
+    DestroyVoxel3DResource(voxel);
+}
+
+void GFX_UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    if (IsHeadless()) return;
+    UpdateVoxel3DResource(voxel, vertices, indices);
+}
+
+void GFX_DrawVoxel3D(Voxel3D* voxel)
+{
+    DrawVoxel3D(voxel);
+}
+
 void GFX_CreateParticleCompResource(Particle3D* particleComp)
 {
     if (IsHeadless()) return;
