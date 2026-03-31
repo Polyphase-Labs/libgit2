@@ -24,6 +24,9 @@ function TimelinePlayer:IsPlaying() end
 ---@return boolean
 function TimelinePlayer:IsPaused() end
 
+---@return number
+function TimelinePlayer:GetProgress() end
+
 ---@param arg1? Asset
 function TimelinePlayer:SetTimeline(arg1) end
 

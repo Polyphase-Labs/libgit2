@@ -1,7 +1,8 @@
 #pragma once
 
 #define ENGINE_NAME "Octave"
-#define OCTAVE_VERSION 5
+#define OCTAVE_VERSION 6
+#define OCTAVE_VERSION_STRING "6.1.0"
 #define MAX_PATH_SIZE 260
 
 #define DEFAULT_GAME_NAME "Octave"

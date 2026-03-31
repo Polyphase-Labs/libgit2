@@ -146,6 +146,15 @@ int GetInt(const rapidjson::Document& doc, const char* key, int defaultValue)
     return defaultValue;
 }
 
+int64_t GetInt64(const rapidjson::Document& doc, const char* key, int64_t defaultValue)
+{
+    if (doc.HasMember(key) && doc[key].IsInt64())
+    {
+        return doc[key].GetInt64();
+    }
+    return defaultValue;
+}
+
 float GetFloat(const rapidjson::Document& doc, const char* key, float defaultValue)
 {
     if (doc.HasMember(key) && doc[key].IsNumber())
@@ -231,6 +240,26 @@ void SetInt(rapidjson::Document& doc, const char* key, int value)
     if (doc.HasMember(key))
     {
         doc[key].SetInt(value);
+    }
+    else
+    {
+        rapidjson::Value k(key, allocator);
+        doc.AddMember(k, value, allocator);
+    }
+}
+
+void SetInt64(rapidjson::Document& doc, const char* key, int64_t value)
+{
+    if (!doc.IsObject())
+    {
+        doc.SetObject();
+    }
+
+    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+    if (doc.HasMember(key))
+    {
+        doc[key].SetInt64(value);
     }
     else
     {

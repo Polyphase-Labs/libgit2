@@ -19,6 +19,7 @@
 #include "Packaging/PackagingModule.h"
 #include "Packaging/DockerModule.h"
 #include "Network/NetworkModule.h"
+#include "Updates/UpdatesModule.h"
 
 PreferencesManager* PreferencesManager::sInstance = nullptr;
 
@@ -50,6 +51,9 @@ void PreferencesManager::Create()
 
     // Network module
     sInstance->RegisterModule(new NetworkModule());
+
+    // Updates module
+    sInstance->RegisterModule(new UpdatesModule());
 
     // Load all settings on startup
     sInstance->LoadAllSettings();

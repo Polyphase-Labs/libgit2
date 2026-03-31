@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <chrono>
 
 #if PLATFORM_WINDOWS
 #include <Windows.h>
@@ -36,6 +37,9 @@
 #include "EditorUIHookManager.h"
 #include "ControllerServer/ControllerServer.h"
 #include "Preferences/Network/NetworkModule.h"
+#include "Preferences/Updates/UpdatesModule.h"
+#include "AutoUpdater/AutoUpdater.h"
+#include "AutoUpdater/HttpClient.h"
 #include "Profiling/ProfilingWindow.h"
 #include "Grid.h"
 #include "Assets/StaticMesh.h"
@@ -130,6 +134,7 @@ void EditorMain(int32_t argc, char** argv)
     AddonManager::Create();
     EditorUIHookManager::Create();
     NativeAddonManager::Create();
+    AutoUpdater::Create();
 
     // Connect EditorUIHooks to NativeAddonManager's engine API
     if (NativeAddonManager::Get() && EditorUIHookManager::Get())
@@ -184,12 +189,29 @@ void EditorMain(int32_t argc, char** argv)
         }
     }
 
+    // Check for updates on startup if enabled
+    UpdatesModule* updatesModule = UpdatesModule::Get();
+    if (updatesModule && updatesModule->GetCheckOnStartup() && HttpClient::IsAvailable())
+    {
+        // Check if enough time has passed since last check
+        int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        int64_t lastCheck = updatesModule->GetLastCheckTime();
+        int64_t intervalNs = (int64_t)updatesModule->GetCheckIntervalHours() * 3600LL * 1000000000LL;
+
+        if (lastCheck == 0 || (now - lastCheck) > intervalNs)
+        {
+            AutoUpdater::Get()->CheckForUpdates(false);
+        }
+    }
+
     bool ret = true;
 
     while (ret)
     {
         InputManager::Get()->Update();
         ActionManager::Get()->Update();
+        AutoUpdater::Get()->Update();
 
         bool playInEditor = GetEditorState()->mPlayInEditor;
 
@@ -252,6 +274,7 @@ void EditorMain(int32_t argc, char** argv)
         EditorUIHookManager::Get()->FireOnEditorShutdown();
     }
 
+    AutoUpdater::Destroy();
     NativeAddonManager::Destroy();
     EditorUIHookManager::Destroy();
     AddonManager::Destroy();

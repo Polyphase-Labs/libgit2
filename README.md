@@ -66,10 +66,11 @@ Instructions for building from source below.
 ### Installing Dependencies
 
 1. For Debian/Ubuntu based distros:
-   `sudo apt install g++ make libx11-dev libasound2-dev`
+   `sudo apt install g++ make libx11-dev libasound2-dev libcurl4`
    For Arch-based distributions:
-   `sudo pacman -S gcc make libx11 alsa-lib`
+   `sudo pacman -S gcc make libx11 alsa-lib curl`
    Note: arch users may get a dependency error when attempting to install `alsa-lib`, in this case try to install `lib32-alsa-lib`.
+   Note: libcurl4/curl is optional but required for the auto-update feature in the editor.
 
 2. Install Vulkan SDK version 1.3.275.0:
 

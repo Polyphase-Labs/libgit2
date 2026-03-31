@@ -43,6 +43,10 @@ WizardStyle=modern
 UninstallDisplayIcon={app}\Standalone\Octave.ico
 PrivilegesRequired=admin
 DisableProgramGroupPage=yes
+; Auto-update support: close running Octave and restart after upgrade
+CloseApplications=yes
+CloseApplicationsFilter=Octave.exe
+RestartApplications=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

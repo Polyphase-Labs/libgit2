@@ -173,3 +173,18 @@ function Widget:GetOpacity() end
 
 ---@return number
 function Widget:GetOpacityFloat() end
+
+---@param value string
+function Widget:SetTooltipName(value) end
+
+---@return string
+function Widget:GetTooltipName() end
+
+---@param value string
+function Widget:SetTooltipDescription(value) end
+
+---@return string
+function Widget:GetTooltipDescription() end
+
+---@return boolean
+function Widget:HasTooltip() end

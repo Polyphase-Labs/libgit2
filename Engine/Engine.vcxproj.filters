@@ -180,6 +180,12 @@
     <Filter Include="Source Files\Editor\Preferences\Network">
       <UniqueIdentifier>{a8b9c0d1-2e3f-4a5b-6c7d-e8f9a0b1c2d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\Preferences\Updates">
+      <UniqueIdentifier>{b9c0d1e2-3f4a-5b6c-7d8e-f9a0b1c2d3e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor\AutoUpdater">
+      <UniqueIdentifier>{c0d1e2f3-4a5b-6c7d-8e9f-a0b1c2d3e4f5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Graphics\Vulkan\VulkanUtils.cpp">
@@ -1066,6 +1072,21 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\Preferences\Network\NetworkModule.cpp">
       <Filter>Source Files\Editor\Preferences\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Preferences\Updates\UpdatesModule.cpp">
+      <Filter>Source Files\Editor\Preferences\Updates</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.cpp">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\AutoUpdater\HttpClient_Windows.cpp">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\AutoUpdater\ReleaseInfo.cpp">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\EditorUIHookManager.cpp">
       <Filter>Source Files\Editor</Filter>
@@ -2192,6 +2213,21 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\Preferences\Network\NetworkModule.h">
       <Filter>Source Files\Editor\Preferences\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Preferences\Updates\UpdatesModule.h">
+      <Filter>Source Files\Editor\Preferences\Updates</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.h">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\AutoUpdater\HttpClient.h">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\AutoUpdater\ReleaseInfo.h">
+      <Filter>Source Files\Editor\AutoUpdater</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\EditorUIHookManager.h">
       <Filter>Source Files\Editor</Filter>

@@ -22,5 +22,9 @@ function Log.Enable(value) end
 ---@return boolean
 function Log.IsEnabled() end
 
+function Log.SetCallback() end
+
+function Log.ClearCallback() end
+
 ---@param string string
 function Log.Info(string) end

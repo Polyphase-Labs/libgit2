@@ -3,6 +3,7 @@
 #if EDITOR
 
 #include <string>
+#include <cstdint>
 #include "Maths.h"
 #include "document.h"
 
@@ -15,6 +16,7 @@ namespace JsonSettings
     // Getters with defaults
     bool GetBool(const rapidjson::Document& doc, const char* key, bool defaultValue);
     int GetInt(const rapidjson::Document& doc, const char* key, int defaultValue);
+    int64_t GetInt64(const rapidjson::Document& doc, const char* key, int64_t defaultValue);
     float GetFloat(const rapidjson::Document& doc, const char* key, float defaultValue);
     std::string GetString(const rapidjson::Document& doc, const char* key, const std::string& defaultValue);
     glm::vec3 GetVec3(const rapidjson::Document& doc, const char* key, const glm::vec3& defaultValue);
@@ -23,6 +25,7 @@ namespace JsonSettings
     // Setters
     void SetBool(rapidjson::Document& doc, const char* key, bool value);
     void SetInt(rapidjson::Document& doc, const char* key, int value);
+    void SetInt64(rapidjson::Document& doc, const char* key, int64_t value);
     void SetFloat(rapidjson::Document& doc, const char* key, float value);
     void SetString(rapidjson::Document& doc, const char* key, const std::string& value);
     void SetVec3(rapidjson::Document& doc, const char* key, const glm::vec3& value);

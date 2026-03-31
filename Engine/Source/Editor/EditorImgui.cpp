@@ -77,6 +77,8 @@
 #include "ScriptCreator/ScriptCreatorDialog.h"
 #include "ControllerServer/ControllerServer.h"
 #include "Preferences/Network/NetworkModule.h"
+#include "AutoUpdater/AutoUpdater.h"
+#include "AutoUpdater/AutoUpdaterWindow.h"
 
 #include <functional>
 #include <algorithm>
@@ -8587,6 +8589,36 @@ static void DrawMainMenuBar()
             if (hookMgr != nullptr) hookMgr->DrawTopLevelMenusAtPosition(6);
         }
 
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("Check for Updates..."))
+            {
+                AutoUpdater::Get()->CheckForUpdates(true);
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Documentation"))
+            {
+#if PLATFORM_WINDOWS
+                SYS_Exec("start https://github.com/vltmedia/octave/wiki");
+#else
+                SYS_Exec("xdg-open https://github.com/vltmedia/octave/wiki &");
+#endif
+            }
+
+            if (ImGui::MenuItem("Report Issue"))
+            {
+#if PLATFORM_WINDOWS
+                SYS_Exec("start https://github.com/vltmedia/octave/issues");
+#else
+                SYS_Exec("xdg-open https://github.com/vltmedia/octave/issues &");
+#endif
+            }
+
+            ImGui::EndMenu();
+        }
+
         // Draw addon top-level menus as main menu bar entries (legacy append, position=-1)
         {
             EditorUIHookManager* hookMgr = EditorUIHookManager::Get();
@@ -10511,6 +10543,7 @@ void EditorImguiDraw()
         GetProjectSelectWindow()->Draw();
         GetAddonsWindow()->Draw();
         GetThemeEditorWindow()->Draw();
+        GetAutoUpdaterWindow()->Draw();
 
         if (GetThemeEditorWindow()->IsInspectModeActive())
         {

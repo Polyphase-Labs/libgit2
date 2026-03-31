@@ -32,6 +32,8 @@ function UIDOCUMENT_LUA_NAME:SetCallback(elementId, eventName) end
 
 function UIDOCUMENT_LUA_NAME:Tick() end
 
+function UIDOCUMENT_LUA_NAME:Destroy() end
+
 ---@return Asset
 function UIDOCUMENT_LUA_NAME:Load() end
 
