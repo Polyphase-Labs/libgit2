@@ -77,7 +77,7 @@
     <ClCompile Include="vorbisfile.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="window.c">
+    <ClCompile Include="vorbis_window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bitwise.c">
