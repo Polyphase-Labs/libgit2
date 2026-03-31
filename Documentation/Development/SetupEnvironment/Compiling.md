@@ -27,3 +27,44 @@ CMake support is currently a work-in-progress, and only Linux support has been i
 - Make sure you pull all submodules `git submodule update --init --recursive`
 - Install pkg-config `sudo apt install pkg-config`(debian/ubuntu), `
 - Install vorbis dev libraries `sudo apt install libvorbis-dev`
+
+
+
+# Docker
+
+Polyphase includes a Docker build system for reproducible builds across all supported platforms. You can also use the Docker system to build Polyphase itself from source without installing any dependencies on your host machine. You can get more information about using the Docker build system at [Documentation/Docker.md](Documentation/Info/Docker.md).
+
+## Requirements
+
+- Install Docker from <https://docs.docker.com/get-docker/>
+
+## Build the Polyphase Docker Image
+
+From your terminal, run:
+
+```bash
+# Clone the Polyphase repository if you haven't already, or to get the latest version
+git clone https://github.com/polyphase-engine/polyphase-engine
+# Move into the polyphase directory
+cd polyphase-engine
+# Build the Docker image
+./Docker/build.sh
+```
+
+## Packaging Games With Docker
+
+To package your game using the Docker build system, run the following command from the root of your project directory (where your .octp file is located):
+
+```bash
+docker run --rm -v ./dist/3DS:/game -v .:/project polyphase-engine build-3ds
+```
+
+This command mounts your project directory to `/project` in the Docker container, and tells the system to export your file to `./dist`. You should create the `dist` directory or whatever you want to export to beforehand or else the directory will be created by Docker and you will have to `sudo chmod -R 777 ./dist` to change permissions so you can access it.
+ or do a `sudo rm -rf ./dist` to delete the directory.
+
+### Available Docker Build Commands
+
+- `build-linux` - Build a Linux `.elf` executable
+- `build-gamecube` - Build a GameCube `.dol` file
+- `build-wii` - Build a Wii `.dol` file
+- `build-3ds` - Build a Nintendo `.3dsx` ROM
