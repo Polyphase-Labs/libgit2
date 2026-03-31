@@ -313,7 +313,6 @@ __pycache__/
 
 # Vim temporary files
 .*.swp
-/.claude
 
 # Polyphase builds at the root level
 Polyphase.ex*

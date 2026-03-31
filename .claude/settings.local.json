@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine -type f \\\\\\(-name *.xsd -o -name *.sql -o -name *.gradle -o -name *.plist \\\\\\))",
+      "Bash(find /m/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine -type f \\\\\\(-name *.sql -o -name *.db -o -name *migration* -o -name *schema* \\\\\\))",
+      "Bash(grep -r 'Octave Engine' /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine --include=*.h --include=*.cpp --include=*.py --include=*.sh -n)",
+      "Bash(grep -r copyright.*[Oo]ctave /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine --include=*.h --include=*.cpp -i -n)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python3 -c \":*)",
+      "Bash(/c/Python/python -c \":*)",
+      "Bash(while read:*)",
+      "Bash(do sed:*)",
+      "Bash(done)",
+      "Bash(xxd Standalone/Standalone.rc)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(grep -E \"\\\\.\\(cpp|h\\)$\")",
+      "Bash(grep \"_Lua.cpp$\")",
+      "Bash(grep -n \"Source/Engine/Nodes/Widgets\" ./Engine/Makefile_*)",
+      "Bash(find Source Source/Engine Source/Engine/Nodes Source/Engine/Nodes/3D Source/Engine/Nodes/Widgets Source/Engine/Assets Source/Engine/NodeGraph Source/Engine/NodeGraph/Nodes Source/Engine/NodeGraph/Domains Source/Engine/UI Source/Engine/Timeline Source/Engine/Timeline/Tracks Source/Plugins Source/System Source/System/Dolphin Source/Graphics Source/Graphics/GX Source/Input Source/Input/Dolphin Source/Audio Source/Audio/Dolphin Source/Network Source/Network/Dolphin Source/LuaBindings -name *.cpp -type f)",
+      "Read(//tmp/**)",
+      "Bash(sed 's/\\\\.[^.]*$//')",
+      "Bash(fi)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(do basename:*)",
+      "Bash(echo \"Updated: $f\")",
+      "Bash(while IFS= read -r file)"
+    ]
+  }
+}
