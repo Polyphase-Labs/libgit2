@@ -1,30 +1,37 @@
 ## Windows Developer Environment Setup
 
-1. Download and Install:
-   - Visual Studio Community 2022 (with C++ support)
-   - Vulkan SDK version 1.3.275.0 (During install select "Shader Toolchain Debug Symbols - 64 bit" and deselect all other options)
-   - devkitPPC for GameCube/Wii development
-   - devkitARM for 3DS development
-   - Instructions for installing the devkitPro toolchains can be found in the devkitPro wiki [here](https://devkitpro.org/wiki/Getting_Started)
-2. Install devkitPro:
-   - Open your Start Menu and launch `devkitPro > MSys2`
-   - `pacman-key --recv-keys C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE --keyserver keyserver.ubuntu.com`
-   - `pacman-key --lsign-key C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE`
-   - Put this entry in `C:\devkitPro\msys2\etc\pacman.conf` above the `[dkp-libs]` entry:
+### Download and Install:
 
-     ```
-     [libogc2-devkitpro]
-     Server = https://packages.libogc2.org/devkitpro/windows/$arch
-     Server = https://packages.extremscorner.org/devkitpro/windows/$arch
-     ```
-   - `pacman -Syuu`
-   - `pacman -S gamecube-tools-git libogc2 libogc2-libdvm`
+- Visual Studio Community 2022 (with C++ support)
+- Vulkan SDK version 1.3.275.0 (During install select "Shader Toolchain Debug Symbols - 64 bit" and deselect all other options)
+- devkitPPC for GameCube/Wii development
+- devkitARM for 3DS development
+- Instructions for installing the devkitPro toolchains can be found in the devkitPro wiki [here](https://devkitpro.org/wiki/Getting_Started)
+- 
 
-     - Accept overwriting if asked.
-   - Restart computer if you've opened Visual Studio prior to installing `libogc2` to make sure the environment variables are found.
-3. Build shaders by running compile.bat in `/Engine/Shaders/GLSL`.
-4. Open Polyphase.sln.
-5. Switch to the DebugEditor solution configuration.
-6. Set the Standalone project as the Startup Project.
-7. In the debug settings for Standalone, change the working directory to $(SolutionDir).
-8. Build and run Standalone. This is the standalone level editor if you were making a game with Lua script only.
+### Install devkitPro:
+
+- Open your Start Menu and launch `devkitPro > MSys2`
+- `pacman-key --recv-keys C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE --keyserver keyserver.ubuntu.com`
+- `pacman-key --lsign-key C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE`
+- Put this entry in `C:\devkitPro\msys2\etc\pacman.conf` above the `[dkp-libs]` entry:
+
+  ```
+  [libogc2-devkitpro]
+  Server = https://packages.libogc2.org/devkitpro/windows/$arch
+  Server = https://packages.extremscorner.org/devkitpro/windows/$arch
+  ```
+- `pacman -Syuu`
+- `pacman -S gamecube-tools-git libogc2 libogc2-libdvm`
+
+  - Accept overwriting if asked.
+- Restart computer if you've opened Visual Studio prior to installing `libogc2` to make sure the environment variables are found.
+- Build shaders by running compile.bat  in   `/Engine/Shaders/GLSL`.
+
+### Visual Studio Setup & Editor Build
+
+1. Open ``Polyphase.sln`` .
+2. Switch to the ``DebugEditor`` solution configuration.
+3. Set the ``Standalone`` project as the Startup Project.
+4. In the debug settings for ``Standalone``, change the working directory to ``$(SolutionDir)``.
+5. Build and run ``Standalone``. This is the standalone level editor if you were making a game with Lua script only.

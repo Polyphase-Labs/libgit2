@@ -18,11 +18,11 @@ Follow the[Windows Setup](../Development/SetupEnvironment/Windows.md) guide to i
 
 ## Linux
 
-    Follow the[Linux Setup](../Development/SetupEnvironment/Linux.md) guide to install:
+Follow the[Linux Setup](../Development/SetupEnvironment/Linux.md) guide to install:
 
-    - Build essentials (`g++`, `make`, `libx11-dev`, `libasound2-dev`)
-    - Vulkan SDK 1.3.275.0
-    - devkitPro toolchains (for console targets like Wii)
+- Build essentials (`g++`, `make`, `libx11-dev`, `libasound2-dev`)
+- Vulkan SDK 1.3.275.0
+- devkitPro toolchains (for console targets like Wii)
 
 ---
 
