@@ -27,15 +27,15 @@ This example demonstrates how to add custom buttons and controls to the editor's
 ### Source/ToolbarExtensionAddon.cpp
 
 ```cpp
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
 #include "imgui.h"
 #endif
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 
 #if EDITOR
 static bool sCustomToolEnabled = false;
@@ -101,7 +101,7 @@ static void DrawToggleTool(void* userData)
  * @param api Pointer to the engine API.
  * @return 0 on success, non-zero on failure.
  */
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("Toolbar Extension Addon loaded!");
@@ -134,7 +134,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 }
 #endif
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Toolbar Extension Addon";

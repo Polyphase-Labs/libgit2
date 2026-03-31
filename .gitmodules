@@ -1,9 +1,9 @@
 [submodule "External/bullet3"]
 	path = External/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
-[submodule "Plugins/Blender/octave-gameengine-connect"]
-	path = Plugins/Blender/octave-gameengine-connect
-	url = https://github.com/vltmedia/Octave-Game-Engine-Connect-Blender-Addon
+[submodule "Plugins/Blender/polyphase-blender-addon"]
+	path = Plugins/Blender/polyphase-blender-addon
+	url = https://github.com/polyphase-engine/Polyphase-Blender-Addon---Connect
 [submodule "External/zep"]
 	path = External/zep
 	url = https://github.com/Rezonality/zep.git

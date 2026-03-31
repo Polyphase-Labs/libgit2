@@ -39,7 +39,7 @@ From there, dive into the subsystem-specific docs as needed:
 | `.llm/Scripting.md` | Lua bindings, Script component, binding macros, stub generator |
 | `.llm/AssetSystem.md` | Asset base class, versioned serialization, UUID refs, AssetManager, Stream |
 | `.llm/Timeline.md` | Keyframe animation — tracks, clips, interpolation, TimelinePlayer |
-| `.llm/Addons.md` | Runtime plugins, native addons, EditorUIHooks, OctaveEngineAPI |
+| `.llm/Addons.md` | Runtime plugins, native addons, EditorUIHooks, PolyphaseEngineAPI |
 | `.llm/Platforms.md` | Platform abstraction, SYS_* functions, platform-specific backends |
 | `.llm/NavMesh.md` | Navigation mesh system, pathfinding API |
 

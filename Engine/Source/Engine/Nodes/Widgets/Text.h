@@ -20,7 +20,7 @@ enum class Justification : uint8_t
     Count
 };
 
-class OCTAVE_API Text : public Widget
+class POLYPHASE_API Text : public Widget
 {
 public:
 

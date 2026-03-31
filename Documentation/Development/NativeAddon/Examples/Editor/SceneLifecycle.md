@@ -27,14 +27,14 @@ This example demonstrates how to react to scene lifecycle events using `Register
 ### Source/SceneWatcherAddon.cpp
 
 ```cpp
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
 #endif
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 
 #if EDITOR
 static char sCurrentScenePath[512] = {};
@@ -90,7 +90,7 @@ static void OnSceneClose(const char* scenePath, void* userData)
  * @param api Pointer to the engine API.
  * @return 0 on success, non-zero on failure.
  */
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("Scene Watcher Addon loaded!");
@@ -123,7 +123,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 }
 #endif
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Scene Watcher Addon";

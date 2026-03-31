@@ -190,7 +190,7 @@ static std::string DeriveBundledThemeName(const std::string& filename)
 
 void CssThemeManager::LoadBundledThemes()
 {
-    std::string themesDir = SYS_GetOctavePath() + "Engine/Assets/Themes/";
+    std::string themesDir = SYS_GetPolyphasePath() + "Engine/Assets/Themes/";
 
     DirEntry dirEntry;
     SYS_OpenDirectory(themesDir, dirEntry);

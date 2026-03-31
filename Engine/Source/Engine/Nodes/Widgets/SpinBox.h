@@ -7,7 +7,7 @@ class Quad;
 class Text;
 class Button;
 
-class OCTAVE_API SpinBox : public Widget
+class POLYPHASE_API SpinBox : public Widget
 {
 public:
 

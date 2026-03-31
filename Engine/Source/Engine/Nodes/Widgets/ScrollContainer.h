@@ -24,7 +24,7 @@ enum class ScrollbarMode : uint8_t
     Count
 };
 
-class OCTAVE_API ScrollContainer : public Widget
+class POLYPHASE_API ScrollContainer : public Widget
 {
 public:
 

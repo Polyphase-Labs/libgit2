@@ -1,15 +1,15 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Utilities.h"
 #include "EngineTypes.h"
 #include "ScriptAutoReg.h"
 #include <string>
 #include <stdint.h>
 
-OCTAVE_API int CreateClassMetatable(const char* className, const char* classFlag, const char* parentClassName);
+POLYPHASE_API int CreateClassMetatable(const char* className, const char* classFlag, const char* parentClassName);
 
-class OCTAVE_API Object
+class POLYPHASE_API Object
 {
 public:
     virtual ~Object() = default;

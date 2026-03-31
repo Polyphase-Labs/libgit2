@@ -50,8 +50,8 @@ This example demonstrates:
  * - External/bullet3/src - Physics headers
  */
 
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
@@ -68,7 +68,7 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 static uint64_t sHookId = 0;
 
 #if EDITOR
@@ -363,7 +363,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 
 #endif // EDITOR
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("CustomScriptInspector addon loaded!");
@@ -383,7 +383,7 @@ static void OnUnload()
 // Plugin Entry Point
 //=============================================================================
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Custom Script Inspector";

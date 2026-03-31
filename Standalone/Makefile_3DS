@@ -31,7 +31,7 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-TARGET		:=	Octave
+TARGET		:=	Polyphase
 BUILD		:=	Intermediate/3DS
 SOURCES		:=	Source \
 				Generated
@@ -44,7 +44,7 @@ OUTPUT_DIR	:=	$(CURDIR)/Build/3DS
 
 # Modified by packaging process
 ROMFS := Intermediate/Romfs
-APP_TITLE := OctaveApp
+APP_TITLE := PolyphaseApp
 
 #---------------------------------------------------------------------------------
 # options for code generation

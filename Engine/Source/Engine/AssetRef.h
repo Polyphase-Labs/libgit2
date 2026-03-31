@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Asset.h"
 #include "Constants.h"
 #include <vector>
@@ -12,9 +12,9 @@
 class AssetManager;
 struct AsyncLoadRequest;
 
-OCTAVE_API MutexObject* GetAssetRefMutex();
+POLYPHASE_API MutexObject* GetAssetRefMutex();
 
-class OCTAVE_API AssetRef
+class POLYPHASE_API AssetRef
 {
 public:
 

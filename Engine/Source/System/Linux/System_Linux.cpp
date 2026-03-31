@@ -507,14 +507,14 @@ void SYS_Update()
 
     sPrevWarped = warped;
 
-    if (INP_IsKeyDown(OCTAVE_KEY_ALT_L) || INP_IsKeyDown(OCTAVE_KEY_ALT_R))
+    if (INP_IsKeyDown(POLYPHASE_KEY_ALT_L) || INP_IsKeyDown(POLYPHASE_KEY_ALT_R))
     {
-        if (INP_IsKeyJustDown(OCTAVE_KEY_ENTER))
+        if (INP_IsKeyJustDown(POLYPHASE_KEY_ENTER))
         {
             SYS_SetFullscreen(!GetEngineState()->mSystem.mFullscreen);
         }
 
-        if (INP_IsKeyJustDown(OCTAVE_KEY_F4))
+        if (INP_IsKeyJustDown(POLYPHASE_KEY_F4))
         {
             Quit();
         }
@@ -582,18 +582,18 @@ void SYS_ReleaseFileData(char* data)
     }
 }
 
-std::string SYS_GetOctavePath()
+std::string SYS_GetPolyphasePath()
 {
-    std::string octaveDirectory = SYS_GetCurrentDirectoryPath();
-    if(SYS_DoesFileExist((octaveDirectory + "Octave/imgui.ini").c_str(), false)){
-        octaveDirectory = octaveDirectory + "Octave/";
+    std::string polyphaseDirectory = SYS_GetCurrentDirectoryPath();
+    if(SYS_DoesFileExist((polyphaseDirectory + "Polyphase/imgui.ini").c_str(), false)){
+        polyphaseDirectory = polyphaseDirectory + "Polyphase/";
         }
-    if(!SYS_DoesFileExist((octaveDirectory + "Standalone/Standalone.rc").c_str(), false)){
-        std::string octaveEXE = SYS_GetExecutablePath();
-        size_t lastSlash = octaveEXE.find_last_of("/");
-        octaveDirectory = octaveEXE.substr(0, lastSlash + 1);
+    if(!SYS_DoesFileExist((polyphaseDirectory + "Standalone/Standalone.rc").c_str(), false)){
+        std::string polyphaseEXE = SYS_GetExecutablePath();
+        size_t lastSlash = polyphaseEXE.find_last_of("/");
+        polyphaseDirectory = polyphaseEXE.substr(0, lastSlash + 1);
     }
-    return octaveDirectory;
+    return polyphaseDirectory;
 }
 std::string SYS_GetExecutablePath()
 {
@@ -1182,7 +1182,7 @@ void SYS_Log(LogSeverity severity, const char* format, va_list arg)
     printf("\n");
 }
 
-OCTAVE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
+POLYPHASE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
 {
     const char* fileName = strrchr(fileString, '/') ? strrchr(fileString, '/') + 1 : fileString;
     LogError("[Assert] %s, %s, line %d", exprString, fileName, lineNumber);

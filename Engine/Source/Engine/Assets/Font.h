@@ -16,7 +16,7 @@ struct Character
     float mAdvance = 0;
 };
 
-class OCTAVE_API Font : public Asset
+class POLYPHASE_API Font : public Asset
 {
 public:
 

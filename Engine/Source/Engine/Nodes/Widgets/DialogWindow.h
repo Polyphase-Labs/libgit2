@@ -19,7 +19,7 @@ enum class ButtonBarAlignment : uint8_t
     Count
 };
 
-class OCTAVE_API DialogWindow : public Window
+class POLYPHASE_API DialogWindow : public Window
 {
 public:
 

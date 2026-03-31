@@ -8,7 +8,7 @@ A native addon that sends signals when the user performs a "select" action via m
 
 This example demonstrates:
 - Using the `Tick` callback to poll input every frame in C++
-- Direct input access via OctaveEngineAPI (no Lua roundtrip)
+- Direct input access via PolyphaseEngineAPI (no Lua roundtrip)
 - Cross-platform input handling (mouse, touch, gamepad)
 - Optionally exposing events to Lua scripts
 
@@ -43,7 +43,7 @@ This example demonstrates:
  *
  * This example demonstrates:
  * - Using the Tick callback to poll input every frame in C++
- * - Direct input polling via OctaveEngineAPI (IsKeyDown, IsMouseButtonDown, etc.)
+ * - Direct input polling via PolyphaseEngineAPI (IsKeyDown, IsMouseButtonDown, etc.)
  * - Optional Lua integration for script callbacks
  * - Cross-platform input abstraction
  *
@@ -51,13 +51,13 @@ This example demonstrates:
  * which provides better performance for real-time input handling.
  */
 
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 // Static registration for built games
 #if !defined(OCTAVE_PLUGIN_EXPORT)
 #include "Plugins/RuntimePluginManager.h"
-OCTAVE_REGISTER_PLUGIN(SelectHandler, OctavePlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(SelectHandler, PolyphasePlugin_GetDesc)
 #endif
 
 // Lua includes (External/Lua) - for type definitions only
@@ -72,7 +72,7 @@ extern "C" {
 
 #include <vector>
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 static lua_State* sLuaState = nullptr;
 
 //=============================================================================
@@ -272,7 +272,7 @@ static void CallCallback(lua_State* L, int ref, const char* inputSource)
 }
 
 // SelectHandler:Update() - Poll input and fire callbacks
-// This now uses the direct OctaveEngineAPI for input instead of Lua arguments
+// This now uses the direct PolyphaseEngineAPI for input instead of Lua arguments
 static int Lua_SelectHandler_Update(lua_State* L)
 {
     SelectState* state = (SelectState*)luaL_checkudata(L, 1, "SelectHandler");
@@ -412,7 +412,7 @@ static void PluginTick(float deltaTime)
 // Plugin Callbacks
 //=============================================================================
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     sActiveHandlers.clear();
@@ -453,7 +453,7 @@ static void RegisterScriptFuncs(lua_State* L)
 // Plugin Entry Point
 //=============================================================================
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "SelectHandler";

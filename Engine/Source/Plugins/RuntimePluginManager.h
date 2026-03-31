@@ -9,8 +9,8 @@
  * or hot-reloading - it just manages the plugin lifecycle and ticking.
  */
 
-#include "OctavePluginAPI.h"
-#include "OctaveEngineAPI.h"
+#include "PolyphasePluginAPI.h"
+#include "PolyphaseEngineAPI.h"
 
 #include <vector>
 #include <string>
@@ -21,7 +21,7 @@
 struct RuntimePluginState
 {
     std::string mPluginId;
-    OctavePluginDesc mDesc = {};
+    PolyphasePluginDesc mDesc = {};
     bool mLoaded = false;
 };
 
@@ -60,7 +60,7 @@ public:
      * @param desc Plugin descriptor
      * @param pluginId Unique identifier for the plugin
      */
-    void RegisterPlugin(const OctavePluginDesc& desc, const std::string& pluginId);
+    void RegisterPlugin(const PolyphasePluginDesc& desc, const std::string& pluginId);
 
     /**
      * @brief Tick all loaded plugins.
@@ -74,7 +74,7 @@ public:
     /**
      * @brief Get the engine API struct for plugins.
      */
-    OctaveEngineAPI* GetEngineAPI() { return &mEngineAPI; }
+    PolyphaseEngineAPI* GetEngineAPI() { return &mEngineAPI; }
 
     /**
      * @brief Check if a plugin is registered.
@@ -94,7 +94,7 @@ private:
     void InitializeEngineAPI();
 
     std::vector<RuntimePluginState> mPlugins;
-    OctaveEngineAPI mEngineAPI;
+    PolyphaseEngineAPI mEngineAPI;
     bool mInitialized = false;
 };
 
@@ -104,20 +104,20 @@ private:
  * This can be called before RuntimePluginManager::Create() - the descriptors
  * are stored in a pending queue and processed when Create() is called.
  *
- * @param getDescFunc Function that fills in OctavePluginDesc
+ * @param getDescFunc Function that fills in PolyphasePluginDesc
  * @param pluginId Unique identifier for the plugin
  */
-void QueuePluginRegistration(int (*getDescFunc)(OctavePluginDesc*), const char* pluginId);
+void QueuePluginRegistration(int (*getDescFunc)(PolyphasePluginDesc*), const char* pluginId);
 
 /**
  * @brief Helper macro for static plugin registration.
  *
  * Usage in plugin source file:
- *   OCTAVE_REGISTER_PLUGIN(MyPlugin, GetMyPluginDesc);
+ *   POLYPHASE_REGISTER_PLUGIN(MyPlugin, GetMyPluginDesc);
  *
- * Where GetMyPluginDesc is a function that fills in OctavePluginDesc.
+ * Where GetMyPluginDesc is a function that fills in PolyphasePluginDesc.
  */
-#define OCTAVE_REGISTER_PLUGIN(pluginId, getDescFunc) \
+#define POLYPHASE_REGISTER_PLUGIN(pluginId, getDescFunc) \
     namespace { \
         struct PluginRegistrar_##pluginId { \
             PluginRegistrar_##pluginId() { \

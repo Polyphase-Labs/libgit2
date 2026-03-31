@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Stream.h"
 #include "EngineTypes.h"
 #include "Maths.h"
@@ -83,7 +83,7 @@ union DatumData
     void* vp;
 };
 
-class OCTAVE_API Datum
+class POLYPHASE_API Datum
 {
 public:
 

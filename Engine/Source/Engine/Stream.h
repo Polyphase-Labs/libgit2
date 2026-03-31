@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Assertion.h"
 #include "Maths.h"
 #include "Swap.h"
@@ -17,7 +17,7 @@
 class AssetRef;
 struct AsyncLoadRequest;
 
-class OCTAVE_API Stream
+class POLYPHASE_API Stream
 {
 public:
 

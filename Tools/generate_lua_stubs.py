@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate EmmyLua-annotated stub files from Octave Engine C++ Lua bindings.
+Generate EmmyLua-annotated stub files from Polyphase Engine C++ Lua bindings.
 
 Parses *_Lua.h and *_Lua.cpp files to produce .lua stubs that LuaLS can
 consume for IntelliSense (autocomplete, param hints, type checking).
@@ -1006,7 +1006,7 @@ def _generate_method_lines(type_name, method, use_colon):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate EmmyLua stubs from Octave C++ Lua bindings"
+        description="Generate EmmyLua stubs from Polyphase C++ Lua bindings"
     )
     parser.add_argument(
         "--input", "-i",

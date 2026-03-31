@@ -4,12 +4,12 @@
 #include <type_traits>
 #include <stdint.h>
 #include "Assertion.h"
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 
 class Node;
 
-OCTAVE_API void MakeNodeUserdataStrong(Node* node);
-OCTAVE_API void MakeNodeUserdataWeak(Node* node);
+POLYPHASE_API void MakeNodeUserdataStrong(Node* node);
+POLYPHASE_API void MakeNodeUserdataWeak(Node* node);
 
 // Detect Node-derived types without requiring Node to be complete.
 template<typename U, typename = void>

@@ -199,7 +199,7 @@ void MyStateCallback(int32_t state, void* userData) {
     if (state == 1) printf("Controller server stopped!\n");
 }
 
-int OnLoad(OctaveEngineAPI* api) {
+int OnLoad(PolyphaseEngineAPI* api) {
     HookId hookId = GenerateHookId("com.mycompany.myaddon");
     api->editorUI->RegisterControllerRoute(
         hookId, "GET", "/api/addons/mydata", MyRouteHandler, nullptr);

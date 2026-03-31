@@ -60,14 +60,14 @@ BuildData()
 ### Step 1: Initialize Paths and State
 
 ```cpp
-std::string octaveDirectory = SYS_GetOctavePath();
+std::string polyphaseDirectory = SYS_GetPolyphasePath();
 const EngineState* engineState = GetEngineState();
 bool standalone = engineState->mStandalone;
 const std::string& projectDir = engineState->mProjectDirectory;
 const std::string& projectName = engineState->mProjectName;
 ```
 
-**Path Resolution (`SYS_GetOctavePath`):**
+**Path Resolution (`SYS_GetPolyphasePath`):**
 - First checks current directory for `Polyphase/imgui.ini`
 - Falls back to executable directory if `Standalone/Standalone.rc` not found
 - Returns empty string on consoles (Android, 3DS, Dolphin)
@@ -123,7 +123,7 @@ If `standalone`, copies Generated folder to `Standalone/`
 | Otherwise | Copies script folders to packaged directory |
 
 **Script Locations:**
-- Engine: `{OctaveDir}/Engine/Scripts/` -> `{PackagedDir}/Engine/Scripts/`
+- Engine: `{PolyphaseDir}/Engine/Scripts/` -> `{PackagedDir}/Engine/Scripts/`
 - Project: `{ProjectDir}/Scripts/` -> `{PackagedDir}/{ProjectName}/Scripts/`
 
 Note: `LuaPanda.lua` is removed for non-desktop platforms (saves 148KB)
@@ -145,7 +145,7 @@ If `useRomfs` (N3DS + embedded):
 - Copies all packaged content to `{IntermediateDir}/Romfs/`
 
 **Intermediate Directory:**
-- Standalone: `{OctaveDir}/Standalone/Intermediate`
+- Standalone: `{PolyphaseDir}/Standalone/Intermediate`
 - Project: `{ProjectDir}/Intermediate`
 
 ---

@@ -2,7 +2,7 @@
 #include "EngineTypes.h"
 #include "ScriptUtils.h"
 
-#define REF_TABLE_NAME "OctaveFunc"
+#define REF_TABLE_NAME "PolyphaseFunc"
 
 ScriptFunc::ScriptFunc()
 {
@@ -193,7 +193,7 @@ void ScriptFunc::UnregisterRef()
         lua_State* L = GetLua();
         if (L != nullptr)
         {
-            // Get the octave ref table. This should have already been created to store the ref originally.
+            // Get the polyphase ref table. This should have already been created to store the ref originally.
             lua_getfield(L, LUA_REGISTRYINDEX, REF_TABLE_NAME);
             OCT_ASSERT(lua_istable(L, -1));
 

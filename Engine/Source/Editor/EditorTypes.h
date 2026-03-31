@@ -6,11 +6,11 @@
 
 struct AssetStub;
 
-enum class OctaveMeshType { Node3D, StaticMesh, InstancedMesh };
+enum class PolyphaseMeshType { Node3D, StaticMesh, InstancedMesh };
 
-struct OctaveNodeExtras
+struct PolyphaseNodeExtras
 {
-    OctaveMeshType mMeshType = OctaveMeshType::StaticMesh;
+    PolyphaseMeshType mMeshType = PolyphaseMeshType::StaticMesh;
     std::string mAssetName;
     uint64_t mAssetUuid = 0;
     std::string mScriptPath;

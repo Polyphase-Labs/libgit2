@@ -439,7 +439,7 @@ bool SYS_DoesFileExist(const char* path, bool isAsset)
     return exists;
 }
 
-std::string SYS_GetOctavePath()
+std::string SYS_GetPolyphasePath()
 {
     return "";
 }
@@ -966,10 +966,10 @@ void SYS_Log(LogSeverity severity, const char* format, va_list arg)
             break;
     }
 
-    __android_log_vprint(logPrio, "Octave", format, arg);
+    __android_log_vprint(logPrio, "Polyphase", format, arg);
 }
 
-OCTAVE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
+POLYPHASE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
 {
     const char* fileName = strrchr(fileString, '/') ? strrchr(fileString, '/') + 1 : fileString;
     LogError("[Assert] %s, %s, line %d", exprString, fileName, lineNumber);

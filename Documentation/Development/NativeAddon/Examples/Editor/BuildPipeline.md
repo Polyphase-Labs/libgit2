@@ -37,14 +37,14 @@ When a build is triggered, hooks fire in this order:
 ### Source/BuildPipelineAddon.cpp
 
 ```cpp
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
 #endif
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 
 #if EDITOR
 
@@ -133,7 +133,7 @@ static void OnPackageFinished(int32_t platform, bool success, void* userData)
 
 #endif
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     return 0;
@@ -157,7 +157,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 }
 #endif
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Build Pipeline Addon";

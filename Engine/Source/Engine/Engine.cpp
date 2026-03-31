@@ -1384,7 +1384,7 @@ void GameMain(int32_t argc, char** argv)
 }
 #endif
 
-// Octave main function
+// Polyphase main function
 #if PLATFORM_WINDOWS && !_DEBUG && !EDITOR
 int32_t WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int32_t nCmdShow)
 {

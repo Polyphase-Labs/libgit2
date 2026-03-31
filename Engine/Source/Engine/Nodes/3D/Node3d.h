@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Nodes/Node.h"
 #include "EngineTypes.h"
 
@@ -10,7 +10,7 @@
 
 class SkeletalMesh3D;
 
-class OCTAVE_API Node3D : public Node
+class POLYPHASE_API Node3D : public Node
 {
 public:
 

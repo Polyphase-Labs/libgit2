@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "System/SystemTypes.h"
 
 #include <string>
@@ -18,7 +18,7 @@ bool SYS_DoesFileExist(const char* path, bool isAsset);
 void SYS_AcquireFileData(const char* path, bool isAsset, int32_t maxSize, char*& outData, uint32_t& outSize);
 void SYS_ReleaseFileData(char* data);
 std::string SYS_GetExecutablePath();
-std::string SYS_GetOctavePath();
+std::string SYS_GetPolyphasePath();
 std::string SYS_GetCurrentDirectoryPath();
 std::string SYS_GetAbsolutePath(const std::string& relativePath);
 void SYS_ExplorerOpenDirectory(const std::string& dirPath);
@@ -90,7 +90,7 @@ std::string SYS_GetClipboardText();
 
 // Misc
 void SYS_Log(LogSeverity severity, const char* format, va_list arg);
-OCTAVE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber);
+POLYPHASE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber);
 void SYS_Alert(const char* message);
 void SYS_UpdateConsole();
 int32_t SYS_GetPlatformTier();

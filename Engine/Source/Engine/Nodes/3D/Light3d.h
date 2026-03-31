@@ -2,7 +2,7 @@
 
 #include "Node3d.h"
 
-class OCTAVE_API Light3D : public Node3D
+class POLYPHASE_API Light3D : public Node3D
 {
 public:
 

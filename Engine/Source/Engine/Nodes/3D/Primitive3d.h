@@ -12,14 +12,14 @@
 //typedef void(*EndOverlapHandlerFP)(Primitive3D* thisPrim, Primitive3D* otherPrim);
 //typedef void(*CollisionHandlerFP)(Primitive3D* thisPrim, Primitive3D* otherPrim, btPersistentManifold* manifold);
 
-ATTRIBUTE_ALIGNED16(struct) OctaveMotionState : public btMotionState
+ATTRIBUTE_ALIGNED16(struct) PolyphaseMotionState : public btMotionState
 {
     btTransform mInterpolatedTransform;
     //void* mUserPointer;
 
     BT_DECLARE_ALIGNED_ALLOCATOR();
 
-    OctaveMotionState(glm::mat4 startTransform = glm::mat4(1))
+    PolyphaseMotionState(glm::mat4 startTransform = glm::mat4(1))
     {
         mInterpolatedTransform.setFromOpenGLMatrix(glm::value_ptr(startTransform));
     }
@@ -42,7 +42,7 @@ ATTRIBUTE_ALIGNED16(struct) OctaveMotionState : public btMotionState
     }
 };
 
-class OCTAVE_API Primitive3D : public Node3D
+class POLYPHASE_API Primitive3D : public Node3D
 {
 public:
 
@@ -154,7 +154,7 @@ protected:
     void DestroyComponentCollisionShape();
 
     btRigidBody* mRigidBody = nullptr;
-    OctaveMotionState* mMotionState = nullptr;
+    PolyphaseMotionState* mMotionState = nullptr;
     btCollisionShape* mCollisionShape = nullptr;
 
     float mCullDistance = 0.0f;

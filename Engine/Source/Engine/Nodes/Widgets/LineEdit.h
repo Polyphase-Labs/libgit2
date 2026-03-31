@@ -5,7 +5,7 @@
 class Text;
 class InputField;
 
-class OCTAVE_API LineEdit : public Widget
+class POLYPHASE_API LineEdit : public Widget
 {
 public:
 

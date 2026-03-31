@@ -1506,33 +1506,33 @@ void EditorUIHookManager::ParseKeyBinding(RegisteredShortcut& shortcut)
     size_t lastPlus = upper.rfind('+');
     std::string key = (lastPlus != std::string::npos) ? upper.substr(lastPlus + 1) : upper;
 
-    // Map common key names to OCTAVE_KEY_* constants from InputTypes.h
+    // Map common key names to POLYPHASE_KEY_* constants from InputTypes.h
     if (key.length() == 1 && key[0] >= 'A' && key[0] <= 'Z')
     {
-        shortcut.mKeyCode = OCTAVE_KEY_A + (key[0] - 'A');
+        shortcut.mKeyCode = POLYPHASE_KEY_A + (key[0] - 'A');
     }
     else if (key.length() == 1 && key[0] >= '0' && key[0] <= '9')
     {
-        shortcut.mKeyCode = OCTAVE_KEY_0 + (key[0] - '0');
+        shortcut.mKeyCode = POLYPHASE_KEY_0 + (key[0] - '0');
     }
-    else if (key == "F1")  shortcut.mKeyCode = OCTAVE_KEY_F1;
-    else if (key == "F2")  shortcut.mKeyCode = OCTAVE_KEY_F2;
-    else if (key == "F3")  shortcut.mKeyCode = OCTAVE_KEY_F3;
-    else if (key == "F4")  shortcut.mKeyCode = OCTAVE_KEY_F4;
-    else if (key == "F5")  shortcut.mKeyCode = OCTAVE_KEY_F5;
-    else if (key == "F6")  shortcut.mKeyCode = OCTAVE_KEY_F6;
-    else if (key == "F7")  shortcut.mKeyCode = OCTAVE_KEY_F7;
-    else if (key == "F8")  shortcut.mKeyCode = OCTAVE_KEY_F8;
-    else if (key == "F9")  shortcut.mKeyCode = OCTAVE_KEY_F9;
-    else if (key == "F10") shortcut.mKeyCode = OCTAVE_KEY_F10;
-    else if (key == "F11") shortcut.mKeyCode = OCTAVE_KEY_F11;
-    else if (key == "F12") shortcut.mKeyCode = OCTAVE_KEY_F12;
-    else if (key == "SPACE") shortcut.mKeyCode = OCTAVE_KEY_SPACE;
-    else if (key == "ENTER" || key == "RETURN") shortcut.mKeyCode = OCTAVE_KEY_ENTER;
-    else if (key == "ESCAPE" || key == "ESC") shortcut.mKeyCode = OCTAVE_KEY_ESCAPE;
-    else if (key == "TAB") shortcut.mKeyCode = OCTAVE_KEY_TAB;
-    else if (key == "DELETE" || key == "DEL") shortcut.mKeyCode = OCTAVE_KEY_DELETE;
-    else if (key == "BACKSPACE") shortcut.mKeyCode = OCTAVE_KEY_BACKSPACE;
+    else if (key == "F1")  shortcut.mKeyCode = POLYPHASE_KEY_F1;
+    else if (key == "F2")  shortcut.mKeyCode = POLYPHASE_KEY_F2;
+    else if (key == "F3")  shortcut.mKeyCode = POLYPHASE_KEY_F3;
+    else if (key == "F4")  shortcut.mKeyCode = POLYPHASE_KEY_F4;
+    else if (key == "F5")  shortcut.mKeyCode = POLYPHASE_KEY_F5;
+    else if (key == "F6")  shortcut.mKeyCode = POLYPHASE_KEY_F6;
+    else if (key == "F7")  shortcut.mKeyCode = POLYPHASE_KEY_F7;
+    else if (key == "F8")  shortcut.mKeyCode = POLYPHASE_KEY_F8;
+    else if (key == "F9")  shortcut.mKeyCode = POLYPHASE_KEY_F9;
+    else if (key == "F10") shortcut.mKeyCode = POLYPHASE_KEY_F10;
+    else if (key == "F11") shortcut.mKeyCode = POLYPHASE_KEY_F11;
+    else if (key == "F12") shortcut.mKeyCode = POLYPHASE_KEY_F12;
+    else if (key == "SPACE") shortcut.mKeyCode = POLYPHASE_KEY_SPACE;
+    else if (key == "ENTER" || key == "RETURN") shortcut.mKeyCode = POLYPHASE_KEY_ENTER;
+    else if (key == "ESCAPE" || key == "ESC") shortcut.mKeyCode = POLYPHASE_KEY_ESCAPE;
+    else if (key == "TAB") shortcut.mKeyCode = POLYPHASE_KEY_TAB;
+    else if (key == "DELETE" || key == "DEL") shortcut.mKeyCode = POLYPHASE_KEY_DELETE;
+    else if (key == "BACKSPACE") shortcut.mKeyCode = POLYPHASE_KEY_BACKSPACE;
 }
 
 void EditorUIHookManager::ProcessShortcuts()

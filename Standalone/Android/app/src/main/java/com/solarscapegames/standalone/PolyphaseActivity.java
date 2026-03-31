@@ -19,7 +19,7 @@ import com.solarscapegames.standalone.databinding.ActivityMainBinding;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class OctaveActivity extends NativeActivity {
+public class PolyphaseActivity extends NativeActivity {
 
     // Used to load the 'standalone' library on application startup.
     static {
@@ -73,7 +73,7 @@ public class OctaveActivity extends NativeActivity {
 
         if (multicastLock == null)
         {
-            multicastLock = wifiManager.createMulticastLock("Octave");
+            multicastLock = wifiManager.createMulticastLock("Polyphase");
             multicastLock.setReferenceCounted(true);
         }
 
@@ -163,7 +163,7 @@ public class OctaveActivity extends NativeActivity {
         }
         catch (IOException e)
         {
-            Log.d("Octave", "Can't iterate directory " + path);
+            Log.d("Polyphase", "Can't iterate directory " + path);
         }
 
         return retList;

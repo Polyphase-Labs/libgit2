@@ -2304,10 +2304,10 @@
     <ClInclude Include="Source\Plugins\EditorUIHooks.h">
       <Filter>Source Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Plugins\OctaveEngineAPI.h">
+    <ClInclude Include="Source\Plugins\PolyphaseEngineAPI.h">
       <Filter>Source Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Plugins\OctavePluginAPI.h">
+    <ClInclude Include="Source\Plugins\PolyphasePluginAPI.h">
       <Filter>Source Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="Source\Plugins\RuntimePluginManager.h">

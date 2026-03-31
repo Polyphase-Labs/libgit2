@@ -408,7 +408,7 @@ bool AddonCreator::InitializeAsNativeAddon(const std::string& projectDir, std::s
             nativeObj.AddMember("target", "engine", allocator);
             nativeObj.AddMember("sourceDir", "Source", allocator);
             nativeObj.AddMember("binaryName", "", allocator);
-            nativeObj.AddMember("entrySymbol", "OctavePlugin_GetDesc", allocator);
+            nativeObj.AddMember("entrySymbol", "PolyphasePlugin_GetDesc", allocator);
             nativeObj.AddMember("apiVersion", 1, allocator);
             doc.AddMember("native", nativeObj, allocator);
         }
@@ -439,7 +439,7 @@ bool AddonCreator::InitializeAsNativeAddon(const std::string& projectDir, std::s
         ss << "        \"target\": \"engine\",\n";
         ss << "        \"sourceDir\": \"Source\",\n";
         ss << "        \"binaryName\": \"\",\n";
-        ss << "        \"entrySymbol\": \"OctavePlugin_GetDesc\",\n";
+        ss << "        \"entrySymbol\": \"PolyphasePlugin_GetDesc\",\n";
         ss << "        \"apiVersion\": 1\n";
         ss << "    }\n";
         ss << "}\n";

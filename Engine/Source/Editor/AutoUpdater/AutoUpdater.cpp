@@ -142,7 +142,7 @@ void AutoUpdater::CheckThreadFunc()
     }
 
     // Compare versions
-    std::string currentVersion = OCTAVE_VERSION_STRING;
+    std::string currentVersion = POLYPHASE_VERSION_STRING;
     if (mLatestRelease.IsNewerThan(currentVersion))
     {
         // Check if this version is skipped

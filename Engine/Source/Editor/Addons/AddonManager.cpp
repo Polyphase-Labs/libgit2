@@ -127,10 +127,10 @@ void AddonManager::EnsureCacheDirectory()
     const char* appData = getenv("APPDATA");
     if (appData != nullptr)
     {
-        std::string octaveDir = std::string(appData) + "/OctaveEditor";
-        if (!DoesDirExist(octaveDir.c_str()))
+        std::string polyphaseDir = std::string(appData) + "/OctaveEditor";
+        if (!DoesDirExist(polyphaseDir.c_str()))
         {
-            SYS_CreateDirectory(octaveDir.c_str());
+            SYS_CreateDirectory(polyphaseDir.c_str());
         }
     }
 #else
@@ -142,10 +142,10 @@ void AddonManager::EnsureCacheDirectory()
         {
             SYS_CreateDirectory(configDir.c_str());
         }
-        std::string octaveDir = configDir + "/OctaveEditor";
-        if (!DoesDirExist(octaveDir.c_str()))
+        std::string polyphaseDir = configDir + "/OctaveEditor";
+        if (!DoesDirExist(polyphaseDir.c_str()))
         {
-            SYS_CreateDirectory(octaveDir.c_str());
+            SYS_CreateDirectory(polyphaseDir.c_str());
         }
     }
 #endif
@@ -165,8 +165,8 @@ void AddonManager::LoadSettings()
     {
         // Add default repository on first run
         AddonRepository defaultRepo;
-        defaultRepo.mName = "Official Octave Addons";
-        defaultRepo.mUrl = "https://github.com/OctaveEngine/addons";
+        defaultRepo.mName = "Official Polyphase Addons";
+        defaultRepo.mUrl = "https://github.com/polyphase-engine/addons";
         mRepositories.push_back(defaultRepo);
         SaveSettings();
         return;

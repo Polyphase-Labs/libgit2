@@ -13,7 +13,7 @@ The Gizmos system provides drawing primitives that are only rendered in the edit
 Gizmos can be used from three access methods:
 1. **Lua scripts** via `OnDrawGizmos` / `OnDrawGizmosSelected` callbacks
 2. **NodeGraph** visual scripting nodes under the "Gizmo" category
-3. **Native C++ addons** via the `OctaveEngineAPI` function pointers
+3. **Native C++ addons** via the `PolyphaseEngineAPI` function pointers
 
 ## Node Callbacks
 
@@ -188,7 +188,7 @@ Connect a **Tick** event to **Set Gizmo Color** (green) then to **Draw Wire Sphe
 
 ## Native Addon API
 
-The `OctaveEngineAPI` struct provides C-ABI function pointers (scalar floats, no glm types):
+The `PolyphaseEngineAPI` struct provides C-ABI function pointers (scalar floats, no glm types):
 
 ```c
 // State
@@ -208,9 +208,9 @@ api->Gizmos_DrawRay(ox, oy, oz, dx, dy, dz);
 ### Native Addon Example
 
 ```cpp
-static OctaveEngineAPI* sAPI = nullptr;
+static PolyphaseEngineAPI* sAPI = nullptr;
 
-int OnLoad(OctaveEngineAPI* api)
+int OnLoad(PolyphaseEngineAPI* api)
 {
     sAPI = api;
     return 0;

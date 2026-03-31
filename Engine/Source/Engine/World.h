@@ -20,7 +20,7 @@ class Node;
 class Audio3D;
 class Particle3D;
 
-class OCTAVE_API World
+class POLYPHASE_API World
 {
 public:
 

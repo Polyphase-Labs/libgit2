@@ -26,9 +26,9 @@
 //#define IMGUI_API __declspec( dllexport )
 //#define IMGUI_API __declspec( dllimport )
 
-// DLL export for Octave Editor - allows native addons to use ImGui
+// DLL export for Polyphase Editor - allows native addons to use ImGui
 #if defined(EDITOR) && EDITOR && defined(_WIN32)
-    #ifdef OCTAVE_IMGUI_EXPORT
+    #ifdef POLYPHASE_IMGUI_EXPORT
         #define IMGUI_API __declspec(dllexport)
     #else
         #define IMGUI_API __declspec(dllimport)

@@ -350,14 +350,14 @@ void SYS_Update()
         }
     }
 
-    if (INP_IsKeyDown(OCTAVE_KEY_ALT_L) || INP_IsKeyDown(OCTAVE_KEY_ALT_R))
+    if (INP_IsKeyDown(POLYPHASE_KEY_ALT_L) || INP_IsKeyDown(POLYPHASE_KEY_ALT_R))
     {
-        if (INP_IsKeyJustDown(OCTAVE_KEY_ENTER))
+        if (INP_IsKeyJustDown(POLYPHASE_KEY_ENTER))
         {
             SYS_SetFullscreen(!GetEngineState()->mSystem.mFullscreen);
         }
 
-        if (INP_IsKeyJustDown(OCTAVE_KEY_F4))
+        if (INP_IsKeyJustDown(POLYPHASE_KEY_F4))
         {
             Quit();
         }
@@ -424,14 +424,14 @@ void SYS_ReleaseFileData(char* data)
         free(data);
     }
 }
-std::string SYS_GetOctavePath()
+std::string SYS_GetPolyphasePath()
 {
     // Try executable directory first (most reliable for development)
-    std::string octaveEXE = SYS_GetExecutablePath();
-    size_t lastSlash = octaveEXE.find_last_of("\\/");
-    std::string exeDir = octaveEXE.substr(0, lastSlash + 1);
+    std::string polyphaseEXE = SYS_GetExecutablePath();
+    size_t lastSlash = polyphaseEXE.find_last_of("\\/");
+    std::string exeDir = polyphaseEXE.substr(0, lastSlash + 1);
 
-    // Check if we're running from the Octave engine directory
+    // Check if we're running from the Polyphase engine directory
     // by looking for Engine/Source which always exists in development
     if (SYS_DoesFileExist((exeDir + "Engine/Source/Engine/Engine.h").c_str(), false))
     {
@@ -445,10 +445,10 @@ std::string SYS_GetOctavePath()
         return currentDir;
     }
 
-    // Check for Octave subdirectory (installed layout)
-    if (SYS_DoesFileExist((currentDir + "Octave/imgui.ini").c_str(), false))
+    // Check for Polyphase subdirectory (installed layout)
+    if (SYS_DoesFileExist((currentDir + "Polyphase/imgui.ini").c_str(), false))
     {
-        return currentDir + "Octave/";
+        return currentDir + "Polyphase/";
     }
 
     // Fallback to executable directory
@@ -1150,7 +1150,7 @@ void SYS_Log(LogSeverity severity, const char* format, va_list arg)
     OutputDebugString("\n");
 }
 
-OCTAVE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
+POLYPHASE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
 {
     const char* fileName = strrchr(fileString, '\\') ? strrchr(fileString, '\\') + 1 : fileString;
     LogError("[Assert] %s, %s, line %d", exprString, fileName, lineNumber);

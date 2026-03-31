@@ -66,7 +66,7 @@ void InputManager::UpdateHotkeys()
 
     if (GetEditorState()->mPlayInEditor)
     {
-        if (IsKeyJustDown(OCTAVE_KEY_ESCAPE))
+        if (IsKeyJustDown(POLYPHASE_KEY_ESCAPE))
         {
             if (GetEditorState()->mNodePropertySelect)
             {
@@ -77,7 +77,7 @@ void InputManager::UpdateHotkeys()
                 GetEditorState()->EndPlayInEditor();
             }
         }
-        else if (IsKeyJustDown(OCTAVE_KEY_P) && altDown && ctrlDown)
+        else if (IsKeyJustDown(POLYPHASE_KEY_P) && altDown && ctrlDown)
         {
             // Ctrl+Alt+P: release cursor capture without ending PIE
             if (GetEditorState()->mGamePreviewCaptured)
@@ -86,12 +86,12 @@ void InputManager::UpdateHotkeys()
                 INP_TrapCursor(false);
             }
         }
-        else if (IsKeyJustDown(OCTAVE_KEY_P) && altDown)
+        else if (IsKeyJustDown(POLYPHASE_KEY_P) && altDown)
         {
             bool pause = !GetEditorState()->IsPlayInEditorPaused();
             GetEditorState()->SetPlayInEditorPaused(pause);
         }
-        else if (IsKeyJustDown(OCTAVE_KEY_F8))
+        else if (IsKeyJustDown(POLYPHASE_KEY_F8))
         {
             if (GetEditorState()->mEjected)
             {
@@ -102,7 +102,7 @@ void InputManager::UpdateHotkeys()
                 GetEditorState()->EjectPlayInEditor();
             }
         }
-        else if (IsKeyJustDown(OCTAVE_KEY_F10))
+        else if (IsKeyJustDown(POLYPHASE_KEY_F10))
         {
             FrameStep();
         }
@@ -112,7 +112,7 @@ void InputManager::UpdateHotkeys()
         EditorMode editorMode = GetEditorState()->GetEditorMode();
         const bool isScene = (editorMode == EditorMode::Scene) || (editorMode == EditorMode::Scene2D) || (editorMode == EditorMode::Scene3D);
 
-        if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_P))
+        if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_P))
         {
             if (shiftDown)
             {
@@ -126,15 +126,15 @@ void InputManager::UpdateHotkeys()
             // Fix issue where keys CTRL and P are considered held down still.
             ClearControlDown();
             ClearShiftDown();
-            INP_ClearKey(OCTAVE_KEY_P);
+            INP_ClearKey(POLYPHASE_KEY_P);
         }
-        else if (altDown && IsKeyJustDown(OCTAVE_KEY_P))
+        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_P))
         {
             if (GetEditorState()->mPlayTarget == 0) // PlayInEditor (game window)
                 GetEditorState()->mPlayInGameWindow = true;
             GetEditorState()->BeginPlayInEditor();
         }
-        else if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_S))
+        else if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_S))
         {
             if (isScene)
             {
@@ -158,34 +158,34 @@ void InputManager::UpdateHotkeys()
                     ClearShiftDown();
                 }
 
-                INP_ClearKey(OCTAVE_KEY_S);
+                INP_ClearKey(POLYPHASE_KEY_S);
             }
         }
-        else if (shiftDown && IsKeyJustDown(OCTAVE_KEY_S) && !textFieldActive)
+        else if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_S) && !textFieldActive)
         {
             ActionManager::Get()->SaveSelectedAsset();
         }
-        else if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_O))
+        else if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_O))
         {
             ActionManager::Get()->OpenScene();
             ClearControlDown();
-            INP_ClearKey(OCTAVE_KEY_O);
+            INP_ClearKey(POLYPHASE_KEY_O);
         }
-        else if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_I))
+        else if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_I))
         {
             ActionManager::Get()->ImportAsset();
             ClearControlDown();
-            INP_ClearKey(OCTAVE_KEY_I);
+            INP_ClearKey(POLYPHASE_KEY_I);
         }
-        else if (shiftDown && ctrlDown && IsKeyJustDown(OCTAVE_KEY_Z) && !textFieldActive)
+        else if (shiftDown && ctrlDown && IsKeyJustDown(POLYPHASE_KEY_Z) && !textFieldActive)
         {
             ActionManager::Get()->Redo();
         }
-        else if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_Z) && !textFieldActive)
+        else if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_Z) && !textFieldActive)
         {
             ActionManager::Get()->Undo();
         }
-        else if ((altDown || ctrlDown) && IsKeyJustDown(OCTAVE_KEY_R) && !textFieldActive)
+        else if ((altDown || ctrlDown) && IsKeyJustDown(POLYPHASE_KEY_R) && !textFieldActive)
         {
             ReloadAllScripts();
         }
@@ -194,32 +194,32 @@ void InputManager::UpdateHotkeys()
             (GetEditorState()->GetViewport3D()->ShouldHandleInput() || 
              GetEditorState()->GetViewport2D()->ShouldHandleInput()))
         {
-            if (IsKeyJustDown(OCTAVE_KEY_1))
+            if (IsKeyJustDown(POLYPHASE_KEY_1))
             {
                 GetEditorState()->SetEditorMode(EditorMode::Scene);
             }
-            else if (IsKeyJustDown(OCTAVE_KEY_2))
+            else if (IsKeyJustDown(POLYPHASE_KEY_2))
             {
                 GetEditorState()->SetEditorMode(EditorMode::Scene2D);
             }
-            else if (IsKeyJustDown(OCTAVE_KEY_3))
+            else if (IsKeyJustDown(POLYPHASE_KEY_3))
             {
                 GetEditorState()->SetEditorMode(EditorMode::Scene3D);
                 GetEditorState()->SetPaintMode(PaintMode::None);
             }
-            else if (IsKeyJustDown(OCTAVE_KEY_4))
+            else if (IsKeyJustDown(POLYPHASE_KEY_4))
             {
                 GetEditorState()->SetEditorMode(EditorMode::Scene3D);
                 GetEditorState()->SetPaintMode(PaintMode::Color);
             }
-            else if (IsKeyJustDown(OCTAVE_KEY_5))
+            else if (IsKeyJustDown(POLYPHASE_KEY_5))
             {
                 GetEditorState()->SetEditorMode(EditorMode::Scene3D);
                 GetEditorState()->SetPaintMode(PaintMode::Instance);
             }
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_ESCAPE))
+        if (IsKeyJustDown(POLYPHASE_KEY_ESCAPE))
         {
             if (GetEditorState()->mNodePropertySelect)
             {
@@ -241,15 +241,15 @@ void InputManager::UpdateHotkeys()
 
     if (!IsPlaying() || GetEditorState()->mEjected)
     {
-        if (!modKeyDown && IsKeyJustDown(OCTAVE_KEY_T) && !textFieldActive)
+        if (!modKeyDown && IsKeyJustDown(POLYPHASE_KEY_T) && !textFieldActive)
         {
             GetEditorState()->mShowLeftPane = !GetEditorState()->mShowLeftPane;
         }
-        else if (!modKeyDown && IsKeyJustDown(OCTAVE_KEY_N) && !textFieldActive)
+        else if (!modKeyDown && IsKeyJustDown(POLYPHASE_KEY_N) && !textFieldActive)
         {
             GetEditorState()->mShowRightPane = !GetEditorState()->mShowRightPane;
         }
-        else if (altDown && IsKeyJustDown(OCTAVE_KEY_Z) && !textFieldActive)
+        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_Z) && !textFieldActive)
         {
             GetEditorState()->mShowInterface = !GetEditorState()->mShowInterface;
         }

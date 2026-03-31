@@ -131,7 +131,7 @@ echo        or add ISCC.exe to your PATH.
 exit /b 1
 
 :found_iscc
-"%ISCC%" Installers\Windows\OctaveSetup.iss
+"%ISCC%" Installers\Windows\PolyphaseSetup.iss
 if errorlevel 1 (
     echo ERROR: Inno Setup compilation failed.
     exit /b 1

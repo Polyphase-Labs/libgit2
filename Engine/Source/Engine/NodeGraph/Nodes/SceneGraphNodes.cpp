@@ -2328,59 +2328,59 @@ static const PinEnumOption sSourceOptions[] = {
 
 static void FillKeyboardOptions(std::vector<PinEnumOption>& out)
 {
-    out.push_back({ "Space",     OCTAVE_KEY_SPACE });
-    out.push_back({ "Enter",     OCTAVE_KEY_ENTER });
-    out.push_back({ "Escape",    OCTAVE_KEY_ESCAPE });
-    out.push_back({ "Tab",       OCTAVE_KEY_TAB });
-    out.push_back({ "Backspace", OCTAVE_KEY_BACKSPACE });
-    out.push_back({ "Shift",     OCTAVE_KEY_SHIFT_L });
-    out.push_back({ "Ctrl",      OCTAVE_KEY_CONTROL_L });
-    out.push_back({ "Alt",       OCTAVE_KEY_ALT_L });
+    out.push_back({ "Space",     POLYPHASE_KEY_SPACE });
+    out.push_back({ "Enter",     POLYPHASE_KEY_ENTER });
+    out.push_back({ "Escape",    POLYPHASE_KEY_ESCAPE });
+    out.push_back({ "Tab",       POLYPHASE_KEY_TAB });
+    out.push_back({ "Backspace", POLYPHASE_KEY_BACKSPACE });
+    out.push_back({ "Shift",     POLYPHASE_KEY_SHIFT_L });
+    out.push_back({ "Ctrl",      POLYPHASE_KEY_CONTROL_L });
+    out.push_back({ "Alt",       POLYPHASE_KEY_ALT_L });
 #if !PLATFORM_3DS
-    out.push_back({ "Up",    OCTAVE_KEY_UP });
-    out.push_back({ "Down",  OCTAVE_KEY_DOWN });
-    out.push_back({ "Left",  OCTAVE_KEY_LEFT });
-    out.push_back({ "Right", OCTAVE_KEY_RIGHT });
-    out.push_back({ "A", OCTAVE_KEY_A }); out.push_back({ "B", OCTAVE_KEY_B });
+    out.push_back({ "Up",    POLYPHASE_KEY_UP });
+    out.push_back({ "Down",  POLYPHASE_KEY_DOWN });
+    out.push_back({ "Left",  POLYPHASE_KEY_LEFT });
+    out.push_back({ "Right", POLYPHASE_KEY_RIGHT });
+    out.push_back({ "A", POLYPHASE_KEY_A }); out.push_back({ "B", POLYPHASE_KEY_B });
 #endif
-    out.push_back({ "C", OCTAVE_KEY_C }); out.push_back({ "D", OCTAVE_KEY_D });
-    out.push_back({ "E", OCTAVE_KEY_E }); out.push_back({ "F", OCTAVE_KEY_F });
-    out.push_back({ "G", OCTAVE_KEY_G }); out.push_back({ "H", OCTAVE_KEY_H });
-    out.push_back({ "I", OCTAVE_KEY_I }); out.push_back({ "J", OCTAVE_KEY_J });
-    out.push_back({ "K", OCTAVE_KEY_K });
+    out.push_back({ "C", POLYPHASE_KEY_C }); out.push_back({ "D", POLYPHASE_KEY_D });
+    out.push_back({ "E", POLYPHASE_KEY_E }); out.push_back({ "F", POLYPHASE_KEY_F });
+    out.push_back({ "G", POLYPHASE_KEY_G }); out.push_back({ "H", POLYPHASE_KEY_H });
+    out.push_back({ "I", POLYPHASE_KEY_I }); out.push_back({ "J", POLYPHASE_KEY_J });
+    out.push_back({ "K", POLYPHASE_KEY_K });
 #if !PLATFORM_3DS
-    out.push_back({ "L", OCTAVE_KEY_L });
+    out.push_back({ "L", POLYPHASE_KEY_L });
 #endif
-    out.push_back({ "M", OCTAVE_KEY_M }); out.push_back({ "N", OCTAVE_KEY_N });
-    out.push_back({ "O", OCTAVE_KEY_O }); out.push_back({ "P", OCTAVE_KEY_P });
-    out.push_back({ "Q", OCTAVE_KEY_Q });
+    out.push_back({ "M", POLYPHASE_KEY_M }); out.push_back({ "N", POLYPHASE_KEY_N });
+    out.push_back({ "O", POLYPHASE_KEY_O }); out.push_back({ "P", POLYPHASE_KEY_P });
+    out.push_back({ "Q", POLYPHASE_KEY_Q });
 #if !PLATFORM_3DS
-    out.push_back({ "R", OCTAVE_KEY_R });
+    out.push_back({ "R", POLYPHASE_KEY_R });
 #endif
-    out.push_back({ "S", OCTAVE_KEY_S }); out.push_back({ "T", OCTAVE_KEY_T });
-    out.push_back({ "U", OCTAVE_KEY_U }); out.push_back({ "V", OCTAVE_KEY_V });
-    out.push_back({ "W", OCTAVE_KEY_W });
+    out.push_back({ "S", POLYPHASE_KEY_S }); out.push_back({ "T", POLYPHASE_KEY_T });
+    out.push_back({ "U", POLYPHASE_KEY_U }); out.push_back({ "V", POLYPHASE_KEY_V });
+    out.push_back({ "W", POLYPHASE_KEY_W });
 #if !PLATFORM_3DS
-    out.push_back({ "X", OCTAVE_KEY_X }); out.push_back({ "Y", OCTAVE_KEY_Y });
+    out.push_back({ "X", POLYPHASE_KEY_X }); out.push_back({ "Y", POLYPHASE_KEY_Y });
 #endif
-    out.push_back({ "Z", OCTAVE_KEY_Z });
-    out.push_back({ "0", OCTAVE_KEY_0 }); out.push_back({ "1", OCTAVE_KEY_1 });
-    out.push_back({ "2", OCTAVE_KEY_2 }); out.push_back({ "3", OCTAVE_KEY_3 });
-    out.push_back({ "4", OCTAVE_KEY_4 }); out.push_back({ "5", OCTAVE_KEY_5 });
-    out.push_back({ "6", OCTAVE_KEY_6 }); out.push_back({ "7", OCTAVE_KEY_7 });
-    out.push_back({ "8", OCTAVE_KEY_8 }); out.push_back({ "9", OCTAVE_KEY_9 });
-    out.push_back({ "F1",  OCTAVE_KEY_F1 });  out.push_back({ "F2",  OCTAVE_KEY_F2 });
-    out.push_back({ "F3",  OCTAVE_KEY_F3 });  out.push_back({ "F4",  OCTAVE_KEY_F4 });
-    out.push_back({ "F5",  OCTAVE_KEY_F5 });  out.push_back({ "F6",  OCTAVE_KEY_F6 });
-    out.push_back({ "F7",  OCTAVE_KEY_F7 });  out.push_back({ "F8",  OCTAVE_KEY_F8 });
-    out.push_back({ "F9",  OCTAVE_KEY_F9 });  out.push_back({ "F10", OCTAVE_KEY_F10 });
-    out.push_back({ "F11", OCTAVE_KEY_F11 }); out.push_back({ "F12", OCTAVE_KEY_F12 });
-    out.push_back({ "Insert",    OCTAVE_KEY_INSERT });
-    out.push_back({ "Delete",    OCTAVE_KEY_DELETE });
-    out.push_back({ "Home",      OCTAVE_KEY_HOME });
-    out.push_back({ "End",       OCTAVE_KEY_END });
-    out.push_back({ "Page Up",   OCTAVE_KEY_PAGE_UP });
-    out.push_back({ "Page Down", OCTAVE_KEY_PAGE_DOWN });
+    out.push_back({ "Z", POLYPHASE_KEY_Z });
+    out.push_back({ "0", POLYPHASE_KEY_0 }); out.push_back({ "1", POLYPHASE_KEY_1 });
+    out.push_back({ "2", POLYPHASE_KEY_2 }); out.push_back({ "3", POLYPHASE_KEY_3 });
+    out.push_back({ "4", POLYPHASE_KEY_4 }); out.push_back({ "5", POLYPHASE_KEY_5 });
+    out.push_back({ "6", POLYPHASE_KEY_6 }); out.push_back({ "7", POLYPHASE_KEY_7 });
+    out.push_back({ "8", POLYPHASE_KEY_8 }); out.push_back({ "9", POLYPHASE_KEY_9 });
+    out.push_back({ "F1",  POLYPHASE_KEY_F1 });  out.push_back({ "F2",  POLYPHASE_KEY_F2 });
+    out.push_back({ "F3",  POLYPHASE_KEY_F3 });  out.push_back({ "F4",  POLYPHASE_KEY_F4 });
+    out.push_back({ "F5",  POLYPHASE_KEY_F5 });  out.push_back({ "F6",  POLYPHASE_KEY_F6 });
+    out.push_back({ "F7",  POLYPHASE_KEY_F7 });  out.push_back({ "F8",  POLYPHASE_KEY_F8 });
+    out.push_back({ "F9",  POLYPHASE_KEY_F9 });  out.push_back({ "F10", POLYPHASE_KEY_F10 });
+    out.push_back({ "F11", POLYPHASE_KEY_F11 }); out.push_back({ "F12", POLYPHASE_KEY_F12 });
+    out.push_back({ "Insert",    POLYPHASE_KEY_INSERT });
+    out.push_back({ "Delete",    POLYPHASE_KEY_DELETE });
+    out.push_back({ "Home",      POLYPHASE_KEY_HOME });
+    out.push_back({ "End",       POLYPHASE_KEY_END });
+    out.push_back({ "Page Up",   POLYPHASE_KEY_PAGE_UP });
+    out.push_back({ "Page Down", POLYPHASE_KEY_PAGE_DOWN });
 }
 
 static const PinEnumOption sGamepadOptions[] = {

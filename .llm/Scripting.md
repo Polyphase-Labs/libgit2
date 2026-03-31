@@ -143,7 +143,7 @@ python Tools/generate_lua_stubs.py [--verbose]
 
 Generates an XSD schema for UIDocument XML files, enabling autocomplete and validation in XML editors (VS Code + Red Hat XML, IntelliJ, etc.). The schema encodes all UI elements, attributes, and enum values as hardcoded Python data structures (no C++ parsing).
 
-**Output:** `Engine/Generated/XML/OctaveUIDocument.xsd`
+**Output:** `Engine/Generated/XML/PolyphaseUIDocument.xsd`
 
 **Usage:**
 ```bash
@@ -152,7 +152,7 @@ python Tools/generate_ui_xsd.py [--verbose]
 
 **VS Code config:**
 ```json
-{ "xml.fileAssociations": [{ "pattern": "**/*.xml", "systemId": "Engine/Generated/XML/OctaveUIDocument.xsd" }] }
+{ "xml.fileAssociations": [{ "pattern": "**/*.xml", "systemId": "Engine/Generated/XML/PolyphaseUIDocument.xsd" }] }
 ```
 
 To update the schema (e.g., new elements or attributes), edit the Python data structures in `generate_ui_xsd.py` and re-run. See `Documentation/Development/UI/XMLUISystem.md` for full UI system docs.

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "EngineTypes.h"
 #include "Datum.h"
 
 class ScriptComponent;
 
-class OCTAVE_API ScriptFunc
+class POLYPHASE_API ScriptFunc
 {
 public:
     ScriptFunc();

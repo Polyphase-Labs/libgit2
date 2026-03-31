@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates the two editor initialization callbacks available on the `OctavePluginDesc` struct: `OnEditorPreInit` and `OnEditorReady`. These are set directly on the descriptor (not via `EditorUIHooks`) and provide control over when addon code executes during editor startup, allowing for custom font loading, early configuration, and post-initialization setup.
+This example demonstrates the two editor initialization callbacks available on the `PolyphasePluginDesc` struct: `OnEditorPreInit` and `OnEditorReady`. These are set directly on the descriptor (not via `EditorUIHooks`) and provide control over when addon code executes during editor startup, allowing for custom font loading, early configuration, and post-initialization setup.
 
 ## Files
 
@@ -27,15 +27,15 @@ This example demonstrates the two editor initialization callbacks available on t
 ### Source/InitTimingAddon.cpp
 
 ```cpp
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
 #include "imgui.h"
 #endif
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 
 #if EDITOR
 /**
@@ -108,7 +108,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
  * @param api Pointer to the engine API.
  * @return 0 on success, non-zero on failure.
  */
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("Init Timing Addon loaded!");
@@ -124,7 +124,7 @@ static void OnUnload()
     sEngineAPI = nullptr;
 }
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Init Timing Addon";
@@ -150,10 +150,10 @@ extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
 
 ## API Reference
 
-### OctavePluginDesc Initialization Fields
+### PolyphasePluginDesc Initialization Fields
 
 ```cpp
-// Set directly on the OctavePluginDesc struct (NOT via EditorUIHooks)
+// Set directly on the PolyphasePluginDesc struct (NOT via EditorUIHooks)
 desc->OnEditorPreInit = OnEditorPreInit;  // Called before editor init
 desc->OnEditorReady = OnEditorReady;      // Called after editor init
 ```
@@ -196,7 +196,7 @@ Optional callback invoked after the editor has fully initialized all systems.
 
 The complete initialization sequence is:
 
-1. `OctavePlugin_GetDesc()` - Descriptor is filled out
+1. `PolyphasePlugin_GetDesc()` - Descriptor is filled out
 2. `OnLoad()` - Plugin loaded, store engine API
 3. `OnEditorPreInit()` - (Optional) Pre-editor setup
 4. Editor initializes core systems
@@ -212,4 +212,4 @@ The complete initialization sequence is:
 4. **Keep PreInit Fast** - Minimize work in `OnEditorPreInit` to avoid delaying editor startup
 5. **Null Checks** - Both hooks are optional; set to `nullptr` if not needed
 6. **Error Handling** - Log errors clearly to help diagnose initialization failures
-7. **Desc Fields** - These are set on `OctavePluginDesc`, not registered through `EditorUIHooks`
+7. **Desc Fields** - These are set on `PolyphasePluginDesc`, not registered through `EditorUIHooks`

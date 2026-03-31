@@ -218,17 +218,17 @@ void ComboBox::Tick(float deltaTime)
         if (mIsOpen)
         {
             // Dropdown is open - navigate and select
-            if (IsKeyJustDownRepeat(OCTAVE_KEY_UP))
+            if (IsKeyJustDownRepeat(POLYPHASE_KEY_UP))
             {
                 CycleHoveredIndex(-1);
             }
 
-            if (IsKeyJustDownRepeat(OCTAVE_KEY_DOWN))
+            if (IsKeyJustDownRepeat(POLYPHASE_KEY_DOWN))
             {
                 CycleHoveredIndex(1);
             }
 
-            if (IsKeyJustDown(OCTAVE_KEY_ENTER) || IsKeyJustDown(OCTAVE_KEY_SPACE))
+            if (IsKeyJustDown(POLYPHASE_KEY_ENTER) || IsKeyJustDown(POLYPHASE_KEY_SPACE))
             {
                 if (mHoveredIndex >= 0)
                 {
@@ -237,7 +237,7 @@ void ComboBox::Tick(float deltaTime)
                 Close();
             }
 
-            if (IsKeyJustDown(OCTAVE_KEY_ESCAPE))
+            if (IsKeyJustDown(POLYPHASE_KEY_ESCAPE))
             {
                 Close();
             }
@@ -245,17 +245,17 @@ void ComboBox::Tick(float deltaTime)
         else if (containsMouse)
         {
             // Dropdown closed - open or cycle selection
-            if (IsKeyJustDown(OCTAVE_KEY_ENTER) || IsKeyJustDown(OCTAVE_KEY_SPACE))
+            if (IsKeyJustDown(POLYPHASE_KEY_ENTER) || IsKeyJustDown(POLYPHASE_KEY_SPACE))
             {
                 Open();
             }
 
-            if (IsKeyJustDownRepeat(OCTAVE_KEY_UP))
+            if (IsKeyJustDownRepeat(POLYPHASE_KEY_UP))
             {
                 CycleSelectedIndex(-1);
             }
 
-            if (IsKeyJustDownRepeat(OCTAVE_KEY_DOWN))
+            if (IsKeyJustDownRepeat(POLYPHASE_KEY_DOWN))
             {
                 CycleSelectedIndex(1);
             }

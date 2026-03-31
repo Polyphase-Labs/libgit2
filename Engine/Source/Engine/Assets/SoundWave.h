@@ -2,7 +2,7 @@
 
 #include "Asset.h"
 
-class OCTAVE_API SoundWave : public Asset
+class POLYPHASE_API SoundWave : public Asset
 {
 public:
 

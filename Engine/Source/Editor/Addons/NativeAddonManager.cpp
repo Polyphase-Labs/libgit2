@@ -1040,7 +1040,7 @@ bool NativeAddonManager::GenerateBuildScript(const std::string& addonId,
 
     const NativeAddonState& state = it->second;
     std::string sourceDir = state.mSourcePath + state.mNativeMetadata.mSourceDir + "/";
-    std::string octavePath = SYS_GetOctavePath();
+    std::string polyphasePath = SYS_GetPolyphasePath();
 
     // Try to load from manifest, fall back to hardcoded paths
     std::vector<std::string> includePaths;
@@ -1145,7 +1145,7 @@ bool NativeAddonManager::GenerateBuildScript(const std::string& addonId,
     // Add include paths from manifest
     for (const std::string& path : includePaths)
     {
-        ss << "/I\"" << octavePath << path << "/\" ";
+        ss << "/I\"" << polyphasePath << path << "/\" ";
     }
     ss << "/I\"" << sourceDir << "\" ";
 
@@ -1181,15 +1181,15 @@ bool NativeAddonManager::GenerateBuildScript(const std::string& addonId,
         }
     }
 
-    // Link against Octave import library and Lua library
+    // Link against Polyphase import library and Lua library
     // First check installed editor paths (alongside executable)
     ss << "/LIBPATH:\"" << exeDir << "\" ";
     ss << "/LIBPATH:\"" << exeDir << "lib/\" ";
     // Then check development build paths
-    ss << "/LIBPATH:\"" << octavePath << "/Standalone/Build/Windows/x64/DebugEditor/\" ";
-    ss << "/LIBPATH:\"" << octavePath << "/Standalone/Build/Windows/x64/ReleaseEditor/\" ";
-    ss << "/LIBPATH:\"" << octavePath << "/External/Lua/Build/Windows/x64/DebugEditor/\" ";
-    ss << "/LIBPATH:\"" << octavePath << "/External/Lua/Build/Windows/x64/ReleaseEditor/\" ";
+    ss << "/LIBPATH:\"" << polyphasePath << "/Standalone/Build/Windows/x64/DebugEditor/\" ";
+    ss << "/LIBPATH:\"" << polyphasePath << "/Standalone/Build/Windows/x64/ReleaseEditor/\" ";
+    ss << "/LIBPATH:\"" << polyphasePath << "/External/Lua/Build/Windows/x64/DebugEditor/\" ";
+    ss << "/LIBPATH:\"" << polyphasePath << "/External/Lua/Build/Windows/x64/ReleaseEditor/\" ";
 
     // Add dependency addon library paths and libraries
     for (const std::string& depId : state.mNativeMetadata.mDependencies)
@@ -1197,7 +1197,7 @@ bool NativeAddonManager::GenerateBuildScript(const std::string& addonId,
         ss << "/LIBPATH:\"" << packagesDir << depId << "/Build/Debug/\" ";
         ss << "/LIBPATH:\"" << packagesDir << depId << "/Build/Release/\" ";
     }
-    ss << "Octave.lib Lua.lib ";
+    ss << "Polyphase.lib Lua.lib ";
     for (const std::string& depId : state.mNativeMetadata.mDependencies)
     {
         ss << GenerateLibraryName(depId) << ".lib ";
@@ -1240,7 +1240,7 @@ bool NativeAddonManager::GenerateBuildScript(const std::string& addonId,
     // Add include paths from manifest
     for (const std::string& path : includePaths)
     {
-        ss << "  -I\"" << octavePath << path << "/\" \\\n";
+        ss << "  -I\"" << polyphasePath << path << "/\" \\\n";
     }
     ss << "  -I\"" << sourceDir << "\" \\\n";
 
@@ -1267,7 +1267,7 @@ bool NativeAddonManager::GenerateBuildScript(const std::string& addonId,
     std::vector<std::string> luaConfigsLinux = {"DebugEditor", "ReleaseEditor", "Debug", "Release"};
     for (const std::string& config : luaConfigsLinux)
     {
-        std::string testPath = octavePath + "External/Lua/Build/Linux/x64/" + config + "/libLua.a";
+        std::string testPath = polyphasePath + "External/Lua/Build/Linux/x64/" + config + "/libLua.a";
         if (SYS_DoesFileExist(testPath.c_str(), false))
         {
             luaLibPathLinux = testPath;
@@ -1456,7 +1456,7 @@ bool NativeAddonManager::LoadNativeAddon(const std::string& addonId, std::string
     }
 
     // Get entry point
-    OctavePlugin_GetDescFunc getDesc = (OctavePlugin_GetDescFunc)MOD_Symbol(handle, state.mNativeMetadata.mEntrySymbol.c_str());
+    PolyphasePlugin_GetDescFunc getDesc = (PolyphasePlugin_GetDescFunc)MOD_Symbol(handle, state.mNativeMetadata.mEntrySymbol.c_str());
     if (getDesc == nullptr)
     {
         MOD_Unload(handle);
@@ -1465,7 +1465,7 @@ bool NativeAddonManager::LoadNativeAddon(const std::string& addonId, std::string
     }
 
     // Get plugin descriptor
-    OctavePluginDesc desc = {};
+    PolyphasePluginDesc desc = {};
     if (getDesc(&desc) != 0)
     {
         MOD_Unload(handle);
@@ -1766,8 +1766,8 @@ std::vector<std::string> NativeAddonManager::GetLocalPackageIds() const
 
 bool NativeAddonManager::GenerateAddonIncludesManifest()
 {
-    std::string octavePath = SYS_GetOctavePath();
-    std::string generatedDir = octavePath + "Engine/Generated/";
+    std::string polyphasePath = SYS_GetPolyphasePath();
+    std::string generatedDir = polyphasePath + "Engine/Generated/";
     std::string outputPath = generatedDir + "AddonIncludes.json";
 
     // Ensure Generated directory exists
@@ -1832,8 +1832,8 @@ bool NativeAddonManager::GenerateAddonIncludesManifest()
 bool NativeAddonManager::LoadAddonIncludesManifest(std::vector<std::string>& outIncludePaths,
                                                     std::vector<std::string>& outDefines)
 {
-    std::string octavePath = SYS_GetOctavePath();
-    std::string manifestPath = octavePath + "Engine/Generated/AddonIncludes.json";
+    std::string polyphasePath = SYS_GetPolyphasePath();
+    std::string manifestPath = polyphasePath + "Engine/Generated/AddonIncludes.json";
 
     // Check if manifest exists
     if (!SYS_DoesFileExist(manifestPath.c_str(), false))
@@ -1960,12 +1960,12 @@ bool NativeAddonManager::WriteTemplateSourceFile(const std::string& path,
     ss << " * @brief Native addon: " << addonName << "\n";
     ss << " */\n";
     ss << "\n";
-    ss << "#include \"Plugins/OctavePluginAPI.h\"\n";
-    ss << "#include \"Plugins/OctaveEngineAPI.h\"\n";
+    ss << "#include \"Plugins/PolyphasePluginAPI.h\"\n";
+    ss << "#include \"Plugins/PolyphaseEngineAPI.h\"\n";
     ss << "\n";
-    ss << "static OctaveEngineAPI* sEngineAPI = nullptr;\n";
+    ss << "static PolyphaseEngineAPI* sEngineAPI = nullptr;\n";
     ss << "\n";
-    ss << "static int OnLoad(OctaveEngineAPI* api)\n";
+    ss << "static int OnLoad(PolyphaseEngineAPI* api)\n";
     ss << "{\n";
     ss << "    sEngineAPI = api;\n";
     ss << "    api->LogDebug(\"" << addonName << " loaded!\");\n";
@@ -2004,7 +2004,7 @@ bool NativeAddonManager::WriteTemplateSourceFile(const std::string& path,
     ss << "}\n";
     ss << "#endif\n";
     ss << "\n";
-    ss << "extern \"C\" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)\n";
+    ss << "extern \"C\" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)\n";
     ss << "{\n";
     ss << "    desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;\n";
     ss << "    desc->pluginName = \"" << addonName << "\";\n";
@@ -2042,7 +2042,7 @@ bool NativeAddonManager::WritePackageJson(const std::string& path, const NativeA
     ss << "        \"target\": \"" << targetStr << "\",\n";
     ss << "        \"sourceDir\": \"Source\",\n";
     ss << "        \"binaryName\": \"" << info.mBinaryName << "\",\n";
-    ss << "        \"entrySymbol\": \"OctavePlugin_GetDesc\",\n";
+    ss << "        \"entrySymbol\": \"PolyphasePlugin_GetDesc\",\n";
     ss << "        \"apiVersion\": 1\n";
     ss << "    }\n";
     ss << "}\n";
@@ -2060,7 +2060,7 @@ bool NativeAddonManager::WriteVSCodeConfig(const std::string& addonPath)
         SYS_CreateDirectory(vscodeDir.c_str());
     }
 
-    std::string octavePath = SYS_GetOctavePath();
+    std::string polyphasePath = SYS_GetPolyphasePath();
 
     // Helper lambda to normalize paths for JSON (use forward slashes)
     auto normalizePath = [](const std::string& path) -> std::string {
@@ -2075,7 +2075,7 @@ bool NativeAddonManager::WriteVSCodeConfig(const std::string& addonPath)
         return result;
     };
 
-    std::string octavePathJson = normalizePath(octavePath);
+    std::string polyphasePathJson = normalizePath(polyphasePath);
 
     // Try to load from manifest, fall back to hardcoded paths
     std::vector<std::string> includePaths;
@@ -2145,14 +2145,14 @@ bool NativeAddonManager::WriteVSCodeConfig(const std::string& addonPath)
     ss << "{\n";
     ss << "    \"configurations\": [\n";
     ss << "        {\n";
-    ss << "            \"name\": \"Octave Addon\",\n";
+    ss << "            \"name\": \"Polyphase Addon\",\n";
     ss << "            \"includePath\": [\n";
     ss << "                \"${workspaceFolder}/**\"";
 
     // Add include paths from manifest
     for (const std::string& path : includePaths)
     {
-        ss << ",\n                \"" << octavePathJson << path << "\"";
+        ss << ",\n                \"" << polyphasePathJson << path << "\"";
     }
     // Add dependency addon Source directories
     for (const std::string& depId : metadata.mDependencies)
@@ -2202,7 +2202,7 @@ bool NativeAddonManager::WriteVSCodeConfig(const std::string& addonPath)
 
 bool NativeAddonManager::WriteCMakeLists(const std::string& addonPath, const std::string& binaryName)
 {
-    std::string octavePath = SYS_GetOctavePath();
+    std::string polyphasePath = SYS_GetPolyphasePath();
 
     // Helper lambda to normalize paths for CMake (use forward slashes)
     auto normalizePath = [](const std::string& path) -> std::string {
@@ -2217,7 +2217,7 @@ bool NativeAddonManager::WriteCMakeLists(const std::string& addonPath, const std
         return result;
     };
 
-    std::string octavePathCMake = normalizePath(octavePath);
+    std::string polyphasePathCMake = normalizePath(polyphasePath);
 
     // Try to load from manifest, fall back to hardcoded paths
     std::vector<std::string> includePaths;
@@ -2267,8 +2267,8 @@ bool NativeAddonManager::WriteCMakeLists(const std::string& addonPath, const std
     ss << "set(CMAKE_CXX_STANDARD 17)\n";
     ss << "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n";
     ss << "\n";
-    ss << "# Octave Engine path\n";
-    ss << "set(OCTAVE_PATH \"" << octavePathCMake << "\")\n";
+    ss << "# Polyphase Engine path\n";
+    ss << "set(POLYPHASE_PATH \"" << polyphasePathCMake << "\")\n";
     ss << "\n";
     ss << "# Gather source files\n";
     ss << "file(GLOB_RECURSE SOURCES \"Source/*.cpp\" \"Source/*.c\")\n";
@@ -2316,7 +2316,7 @@ bool NativeAddonManager::WriteCMakeLists(const std::string& addonPath, const std
     // Add include paths from manifest
     for (const std::string& path : includePaths)
     {
-        ss << "    ${OCTAVE_PATH}/" << path << "\n";
+        ss << "    ${POLYPHASE_PATH}/" << path << "\n";
     }
 
     // Add dependency addon Source directories
@@ -2347,15 +2347,15 @@ bool NativeAddonManager::WriteCMakeLists(const std::string& addonPath, const std
     ss << "    " << exportMacroCMake << "\n";
     ss << ")\n";
     ss << "\n";
-    ss << "# Link against Octave import library and dependencies\n";
+    ss << "# Link against Polyphase import library and dependencies\n";
     ss << "if(WIN32)\n";
     ss << "    if(CMAKE_BUILD_TYPE STREQUAL \"Debug\")\n";
-    ss << "        set(OCTAVE_LIB_PATH \"${OCTAVE_PATH}/Standalone/Build/Windows/x64/DebugEditor\")\n";
+    ss << "        set(POLYPHASE_LIB_PATH \"${POLYPHASE_PATH}/Standalone/Build/Windows/x64/DebugEditor\")\n";
     ss << "    else()\n";
-    ss << "        set(OCTAVE_LIB_PATH \"${OCTAVE_PATH}/Standalone/Build/Windows/x64/ReleaseEditor\")\n";
+    ss << "        set(POLYPHASE_LIB_PATH \"${POLYPHASE_PATH}/Standalone/Build/Windows/x64/ReleaseEditor\")\n";
     ss << "    endif()\n";
-    ss << "    target_link_directories(" << binaryName << " PRIVATE ${OCTAVE_LIB_PATH})\n";
-    ss << "    target_link_libraries(" << binaryName << " PRIVATE Octave)\n";
+    ss << "    target_link_directories(" << binaryName << " PRIVATE ${POLYPHASE_LIB_PATH})\n";
+    ss << "    target_link_libraries(" << binaryName << " PRIVATE Polyphase)\n";
 
     // Add dependency link directories and libraries
     std::string packagesDirCMake = normalizePath(packagesDir);
@@ -2376,7 +2376,7 @@ bool NativeAddonManager::WriteCMakeLists(const std::string& addonPath, const std
 bool NativeAddonManager::WriteVSProject(const std::string& addonPath, const std::string& addonName,
                                          const std::string& binaryName)
 {
-    std::string octavePath = SYS_GetOctavePath();
+    std::string polyphasePath = SYS_GetPolyphasePath();
 
     // Helper lambda to normalize paths for XML (use backslashes on Windows)
     auto normalizePathVS = [](const std::string& path) -> std::string {
@@ -2391,7 +2391,7 @@ bool NativeAddonManager::WriteVSProject(const std::string& addonPath, const std:
         return result;
     };
 
-    std::string octavePathVS = normalizePathVS(octavePath);
+    std::string polyphasePathVS = normalizePathVS(polyphasePath);
 
     // Try to load from manifest, fall back to hardcoded paths
     std::vector<std::string> includePaths;
@@ -2524,7 +2524,7 @@ bool NativeAddonManager::WriteVSProject(const std::string& addonPath, const std:
     std::string includesStr;
     for (const std::string& path : includePaths)
     {
-        std::string fullPath = octavePathVS + normalizePathVS(path);
+        std::string fullPath = polyphasePathVS + normalizePathVS(path);
         includesStr += fullPath + ";";
     }
     // Add dependency addon Source directories
@@ -2560,12 +2560,12 @@ bool NativeAddonManager::WriteVSProject(const std::string& addonPath, const std:
         }
     }
 
-    // Path to Octave import library and Lua library
+    // Path to Polyphase import library and Lua library
     // Include both installed editor paths and development build paths
-    std::string octaveLibPathDebug = exeDirVS + ";" + exeDirVS + "lib\\;" + octavePathVS + "\\Standalone\\Build\\Windows\\x64\\DebugEditor\\";
-    std::string octaveLibPathRelease = exeDirVS + ";" + exeDirVS + "lib\\;" + octavePathVS + "\\Standalone\\Build\\Windows\\x64\\ReleaseEditor\\";
-    std::string luaLibPathDebug = octavePathVS + "\\External\\Lua\\Build\\Windows\\x64\\DebugEditor\\";
-    std::string luaLibPathRelease = octavePathVS + "\\External\\Lua\\Build\\Windows\\x64\\ReleaseEditor\\";
+    std::string polyphaseLibPathDebug = exeDirVS + ";" + exeDirVS + "lib\\;" + polyphasePathVS + "\\Standalone\\Build\\Windows\\x64\\DebugEditor\\";
+    std::string polyphaseLibPathRelease = exeDirVS + ";" + exeDirVS + "lib\\;" + polyphasePathVS + "\\Standalone\\Build\\Windows\\x64\\ReleaseEditor\\";
+    std::string luaLibPathDebug = polyphasePathVS + "\\External\\Lua\\Build\\Windows\\x64\\DebugEditor\\";
+    std::string luaLibPathRelease = polyphasePathVS + "\\External\\Lua\\Build\\Windows\\x64\\ReleaseEditor\\";
 
     // Build library paths and dependencies for dependencies
     std::string depLibPaths;
@@ -2594,8 +2594,8 @@ bool NativeAddonManager::WriteVSProject(const std::string& addonPath, const std:
     ss << "    <Link>\n";
     ss << "      <SubSystem>Windows</SubSystem>\n";
     ss << "      <GenerateDebugInformation>true</GenerateDebugInformation>\n";
-    ss << "      <AdditionalLibraryDirectories>" << octaveLibPathDebug << ";" << luaLibPathDebug << ";" << depLibPaths << "%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>\n";
-    ss << "      <AdditionalDependencies>Octave.lib;Lua.lib;" << depLibs << "%(AdditionalDependencies)</AdditionalDependencies>\n";
+    ss << "      <AdditionalLibraryDirectories>" << polyphaseLibPathDebug << ";" << luaLibPathDebug << ";" << depLibPaths << "%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>\n";
+    ss << "      <AdditionalDependencies>Polyphase.lib;Lua.lib;" << depLibs << "%(AdditionalDependencies)</AdditionalDependencies>\n";
     ss << "    </Link>\n";
     ss << "  </ItemDefinitionGroup>\n";
     ss << "  <ItemDefinitionGroup Condition=\"'$(Configuration)|$(Platform)'=='Release|x64'\">\n";
@@ -2614,8 +2614,8 @@ bool NativeAddonManager::WriteVSProject(const std::string& addonPath, const std:
     ss << "      <EnableCOMDATFolding>true</EnableCOMDATFolding>\n";
     ss << "      <OptimizeReferences>true</OptimizeReferences>\n";
     ss << "      <GenerateDebugInformation>true</GenerateDebugInformation>\n";
-    ss << "      <AdditionalLibraryDirectories>" << octaveLibPathRelease << ";" << luaLibPathRelease << ";" << depLibPaths << "%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>\n";
-    ss << "      <AdditionalDependencies>Octave.lib;Lua.lib;" << depLibs << "%(AdditionalDependencies)</AdditionalDependencies>\n";
+    ss << "      <AdditionalLibraryDirectories>" << polyphaseLibPathRelease << ";" << luaLibPathRelease << ";" << depLibPaths << "%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>\n";
+    ss << "      <AdditionalDependencies>Polyphase.lib;Lua.lib;" << depLibs << "%(AdditionalDependencies)</AdditionalDependencies>\n";
     ss << "    </Link>\n";
     ss << "  </ItemDefinitionGroup>\n";
 

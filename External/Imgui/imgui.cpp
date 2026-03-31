@@ -8890,8 +8890,8 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
             io.MouseSource = e->MousePos.MouseSource;
 
             // Polyphase Hack
-            io.MousePos.x /= io.OctaveInterfaceScale;
-            io.MousePos.y /= io.OctaveInterfaceScale;
+            io.MousePos.x /= io.PolyphaseInterfaceScale;
+            io.MousePos.y /= io.PolyphaseInterfaceScale;
 
             mouse_moved = true;
         }

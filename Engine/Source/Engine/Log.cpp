@@ -25,7 +25,7 @@ static void OpenLogFile()
         std::string projName = engineState->mProjectName;
         if (projName == "")
         {
-            projName = "Octave";
+            projName = "Polyphase";
         }
         std::string logName = projName + ".log";
         engineState->mLogFile = fopen(logName.c_str(), "w");

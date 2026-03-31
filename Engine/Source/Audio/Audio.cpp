@@ -43,7 +43,7 @@ void AUD_EncodeVorbis(Stream& inStream, Stream& outStream, PcmFormat format)
 
     /* add a comment */
     vorbis_comment_init(&vc);
-    vorbis_comment_add_tag(&vc, "ENCODER", "Octave");
+    vorbis_comment_add_tag(&vc, "ENCODER", "Polyphase");
 
     /* set up the analysis state and auxiliary encoding storage */
     vorbis_analysis_init(&vd, &vi);

@@ -98,13 +98,13 @@ void BuildCache::GatherScriptFiles(std::vector<FileEntry>& outScripts)
     outScripts.clear();
 
     const EngineState* engineState = GetEngineState();
-    std::string octaveDir = SYS_GetOctavePath();
+    std::string polyphaseDir = SYS_GetPolyphasePath();
     std::string projectDir = engineState->mProjectDirectory;
 
     std::vector<std::string> scriptPaths;
 
     // Gather from Engine/Scripts
-    ActionManager::Get()->GatherScriptFiles(octaveDir + "Engine/Scripts/", scriptPaths);
+    ActionManager::Get()->GatherScriptFiles(polyphaseDir + "Engine/Scripts/", scriptPaths);
 
     // Gather from Project/Scripts
     ActionManager::Get()->GatherScriptFiles(projectDir + "Scripts/", scriptPaths);

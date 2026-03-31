@@ -294,7 +294,7 @@ void Primitive3D::EnablePhysics(bool enable)
             if (mMotionState == nullptr)
             {
                 // Lazily allocate the motion state the first time physics is enabled.
-                mMotionState = new OctaveMotionState();
+                mMotionState = new PolyphaseMotionState();
             }
 
             if (mRigidBody != nullptr)

@@ -238,32 +238,32 @@ void Button::Tick(float deltaTime)
 
         if (sHandleKeyboardInput)
         {
-            if (IsKeyJustDown(OCTAVE_KEY_SPACE) || IsKeyJustDown(OCTAVE_KEY_ENTER))
+            if (IsKeyJustDown(POLYPHASE_KEY_SPACE) || IsKeyJustDown(POLYPHASE_KEY_ENTER))
             {
                 Activate();
             }
 
             // Allow hopping to different options based on up/down/left/right input
             if (mNavUp.IsValid() &&
-                IsKeyJustDown(OCTAVE_KEY_UP))
+                IsKeyJustDown(POLYPHASE_KEY_UP))
             {
                 SetSelectedButton(mNavUp.Get());
             }
 
             if (mNavDown.IsValid() &&
-                IsKeyJustDown(OCTAVE_KEY_DOWN))
+                IsKeyJustDown(POLYPHASE_KEY_DOWN))
             {
                 SetSelectedButton(mNavDown.Get());
             }
 
             if (mNavLeft.IsValid() &&
-                IsKeyJustDown(OCTAVE_KEY_LEFT))
+                IsKeyJustDown(POLYPHASE_KEY_LEFT))
             {
                 SetSelectedButton(mNavLeft.Get());
             }
 
             if (mNavRight.IsValid() &&
-                IsKeyJustDown(OCTAVE_KEY_RIGHT))
+                IsKeyJustDown(POLYPHASE_KEY_RIGHT))
             {
                 SetSelectedButton(mNavRight.Get());
             }

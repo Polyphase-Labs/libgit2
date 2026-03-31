@@ -45,12 +45,12 @@ This example demonstrates:
  *
  * This example shows how to:
  * - Use EditorUIHooks to add custom menus
- * - Access engine subsystems directly via OctaveEngineAPI
+ * - Access engine subsystems directly via PolyphaseEngineAPI
  * - Use proper #if EDITOR guards for editor-only code
  */
 
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
@@ -61,7 +61,7 @@ This example demonstrates:
 // GLM for math operations (available to all addons)
 #include "glm/glm.hpp"
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 static uint64_t sHookId = 0;
 
 //=============================================================================
@@ -152,7 +152,7 @@ static void OnQuickAction(void* userData)
 // Plugin Callbacks
 //=============================================================================
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("CustomMenuItem addon loaded!");
@@ -238,7 +238,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 // Plugin Entry Point
 //=============================================================================
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Custom Menu Item";

@@ -7,7 +7,7 @@ class Quad;
 class Text;
 class Texture;
 
-class OCTAVE_API ToolTipWidget : public Widget
+class POLYPHASE_API ToolTipWidget : public Widget
 {
 public:
 

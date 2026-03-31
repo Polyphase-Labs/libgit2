@@ -343,6 +343,6 @@ site/
 doxygen_xml/
 Documentation/api/
 .dev/
-Octave.exe
-Octave.exp
-Octave.lib
+Polyphase.exe
+Polyphase.exp
+Polyphase.lib

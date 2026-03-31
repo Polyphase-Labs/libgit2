@@ -18,7 +18,7 @@ enum class TitleAlignment : uint8_t
     Count
 };
 
-class OCTAVE_API Window : public Widget
+class POLYPHASE_API Window : public Widget
 {
 public:
 

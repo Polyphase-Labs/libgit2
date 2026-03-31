@@ -13,7 +13,7 @@
  * @class TinyLLMTokenizerAsset
  * @brief Asset containing tokenizer vocabulary for TinyLLM models.
  */
-class OCTAVE_API TinyLLMTokenizerAsset : public Asset
+class POLYPHASE_API TinyLLMTokenizerAsset : public Asset
 {
 public:
 

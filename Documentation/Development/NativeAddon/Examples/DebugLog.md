@@ -45,7 +45,7 @@ This example demonstrates:
  *
  * This example demonstrates:
  * - Creating a custom editor window with ImGui
- * - Direct access to engine subsystems via OctaveEngineAPI
+ * - Direct access to engine subsystems via PolyphaseEngineAPI
  * - Proper #if EDITOR guards for editor-only functionality
  *
  * Available engine includes for addons:
@@ -56,8 +56,8 @@ This example demonstrates:
  * - External/bullet3/src - Physics headers
  */
 
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
@@ -74,7 +74,7 @@ This example demonstrates:
 #include <ctime>
 #include <mutex>
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 static uint64_t sHookId = 0;
 
 #if EDITOR
@@ -476,7 +476,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 
 #endif // EDITOR
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("DebugLog addon loaded!");
@@ -578,7 +578,7 @@ static void RegisterScriptFuncs(lua_State* L)
 // Plugin Entry Point
 //=============================================================================
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Debug Log";
@@ -697,7 +697,7 @@ enum class LogLevel
 To capture all engine log messages:
 
 ```cpp
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     // Replace or wrap engine logging functions
     // to capture messages to our log window

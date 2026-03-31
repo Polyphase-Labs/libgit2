@@ -9,7 +9,7 @@ A native addon that creates a Coin component to continuously rotate Node3D objec
 This example demonstrates:
 - Using the plugin `Tick` callback for frame updates entirely in C++
 - Storing Node3D references in native addon components
-- Using OctaveEngineAPI to directly manipulate Node3D transforms
+- Using PolyphaseEngineAPI to directly manipulate Node3D transforms
 - Exposing configurable properties to Lua scripts
 - Managing multiple Coin instances from native code
 
@@ -47,8 +47,8 @@ This example demonstrates:
  * and configure Coins - no Lua Tick function required.
  */
 
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 // Include Lua headers for type definitions only (lua_State, luaL_Reg)
 // DO NOT call lua_* functions directly - use sEngineAPI->Lua_* instead!
@@ -60,7 +60,7 @@ extern "C" {
 #include <vector>
 #include <algorithm>
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 
 //=============================================================================
 // Coin Data Structure
@@ -259,7 +259,7 @@ static const luaL_Reg sCoinFuncs[] = {
 // Plugin Callbacks
 //=============================================================================
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     sActiveCoins.clear();
@@ -300,7 +300,7 @@ static void RegisterScriptFuncs(lua_State* L)
 // Plugin Entry Point
 //=============================================================================
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Coin";
@@ -319,7 +319,7 @@ extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
 // This is NOT used when building as a DLL for the editor
 #if !defined(OCTAVE_PLUGIN_EXPORT)
 #include "Plugins/RuntimePluginManager.h"
-OCTAVE_REGISTER_PLUGIN(Coin, OctavePlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(Coin, PolyphasePlugin_GetDesc)
 #endif
 ```
 
@@ -513,21 +513,21 @@ This Coin uses `Tick` so objects only rotate during gameplay, not while editing.
 
 ## How It Works in Built Games
 
-When you build your game, the native addon source files are compiled directly into the game executable (not as a DLL). The plugin uses the `OCTAVE_REGISTER_PLUGIN` macro for automatic registration:
+When you build your game, the native addon source files are compiled directly into the game executable (not as a DLL). The plugin uses the `POLYPHASE_REGISTER_PLUGIN` macro for automatic registration:
 
 ```cpp
 // At the end of the plugin source file (ONLY for compiled-in builds):
 #if !defined(OCTAVE_PLUGIN_EXPORT)
 #include "Plugins/RuntimePluginManager.h"
-OCTAVE_REGISTER_PLUGIN(Coin, OctavePlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(Coin, PolyphasePlugin_GetDesc)
 #endif
 ```
 
-**Important:** The `#if !defined(OCTAVE_PLUGIN_EXPORT)` guard ensures this code is only compiled when building directly into the game. When building as a DLL for the editor (which defines `OCTAVE_PLUGIN_EXPORT`), the macro is skipped because the editor uses dynamic loading via `OctavePlugin_GetDesc` instead.
+**Important:** The `#if !defined(OCTAVE_PLUGIN_EXPORT)` guard ensures this code is only compiled when building directly into the game. When building as a DLL for the editor (which defines `OCTAVE_PLUGIN_EXPORT`), the macro is skipped because the editor uses dynamic loading via `PolyphasePlugin_GetDesc` instead.
 
 This macro creates a static initializer that registers the plugin with the `RuntimePluginManager` when the game starts. The registration flow is:
 
-1. **Static initialization** - `OCTAVE_REGISTER_PLUGIN` queues the plugin descriptor
+1. **Static initialization** - `POLYPHASE_REGISTER_PLUGIN` queues the plugin descriptor
 2. **Engine Initialize()** - `RuntimePluginManager::Create()` processes queued plugins
 3. **RuntimePluginManager::Initialize()** - Calls `OnLoad` and `RegisterScriptFuncs` for each plugin
 4. **Every frame** - `RuntimePluginManager::TickAllPlugins()` calls each plugin's `Tick` callback

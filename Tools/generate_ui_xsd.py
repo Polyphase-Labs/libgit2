@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Generate an XSD schema for Octave Engine UIDocument XML files.
+Generate an XSD schema for Polyphase Engine UIDocument XML files.
 
 Produces an XSD that XML editors (VS Code + Red Hat XML, IntelliJ, etc.)
 can use for autocomplete, validation, and documentation of .xml UI files.
 
 Usage:
     python Tools/generate_ui_xsd.py
-    python Tools/generate_ui_xsd.py --output Engine/Generated/XML/OctaveUIDocument.xsd --verbose
+    python Tools/generate_ui_xsd.py --output Engine/Generated/XML/PolyphaseUIDocument.xsd --verbose
 """
 
 import argparse
@@ -269,12 +269,12 @@ def format_xsd(root):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate XSD schema for Octave UIDocument XML files."
+        description="Generate XSD schema for Polyphase UIDocument XML files."
     )
     parser.add_argument(
         "--output", "-o",
-        default=os.path.join("Engine", "Generated", "XML", "OctaveUIDocument.xsd"),
-        help="Output XSD file path (default: Engine/Generated/XML/OctaveUIDocument.xsd)",
+        default=os.path.join("Engine", "Generated", "XML", "PolyphaseUIDocument.xsd"),
+        help="Output XSD file path (default: Engine/Generated/XML/PolyphaseUIDocument.xsd)",
     )
     parser.add_argument(
         "--verbose", "-v",

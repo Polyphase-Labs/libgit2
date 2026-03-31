@@ -22,18 +22,18 @@ RuntimePluginManager* RuntimePluginManager::sInstance = nullptr;
 // Pending registrations (for plugins registered before Create())
 struct PendingPluginRegistration
 {
-    int (*getDescFunc)(OctavePluginDesc*);
+    int (*getDescFunc)(PolyphasePluginDesc*);
     std::string pluginId;
 };
 static std::vector<PendingPluginRegistration>* sPendingRegistrations = nullptr;
 
-void QueuePluginRegistration(int (*getDescFunc)(OctavePluginDesc*), const char* pluginId)
+void QueuePluginRegistration(int (*getDescFunc)(PolyphasePluginDesc*), const char* pluginId)
 {
 
     // If manager already exists, register directly
     if (RuntimePluginManager::Get())
     {
-        OctavePluginDesc desc = {};
+        PolyphasePluginDesc desc = {};
         if (getDescFunc(&desc) == 0)
         {
             RuntimePluginManager::Get()->RegisterPlugin(desc, pluginId);
@@ -436,7 +436,7 @@ void RuntimePluginManager::Create()
         {
             for (const PendingPluginRegistration& pending : *sPendingRegistrations)
             {
-                OctavePluginDesc desc = {};
+                PolyphasePluginDesc desc = {};
                 if (pending.getDescFunc(&desc) == 0)
                 {
                     sInstance->RegisterPlugin(desc, pending.pluginId);
@@ -642,7 +642,7 @@ void RuntimePluginManager::Shutdown()
     mInitialized = false;
 }
 
-void RuntimePluginManager::RegisterPlugin(const OctavePluginDesc& desc, const std::string& pluginId)
+void RuntimePluginManager::RegisterPlugin(const PolyphasePluginDesc& desc, const std::string& pluginId)
 {
     // Check for duplicate
     for (const RuntimePluginState& existing : mPlugins)

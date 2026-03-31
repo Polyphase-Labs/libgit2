@@ -29,17 +29,17 @@ struct AsyncLoadRequest
 };
 
 // Name-based lookup (backward compatible)
-OCTAVE_API Asset* FetchAsset(const std::string& name);
-OCTAVE_API Asset* LoadAsset(const std::string& name);
-OCTAVE_API void UnloadAsset(const std::string& name);
-OCTAVE_API void AsyncLoadAsset(const std::string& name, AssetRef* targetRef = nullptr);
-OCTAVE_API AssetStub* FetchAssetStub(const std::string& name);
+POLYPHASE_API Asset* FetchAsset(const std::string& name);
+POLYPHASE_API Asset* LoadAsset(const std::string& name);
+POLYPHASE_API void UnloadAsset(const std::string& name);
+POLYPHASE_API void AsyncLoadAsset(const std::string& name, AssetRef* targetRef = nullptr);
+POLYPHASE_API AssetStub* FetchAssetStub(const std::string& name);
 
 // UUID-based lookup
-OCTAVE_API Asset* FetchAssetByUuid(uint64_t uuid);
-OCTAVE_API Asset* LoadAssetByUuid(uint64_t uuid);
-OCTAVE_API void AsyncLoadAssetByUuid(uint64_t uuid, AssetRef* targetRef = nullptr);
-OCTAVE_API AssetStub* FetchAssetStubByUuid(uint64_t uuid);
+POLYPHASE_API Asset* FetchAssetByUuid(uint64_t uuid);
+POLYPHASE_API Asset* LoadAssetByUuid(uint64_t uuid);
+POLYPHASE_API void AsyncLoadAssetByUuid(uint64_t uuid, AssetRef* targetRef = nullptr);
+POLYPHASE_API AssetStub* FetchAssetStubByUuid(uint64_t uuid);
 
 template<typename T>
 T* FetchAsset(const std::string& name)
@@ -133,7 +133,7 @@ public:
     AssetDir* FindPackagesDirectory();
     AssetDir* GetRootDirectory();
     void DiscoverAddonPackages(const std::string& packagesDir);
-    std::string GetOctaveDirectory();
+    std::string GetPolyphaseDirectory();
     void GatherScriptFiles(const std::string &dir, std::vector<std::string> &outFiles);
     void GatherFontFiles(const std::string& dir, std::vector<std::string>& outFiles);
     AssetStub* FindDefaultScene();
