@@ -8,17 +8,17 @@ This guide walks you through installing the Polyphase Engine, creating a project
 
 Before using the engine, you need to set up your development environment based on your operating system.
 
-=== "Windows"
+## Windows
 
-    Follow the [Windows Setup](../Development/SetupEnvironment/Windows.md) guide to install:
+Follow the[Windows Setup](../Development/SetupEnvironment/Windows.md) guide to install:
 
-    - Visual Studio Community 2022 (with C++ support)
-    - Vulkan SDK 1.3.275.0
-    - devkitPro toolchains (for console targets like Wii)
+- Visual Studio Community 2022 (with C++ support)
+- Vulkan SDK 1.3.275.0
+- devkitPro toolchains (for console targets like Wii)
 
-=== "Linux"
+## Linux
 
-    Follow the [Linux Setup](../Development/SetupEnvironment/Linux.md) guide to install:
+    Follow the[Linux Setup](../Development/SetupEnvironment/Linux.md) guide to install:
 
     - Build essentials (`g++`, `make`, `libx11-dev`, `libasound2-dev`)
     - Vulkan SDK 1.3.275.0
