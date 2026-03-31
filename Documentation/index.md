@@ -1,6 +1,5 @@
-<p align="center">
-  <img src="https://github.com/polyphase-engine/Polyphase-Engine/blob/main/PolyphaseLogo_256.png?raw=true"/>
-</p>
+
+![Image](https://github.com/polyphase-engine/Polyphase-Engine/blob/main/PolyphaseLogo_256.png?raw=true)
 
 # Polyphase
 
