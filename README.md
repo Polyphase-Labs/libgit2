@@ -10,11 +10,11 @@ This is a modernized fork of [Octave Game Engine by mholtkamp/octave](https://gi
 
 [Tutorial Video (Octave v5)](https://youtu.be/0CHLn0ie-DY)
 
-[Documentation](https://polyphase-Engine.github.io/Polyphase-Engine/)
+[Documentation](https://Polyphase-Labs.github.io/Polyphase-Engine/)
 
-[Lua Documentation](https://polyphase-Engine.github.io/Polyphase-Engine/Lua/)
+[Lua Documentation](https://Polyphase-Labs.github.io/Polyphase-Engine/Lua/)
 
-[C++ API Documentation](https://polyphase-Engine.github.io/Polyphase-Engine/api/annotated.html)
+[C++ API Documentation](https://Polyphase-Labs.github.io/Polyphase-Engine/api/annotated.html)
 
 
 # Special Thanks
