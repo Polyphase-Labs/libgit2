@@ -63,7 +63,7 @@ echo ""
 
 # --- Step 1: Initialize submodules ---
 echo "[1/5] Initializing git submodules..."
-git submodule init -- External/bullet3 External/doxygen-awesome-css External/zep Plugins/Blender/octave-gameengine-connect
+git submodule init -- External/bullet3 External/doxygen-awesome-css External/zep Plugins/Blender/polyshade-gameengine-connect
 git submodule update --recursive
 echo "  Submodules initialized."
 echo ""

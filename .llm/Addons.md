@@ -131,7 +131,7 @@ Located in `Engine/Source/Editor/Addons/`. Manages editor-side addon loading, in
 
 ## Example: Blender Addon
 
-**Location:** `Plugins/Blender/octave-gameengine-connect/`
+**Location:** `Plugins/Blender/polyshade-gameengine-connect/`
 
 A Python Blender addon that exports glTF with Polyphase metadata (mesh type, asset reference, script, material type). Demonstrates external tooling integration rather than runtime plugin API usage.
 
