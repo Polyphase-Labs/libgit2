@@ -1,5 +1,5 @@
 
-![Image](https://github.com/polyphase-engine/Polyphase-Engine/blob/main/PolyphaseLogo_256.png?raw=true)
+![Image](https://github.com/Polyphase-Labs/Polyphase-Engine/blob/main/PolyphaseLogo_256.png?raw=true)
 
 # Polyphase
 

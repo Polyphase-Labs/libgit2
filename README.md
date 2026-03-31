@@ -1,12 +1,11 @@
-<p align="center">
-  <img src="PolyphaseLogo_128.png"/>
-</p>
+
+![Image](https://github.com/Polyphase-Labs/Polyphase-Engine/blob/main/PolyphaseLogo_256.png?raw=true)
 
 # Polyphase
 
 A 3D Game Engine for GameCube, Wii, 3DS, Windows, Linux, and Android.
 
-This is a modernized fork of [Octave Game Engine by mholtkamp/octave](https://github.com/mholtkamp/octave) . 
+This is a modernized fork of [Octave Game Engine by mholtkamp/octave](https://github.com/mholtkamp/octave) .
 
 [Tutorial Video (Octave v5)](https://youtu.be/0CHLn0ie-DY)
 
@@ -15,7 +14,6 @@ This is a modernized fork of [Octave Game Engine by mholtkamp/octave](https://gi
 [Lua Documentation](https://Polyphase-Labs.github.io/Polyphase-Engine/Lua/)
 
 [C++ API Documentation](https://Polyphase-Labs.github.io/Polyphase-Engine/api/annotated.html)
-
 
 # Special Thanks
 
