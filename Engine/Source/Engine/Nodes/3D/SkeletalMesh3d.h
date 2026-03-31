@@ -48,7 +48,7 @@ struct QueuedAnimation
 
 typedef void(*AnimEventHandlerFP)(const AnimEvent& animEvent);
 
-class OCTAVE_API SkeletalMesh3D : public Mesh3D
+class POLYPHASE_API SkeletalMesh3D : public Mesh3D
 {
 public:
 

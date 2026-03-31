@@ -1,4 +1,4 @@
-site_name: Octave Engine Docs
+site_name: Polyphase Engine Docs
 docs_dir: Documentation
 site_dir: site
 
@@ -22,6 +22,7 @@ nav:
   - Home: index.md
 
   - Info:
+      - Quick Start: Info/QuickStart.md
       - Editor: Info/Editor.md
       - Scripting: Info/Scripting.md
       - Templates: Info/Templates.md
@@ -31,6 +32,13 @@ nav:
       - LLM Docs: Info/LLM.md
 
   - Development:
+      - Install Environment:
+          - Quick Start: Info/QuickStart.md
+          - Terminal: Development/SetupEnvironment/Terminal.md
+          - Windows: Development/SetupEnvironment/Windows.md
+          - Linux: Development/SetupEnvironment/Linux.md
+          - VS Code: Development/SetupEnvironment/VSCode.md
+          - Compiling: Development/SetupEnvironment/Compiling.md
       - Mesh Instancing: Development/MeshInstancing.md
       - Packaging Flow: Development/PackagingFlow.md
       - Themes / CSS: Development/ThemesCss.md

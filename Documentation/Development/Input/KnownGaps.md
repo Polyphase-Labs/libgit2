@@ -1,6 +1,6 @@
 # Known Gaps & Missing Features
 
-This document tracks known limitations, incomplete implementations, and missing features in the Octave Engine input system.
+This document tracks known limitations, incomplete implementations, and missing features in the Polyphase Engine input system.
 
 ## Wii
 

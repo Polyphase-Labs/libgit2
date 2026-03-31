@@ -53,7 +53,7 @@ struct ParticleParams
     glm::vec2 mScaleEnd = { 0.5f, 0.5f };
 };
 
-class OCTAVE_API ParticleSystem : public Asset
+class POLYPHASE_API ParticleSystem : public Asset
 {
 public:
 

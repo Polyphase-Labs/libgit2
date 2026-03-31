@@ -14,7 +14,7 @@
 #include <assimp/scene.h>
 #endif
 
-class OCTAVE_API StaticMesh : public Asset
+class POLYPHASE_API StaticMesh : public Asset
 {
 public:
 

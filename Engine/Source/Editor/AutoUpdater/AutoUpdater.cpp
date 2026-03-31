@@ -142,7 +142,7 @@ void AutoUpdater::CheckThreadFunc()
     }
 
     // Compare versions
-    std::string currentVersion = OCTAVE_VERSION_STRING;
+    std::string currentVersion = POLYPHASE_VERSION_STRING;
     if (mLatestRelease.IsNewerThan(currentVersion))
     {
         // Check if this version is skipped
@@ -373,8 +373,8 @@ void AutoUpdater::LaunchInstaller()
 #if PLATFORM_WINDOWS
     // Launch the installer with silent upgrade flags
     // /SILENT = show progress bar, no wizard pages
-    // /CLOSEAPPLICATIONS = close running Octave instances
-    // /RESTARTAPPLICATIONS = restart Octave after install
+    // /CLOSEAPPLICATIONS = close running Polyphase instances
+    // /RESTARTAPPLICATIONS = restart Polyphase after install
     HINSTANCE result = ShellExecuteA(
         nullptr,
         "open",

@@ -1,6 +1,6 @@
-# OctaveGameEngine Docker Build System
+# Polyphase Engine Docker Build System
 
-One Docker container with all toolchains for building Octave Game Engine on any supported platform.
+One Docker container with all toolchains for building Polyphase Game Engine on any supported platform.
 
 ## Quick Start
 
@@ -9,10 +9,10 @@ One Docker container with all toolchains for building Octave Game Engine on any 
 ./Docker/build.sh
 
 # 2. Build the Editor
-docker run --rm -v ./output:/game octavegameengine build-editor
+docker run --rm -v ./output:/game polyphase-engine build-editor
 
 # 3. Build a game (pass your project directory)
-docker run --rm -v ./output:/game -v ./MyGame:/project octavegameengine build-linux
+docker run --rm -v ./output:/game -v ./MyGame:/project polyphase-engine build-linux
 ```
 
 ## Available Build Commands
@@ -52,7 +52,7 @@ MyGame/
 ./Docker/build.sh
 
 # Or manually
-docker build -f Docker/Dockerfile -t octavegameengine .
+docker build -f Docker/Dockerfile -t polyphase-engine .
 ```
 
 ### Build the Editor
@@ -61,20 +61,20 @@ The editor can optionally include your project files. Pass your project director
 
 ```bash
 # With project (recommended)
-docker run --rm -v ./dist/Octave:/game -v ./MyGame:/project octavegameengine build-editor
+docker run --rm -v ./dist/Polyphase:/game -v ./MyGame:/project polyphase-engine build-editor
 
 # Without project
-docker run --rm -v ./dist/Octave:/game octavegameengine build-editor
+docker run --rm -v ./dist/Polyphase:/game polyphase-engine build-editor
 ```
 
 Output:
 ```
-dist/Octave/
+dist/Polyphase/
 ├── Engine/
 ├── Standalone/
 ├── External/
 ├── ...
-└── OctaveEditor.elf    ← Ready to run
+└── PolyphaseEditor.elf    ← Ready to run
 ```
 
 ### Build a Game
@@ -83,45 +83,45 @@ Game builds require your project directory mounted at `/project`.
 
 ```bash
 # Linux
-docker run --rm -v ./dist:/game -v ./MyGame:/project octavegameengine build-linux
+docker run --rm -v ./dist:/game -v ./MyGame:/project polyphase-engine build-linux
 
 # Nintendo 3DS
-docker run --rm -v ./dist:/game -v ./MyGame:/project octavegameengine build-3ds
+docker run --rm -v ./dist:/game -v ./MyGame:/project polyphase-engine build-3ds
 
 # Nintendo GameCube
-docker run --rm -v ./dist:/game -v ./MyGame:/project octavegameengine build-gcn
+docker run --rm -v ./dist:/game -v ./MyGame:/project polyphase-engine build-gcn
 
 # Nintendo Wii
-docker run --rm -v ./dist:/game -v ./MyGame:/project octavegameengine build-wii
+docker run --rm -v ./dist:/game -v ./MyGame:/project polyphase-engine build-wii
 ```
 
 Output contains only the executable/ROM files:
 ```
 # Linux
 dist/Linux/
-└── Octave.elf
+└── Polyphase.elf
 
 # GameCube / Wii
 dist/GCN/
-├── Octave.dol
-└── Octave.elf
+├── Polyphase.dol
+└── Polyphase.elf
 
 # 3DS
 dist/3DS/
-├── Octave.3dsx
-└── Octave.smdh
+├── Polyphase.3dsx
+└── Polyphase.smdh
 ```
 
 ### Interactive Shell
 
 ```bash
-docker run -it --rm -v ./output:/game -v ./MyGame:/project octavegameengine bash
+docker run -it --rm -v ./output:/game -v ./MyGame:/project polyphase-engine bash
 ```
 
 ### Show Help
 
 ```bash
-docker run --rm octavegameengine help
+docker run --rm polyphase-engine help
 ```
 
 ## Output Directory
@@ -151,7 +151,7 @@ Use the task "Docker Build Editor - Linux" from Command Palette (`Ctrl+Shift+P` 
 Game builds require your project directory. Mount it with `-v`:
 
 ```bash
-docker run --rm -v ./output:/game -v ./MyGame:/project octavegameengine build-linux
+docker run --rm -v ./output:/game -v ./MyGame:/project polyphase-engine build-linux
 ```
 
 ### Permission denied when deleting output
@@ -167,5 +167,5 @@ docker run --rm -v ./output:/game alpine rm -rf /game/*
 Try rebuilding without cache:
 
 ```bash
-docker build --no-cache -f Docker/Dockerfile -t octavegameengine .
+docker build --no-cache -f Docker/Dockerfile -t polyphase-engine .
 ```

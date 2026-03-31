@@ -1205,7 +1205,7 @@ static void DrawFileBrowser()
             ImGui::CloseCurrentPopup();
         }
 
-        if (!contextPopupOpen && IsKeyJustDown(OCTAVE_KEY_ENTER))
+        if (!contextPopupOpen && IsKeyJustDown(POLYPHASE_KEY_ENTER))
         {
             confirmOpen = true;
         }
@@ -1315,7 +1315,7 @@ static void DrawUnsavedCheck()
             closePopup = true;
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_ESCAPE))
+        if (IsKeyJustDown(POLYPHASE_KEY_ESCAPE))
         {
             GetEditorState()->mShutdownUnsavedCheck = false;
             GetEngineState()->mQuit = false;
@@ -1396,7 +1396,7 @@ static void DrawProjectUpgradeModal()
             LogWarning("Project upgrade skipped. Packaged builds may have issues with asset references.");
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_ESCAPE))
+        if (IsKeyJustDown(POLYPHASE_KEY_ESCAPE))
         {
             closePopup = true;
             editorState->mAssetsNeedingUpgrade.clear();
@@ -1934,7 +1934,7 @@ static void DrawNodeProperty(Property& prop, uint32_t index, Object* owner, Prop
 
         if (node != nullptr &&
             ImGui::IsItemHovered() &&
-            IsKeyJustDown(OCTAVE_KEY_DELETE))
+            IsKeyJustDown(POLYPHASE_KEY_DELETE))
         {
             am->EXE_EditProperty(owner, ownerType, prop.mName, index, (Node*) nullptr);
         }
@@ -2343,7 +2343,7 @@ void DrawAssetProperty(Property& prop, uint32_t index, Object* owner, PropertyOw
 
         if (asset != nullptr &&
             ImGui::IsItemHovered() &&
-            IsKeyJustDown(OCTAVE_KEY_DELETE))
+            IsKeyJustDown(POLYPHASE_KEY_DELETE))
         {
             if (ownerType == PropertyOwnerType::Node || ownerType == PropertyOwnerType::Asset)
             {
@@ -4996,11 +4996,11 @@ static void DrawScenePanel()
             Node* parent = node->GetParent();
             int32_t childIndex = parent->FindChildIndex(node);
 
-            if (IsKeyJustDown(OCTAVE_KEY_MINUS))
+            if (IsKeyJustDown(POLYPHASE_KEY_MINUS))
             {
                 am->EXE_AttachNode(node, parent, glm::max<int32_t>(childIndex - 1, 0), -1);
             }
-            else if (IsKeyJustDown(OCTAVE_KEY_PLUS))
+            else if (IsKeyJustDown(POLYPHASE_KEY_PLUS))
             {
                 am->EXE_AttachNode(node, parent, childIndex + 1, -1);
             }
@@ -5008,11 +5008,11 @@ static void DrawScenePanel()
 
         if (selNodes.size() > 0)
         {
-            if (IsKeyJustDown(OCTAVE_KEY_DELETE))
+            if (IsKeyJustDown(POLYPHASE_KEY_DELETE))
             {
                 am->EXE_DeleteNodes(selNodes);
             }
-            else if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_D))
+            else if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_D))
             {
                 if (selNodes.size() == 1)
                 {
@@ -5027,7 +5027,7 @@ static void DrawScenePanel()
                     am->DuplicateNodes(selNodes);
                 }
             }
-            else if (!ctrlDown && IsKeyJustDown(OCTAVE_KEY_F2))
+            else if (!ctrlDown && IsKeyJustDown(POLYPHASE_KEY_F2))
             {
                 ImGui::OpenPopup("Rename Node F2");
                 strncpy(sPopupInputBuffer, selNodes[0]->GetName().c_str(), kPopupInputBufferSize - 1);
@@ -6631,22 +6631,22 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
         AssetDir* currentDir = GetEditorState()->GetAssetDirectory();
         if (currentDir != nullptr && !currentDir->mAddonDir)
         {
-            if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_N))
+            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_N))
             {
                 CreateNewAsset(Scene::GetStaticType(), "SC_Scene");
             }
 
-            if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_M))
+            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_M))
             {
                 CreateNewAsset(MaterialLite::GetStaticType(), "M_Material");
             }
 
-            if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_P))
+            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_P))
             {
                 CreateNewAsset(ParticleSystem::GetStaticType(), "P_Particle");
             }
 
-            if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_D))
+            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_D))
             {
                 AssetStub* srcStub = GetEditorState()->GetSelectedAssetStub();
 
@@ -6661,7 +6661,7 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
                 }
             }
 
-            if (IsKeyJustDown(OCTAVE_KEY_DELETE))
+            if (IsKeyJustDown(POLYPHASE_KEY_DELETE))
             {
                 const auto& selectedStubs = GetEditorState()->GetSelectedAssetStubs();
                 if (!selectedStubs.empty())
@@ -6675,7 +6675,7 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
                 }
             }
 
-            if (!ctrlDown && IsKeyJustDown(OCTAVE_KEY_F2))
+            if (!ctrlDown && IsKeyJustDown(POLYPHASE_KEY_F2))
             {
                 AssetStub* selStub = GetEditorState()->GetSelectedAssetStub();
                 if (selStub != nullptr && !selStub->mEngineAsset)
@@ -7273,7 +7273,7 @@ static void DrawPropertiesPanel()
         bool ctrlDown = IsControlDown();
 
         // Hotkey for toggling lock.
-        if (IsKeyJustDown(OCTAVE_KEY_L))
+        if (IsKeyJustDown(POLYPHASE_KEY_L))
         {
             GetEditorState()->LockInspect(!GetEditorState()->IsInspectLocked());
         }
@@ -7467,7 +7467,7 @@ static void DrawScriptsPanel()
             static std::string sEngineRoot;
             if (sEngineRoot.empty())
             {
-                sEngineRoot = AssetManager::Get()->GetOctaveDirectory();
+                sEngineRoot = AssetManager::Get()->GetPolyphaseDirectory();
             }
 
             // Refresh every 2 seconds
@@ -8428,7 +8428,7 @@ static void DrawMainMenuBar()
             std::string assetsDir = projectDir + "Assets/";
             std::string scriptsDir = projectDir + "Scripts/";
             std::string addonsDir = projectDir + "Packages/";
-            std::string octaveDir = SYS_GetOctavePath();
+            std::string polyphaseDir = SYS_GetPolyphasePath();
 
             if (ImGui::BeginMenu("Reveal in Explorer"))
             {
@@ -8450,8 +8450,8 @@ static void DrawMainMenuBar()
                     revealDir(scriptsDir);
                 if (ImGui::MenuItem("Project Addons Directory", nullptr, false, hasProject))
                     revealDir(addonsDir);
-                if (ImGui::MenuItem("Octave Engine Directory"))
-                    revealDir(octaveDir);
+                if (ImGui::MenuItem("Polyphase Engine Directory"))
+                    revealDir(polyphaseDir);
 
                 ImGui::EndMenu();
             }
@@ -8479,8 +8479,8 @@ static void DrawMainMenuBar()
                     openInEditor(scriptsDir);
                 if (ImGui::MenuItem("Project Addons Directory", nullptr, false, hasProject && hasEditor))
                     openInEditor(addonsDir);
-                if (ImGui::MenuItem("Octave Engine Directory", nullptr, false, hasEditor))
-                    openInEditor(octaveDir);
+                if (ImGui::MenuItem("Polyphase Engine Directory", nullptr, false, hasEditor))
+                    openInEditor(polyphaseDir);
 
                 ImGui::EndMenu();
             }
@@ -8504,8 +8504,8 @@ static void DrawMainMenuBar()
                     openInVSCode(scriptsDir);
                 if (ImGui::MenuItem("Project Addons Directory", nullptr, false, hasProject))
                     openInVSCode(addonsDir);
-                if (ImGui::MenuItem("Octave Engine Directory"))
-                    openInVSCode(octaveDir);
+                if (ImGui::MenuItem("Polyphase Engine Directory"))
+                    openInVSCode(polyphaseDir);
 
                 ImGui::EndMenu();
             }
@@ -8555,7 +8555,7 @@ static void DrawMainMenuBar()
         if (ImGui::BeginMenu("Extra"))
         {
             char versionStr[32];
-            snprintf(versionStr, 31, "Version: %d", OCTAVE_VERSION);
+            snprintf(versionStr, 31, "Version: %d", POLYPHASE_VERSION);
             ImGui::MenuItem(versionStr, nullptr, false, false);
 
             if (ImGui::IsItemHovered() && IsMouseButtonJustUp(MOUSE_RIGHT))
@@ -8601,18 +8601,18 @@ static void DrawMainMenuBar()
             if (ImGui::MenuItem("Documentation"))
             {
 #if PLATFORM_WINDOWS
-                SYS_Exec("start https://github.com/vltmedia/octave/wiki");
+                SYS_Exec("start https://github.com/polyphase-engine/polyphase-engine/wiki");
 #else
-                SYS_Exec("xdg-open https://github.com/vltmedia/octave/wiki &");
+                SYS_Exec("xdg-open https://github.com/polyphase-engine/polyphase-engine/wiki &");
 #endif
             }
 
             if (ImGui::MenuItem("Report Issue"))
             {
 #if PLATFORM_WINDOWS
-                SYS_Exec("start https://github.com/vltmedia/octave/issues");
+                SYS_Exec("start https://github.com/polyphase-engine/polyphase-engine/issues");
 #else
-                SYS_Exec("xdg-open https://github.com/vltmedia/octave/issues &");
+                SYS_Exec("xdg-open https://github.com/polyphase-engine/polyphase-engine/issues &");
 #endif
             }
 
@@ -9002,27 +9002,27 @@ static void DrawMainMenuBar()
             bool shiftDown = IsShiftDown();
             const bool altDown = IsAltDown();
 
-            if (shiftDown && IsKeyJustDown(OCTAVE_KEY_Q))
+            if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_Q))
             {
                 ImGui::OpenPopup("Spawn Basic 3D");
             }
 
-            if (shiftDown && IsKeyJustDown(OCTAVE_KEY_W))
+            if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_W))
             {
                 ImGui::OpenPopup("Spawn Basic Widget");
             }
 
-            if (shiftDown && IsKeyJustDown(OCTAVE_KEY_A))
+            if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_A))
             {
                 ImGui::OpenPopup("Spawn Node");
             }
 
-            if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_N))
+            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_N))
             {
                 GetEditorState()->OpenEditScene(nullptr);
             }
 
-            if (ctrlDown && IsKeyJustDown(OCTAVE_KEY_R))
+            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_R))
             {
                 ReloadAllScripts();
                 NativeAddonManager* nam = NativeAddonManager::Get();
@@ -10394,7 +10394,7 @@ static std::string ResolveEditorFontPath()
 
 static std::string ResolveEditorIconFontPath()
 {
-    const std::string relativePath = "Engine/Assets/Fonts/OctaveEngineIcons.ttf";
+    const std::string relativePath = "Engine/Assets/Fonts/PolyphaseEngineIcons.ttf";
     const std::string absolutePath = SYS_GetAbsolutePath(relativePath.c_str());
 
     if (!SYS_DoesFileExist(absolutePath.c_str(), false))
@@ -10444,7 +10444,7 @@ void EditorImguiInit()
     std::string iconFontPath = ResolveEditorIconFontPath();
     if (!iconFontPath.empty())
     {
-        MergeOctaveIcons(io.Fonts, 14.0f, iconFontPath.c_str());
+        MergePolyphaseIcons(io.Fonts, 14.0f, iconFontPath.c_str());
     }
 
     //ImGui::StyleColorsLight();
@@ -10485,7 +10485,7 @@ void EditorImguiDraw()
         interfaceScale = 1.0f;
     }
 
-    io.OctaveInterfaceScale = interfaceScale;
+    io.PolyphaseInterfaceScale = interfaceScale;
     io.DisplaySize = ImVec2(engState->mWindowWidth / interfaceScale, engState->mWindowHeight / interfaceScale);
     io.DisplayFramebufferScale = ImVec2(interfaceScale, interfaceScale);
 
@@ -10601,7 +10601,7 @@ void EditorImguiGetViewport(uint32_t& x, uint32_t& y, uint32_t& width, uint32_t&
 {
     if (EditorIsInterfaceVisible())
     {
-        float scale = ImGui::GetIO().OctaveInterfaceScale;
+        float scale = ImGui::GetIO().PolyphaseInterfaceScale;
         if (scale == 0.0f)
         {
             scale = 1.0f;

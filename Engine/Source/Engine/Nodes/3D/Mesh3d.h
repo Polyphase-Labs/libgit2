@@ -9,7 +9,7 @@
 #include <assimp/scene.h>
 #endif
 
-class OCTAVE_API Mesh3D : public Primitive3D
+class POLYPHASE_API Mesh3D : public Primitive3D
 {
 public:
 

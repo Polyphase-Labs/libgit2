@@ -325,7 +325,7 @@ MutexObject* SYS_CreateMutex()
 
     return retMutex;
 }
-std::string SYS_GetOctavePath()
+std::string SYS_GetPolyphasePath()
 {
     return "";
 }
@@ -731,12 +731,12 @@ void SYS_Log(LogSeverity severity, const char* format, va_list arg)
 #endif
 
     // I'm not sure if printf() is needed for the libogc console, but the console
-    // is currently broken right now and causes octave to crash.
+    // is currently broken right now and causes polyphase to crash.
     //vprintf(format, arg);
     //printf("\n");
 }
 
-OCTAVE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
+POLYPHASE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
 {
     const char* fileName = strrchr(fileString, '/') ? strrchr(fileString, '/') + 1 : fileString;
     char str[256];

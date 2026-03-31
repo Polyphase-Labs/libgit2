@@ -21,7 +21,7 @@ This example demonstrates:
 ```json
 {
     "name": "Custom Context Menu Item",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Demonstrates adding custom context menu items to the editor.",
     "version": "1.0.0",
     "tags": ["editor", "example"],
@@ -50,8 +50,8 @@ This example demonstrates:
  * - Use proper #if EDITOR guards for editor-only code
  */
 
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
@@ -60,7 +60,7 @@ This example demonstrates:
 
 #include "glm/glm.hpp"
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 static uint64_t sHookId = 0;
 
 //=============================================================================
@@ -114,7 +114,7 @@ static void OnExportAssetInfo(void* userData)
 // Plugin Callbacks
 //=============================================================================
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     api->LogDebug("CustomContextMenuItem addon loaded!");
@@ -185,7 +185,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 // Plugin Entry Point
 //=============================================================================
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Custom Context Menu Item";

@@ -227,7 +227,7 @@
     <ClCompile Include="synthesis.c" />
     <ClCompile Include="vorbisenc.c" />
     <ClCompile Include="vorbisfile.c" />
-    <ClCompile Include="window.c" />
+    <ClCompile Include="vorbis_window.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="backends.h" />

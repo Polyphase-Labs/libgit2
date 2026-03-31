@@ -1,6 +1,6 @@
 # Input System Overview
 
-The Octave Engine input system provides a unified API for reading player input across all supported platforms. It covers keyboard, mouse, touch, gamepad, and motion sensors. Both **Lua** and **C++** interfaces are available.
+The Polyphase Engine input system provides a unified API for reading player input across all supported platforms. It covers keyboard, mouse, touch, gamepad, and motion sensors. Both **Lua** and **C++** interfaces are available.
 
 ## Platform Support Matrix
 
@@ -21,7 +21,7 @@ The Octave Engine input system provides a unified API for reading player input a
 
 ### Polling-Based Input
 
-Input in Octave is **polling-based**. You check input state each frame (typically in your `Tick` function). There are no event callbacks.
+Input in Polyphase is **polling-based**. You check input state each frame (typically in your `Tick` function). There are no event callbacks.
 
 ### State Checks
 

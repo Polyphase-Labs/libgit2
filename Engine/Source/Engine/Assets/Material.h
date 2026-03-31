@@ -44,7 +44,7 @@ struct ShaderParameter
     uint32_t mOffset = 0; // Byte offset for uniforms, binding location for textures.
 };
 
-class OCTAVE_API Material : public Asset
+class POLYPHASE_API Material : public Asset
 {
 public:
 

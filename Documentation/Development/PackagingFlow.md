@@ -60,15 +60,15 @@ BuildData()
 ### Step 1: Initialize Paths and State
 
 ```cpp
-std::string octaveDirectory = SYS_GetOctavePath();
+std::string polyphaseDirectory = SYS_GetPolyphasePath();
 const EngineState* engineState = GetEngineState();
 bool standalone = engineState->mStandalone;
 const std::string& projectDir = engineState->mProjectDirectory;
 const std::string& projectName = engineState->mProjectName;
 ```
 
-**Path Resolution (`SYS_GetOctavePath`):**
-- First checks current directory for `Octave/imgui.ini`
+**Path Resolution (`SYS_GetPolyphasePath`):**
+- First checks current directory for `Polyphase/imgui.ini`
 - Falls back to executable directory if `Standalone/Standalone.rc` not found
 - Returns empty string on consoles (Android, 3DS, Dolphin)
 
@@ -123,7 +123,7 @@ If `standalone`, copies Generated folder to `Standalone/`
 | Otherwise | Copies script folders to packaged directory |
 
 **Script Locations:**
-- Engine: `{OctaveDir}/Engine/Scripts/` -> `{PackagedDir}/Engine/Scripts/`
+- Engine: `{PolyphaseDir}/Engine/Scripts/` -> `{PackagedDir}/Engine/Scripts/`
 - Project: `{ProjectDir}/Scripts/` -> `{PackagedDir}/{ProjectName}/Scripts/`
 
 Note: `LuaPanda.lua` is removed for non-desktop platforms (saves 148KB)
@@ -145,7 +145,7 @@ If `useRomfs` (N3DS + embedded):
 - Copies all packaged content to `{IntermediateDir}/Romfs/`
 
 **Intermediate Directory:**
-- Standalone: `{OctaveDir}/Standalone/Intermediate`
+- Standalone: `{PolyphaseDir}/Standalone/Intermediate`
 - Project: `{ProjectDir}/Intermediate`
 
 ---
@@ -168,13 +168,13 @@ if (standalone && !IsHeadless() &&
 
 | Aspect | Behavior |
 |--------|----------|
-| Compilation | **Skipped** if prebuilt `Octave.exe`/`Octave.elf` exists |
+| Compilation | **Skipped** if prebuilt `Polyphase.exe`/`Polyphase.elf` exists |
 | Use Case | Faster iteration during development |
 | Executable | Reuses existing editor binary |
 | Assumption | Editor binary is suitable for running packaged game |
 
 **Flow:**
-1. Checks for existing `Octave.exe` or `Octave.elf`
+1. Checks for existing `Polyphase.exe` or `Polyphase.elf`
 2. If found, sets `needCompile = false`
 3. Copies existing executable to packaged folder
 4. Renames to project name
@@ -213,7 +213,7 @@ Both conditions required:
 
 ### Windows
 ```
-devenv Octave.sln /Build "Release|x64" /Project {ProjectName}
+devenv Polyphase.sln /Build "Release|x64" /Project {ProjectName}
 ```
 With Steam: Uses `ReleaseSteam|x64` configuration
 
@@ -276,8 +276,8 @@ Uses DevkitPro toolchain (Makefile_GCN, Makefile_Wii, Makefile_3DS)
 5. Copy scripts to Packaged/Linux/Engine/Scripts/
 6. Copy .octp and Config.ini
 7. Compile SPIR-V shaders
-8. Check for Octave.elf -> EXISTS -> skip compile
-9. Copy existing Octave.elf to Packaged/Linux/
+8. Check for Polyphase.elf -> EXISTS -> skip compile
+9. Copy existing Polyphase.elf to Packaged/Linux/
 10. Rename to {ProjectName}.elf
 ```
 

@@ -9,7 +9,7 @@ class ScrollContainer;
 class ArrayWidget;
 class ListViewItemWidget;
 
-class OCTAVE_API ListViewWidget : public Widget
+class POLYPHASE_API ListViewWidget : public Widget
 {
 public:
 

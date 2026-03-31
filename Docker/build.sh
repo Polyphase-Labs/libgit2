@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# OctaveGameEngine Docker Build Script
+# Polyphase Engine Docker Build Script
 #
 # Usage:
 #   ./Docker/build.sh           - Build the Docker image
@@ -10,10 +10,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OCTAVE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-IMAGE_NAME="octavegameengine"
+POLYPHASE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+IMAGE_NAME="polyphase-engine"
 
-cd "$OCTAVE_ROOT"
+cd "$POLYPHASE_ROOT"
 
 case "${1:-build}" in
     build|"")
@@ -30,7 +30,7 @@ case "${1:-build}" in
         echo "  docker run --rm -v ./output:/game ${IMAGE_NAME} build-wii"
         ;;
     help|--help|-h)
-        echo "OctaveGameEngine Docker Build Script"
+        echo "Polyphase Engine Docker Build Script"
         echo ""
         echo "Usage: $0 [command]"
         echo ""

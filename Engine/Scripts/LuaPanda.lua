@@ -955,9 +955,9 @@ function this.reGetSock()
             --call custom function to get socket
             if customGetSocketInstance and pcall( function() sock =  customGetSocketInstance(); end ) then
                 this.printToConsole("reGetSock custom success");
-                Log.Debug("(Octave) LuaPanda initialized socket.")
+                Log.Debug("(Polyphase) LuaPanda initialized socket.")
             else
-                Log.Debug("(Octave) LuaPanda failed to setup socket.")
+                Log.Debug("(Polyphase) LuaPanda failed to setup socket.")
                 this.printToConsole("[Error] reGetSock fail", 2);
                 return false;
             end

@@ -1,6 +1,6 @@
 # Native Addon Development Guide
 
-This guide explains how to create C++ native addons for the Octave Engine. Native addons allow you to extend the engine with custom C++ code that can be hot-loaded in the editor and compiled into final builds.
+This guide explains how to create C++ native addons for the Polyphase Engine. Native addons allow you to extend the engine with custom C++ code that can be hot-loaded in the editor and compiled into final builds.
 
 ---
 
@@ -48,7 +48,7 @@ The `package.json` file must include a `native` block to enable native code supp
     "native": {
         "sourceDir": "Source",
         "binaryName": "myaddon",
-        "entrySymbol": "OctavePlugin_GetDesc",
+        "entrySymbol": "PolyphasePlugin_GetDesc",
         "apiVersion": 2
     }
 }
@@ -61,7 +61,7 @@ The `package.json` file must include a `native` block to enable native code supp
 | `target` | string | `"engine"` | Where the code runs (see below) |
 | `sourceDir` | string | `"Source"` | Relative path to C++ source directory |
 | `binaryName` | string | Required | Output binary name (without .dll/.so extension) |
-| `entrySymbol` | string | `"OctavePlugin_GetDesc"` | Export function name |
+| `entrySymbol` | string | `"PolyphasePlugin_GetDesc"` | Export function name |
 | `apiVersion` | integer | `1` | Plugin API version for compatibility checking |
 
 ### Target Values
@@ -100,18 +100,18 @@ Every native addon must implement a single exported function that returns a plug
 ```cpp
 // MyAddon.cpp
 
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 
 // Static registration for built games (only when compiled-in, not DLL)
 #if !defined(OCTAVE_PLUGIN_EXPORT)
 #include "Plugins/RuntimePluginManager.h"
-OCTAVE_REGISTER_PLUGIN(MyAddon, OctavePlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(MyAddon, PolyphasePlugin_GetDesc)
 #endif
 
-static OctaveEngineAPI* sAPI = nullptr;
+static PolyphaseEngineAPI* sAPI = nullptr;
 
 // Called when plugin is loaded
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sAPI = api;
     api->LogDebug("MyAddon: Loaded successfully!");
@@ -170,7 +170,7 @@ static void RegisterScriptFuncs(void* luaState)
 }
 
 // Required: Plugin descriptor export
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "My Addon";
@@ -201,19 +201,19 @@ extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
 
 ## Plugin API Reference
 
-### OctavePluginDesc
+### PolyphasePluginDesc
 
 The descriptor structure you must fill in:
 
 ```cpp
-struct OctavePluginDesc
+struct PolyphasePluginDesc
 {
     uint32_t apiVersion;           // Must match OCTAVE_PLUGIN_API_VERSION
     const char* pluginName;        // Display name
     const char* pluginVersion;     // Version string (e.g., "1.0.0")
 
     // Lifecycle callbacks
-    int (*OnLoad)(OctaveEngineAPI* api);   // Called after loading
+    int (*OnLoad)(PolyphaseEngineAPI* api);   // Called after loading
     void (*OnUnload)();                     // Called before unloading
 
     // Tick callbacks (set to nullptr if not used)
@@ -250,7 +250,7 @@ Native addons can receive frame updates through two separate tick callbacks:
 ```cpp
 static Node3D* sTargetNode = nullptr;
 static float sRotationSpeed = 45.0f;  // degrees per second
-static OctaveEngineAPI* sAPI = nullptr;
+static PolyphaseEngineAPI* sAPI = nullptr;
 
 static void Tick(float deltaTime)
 {
@@ -260,7 +260,7 @@ static void Tick(float deltaTime)
     }
 }
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Rotator";
@@ -274,12 +274,12 @@ extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
 }
 ```
 
-### OctaveEngineAPI
+### PolyphaseEngineAPI
 
 The engine API provides access to core functionality:
 
 ```cpp
-struct OctaveEngineAPI
+struct PolyphaseEngineAPI
 {
     // ===== Logging =====
     void (*LogDebug)(const char* fmt, ...);
@@ -312,7 +312,7 @@ struct OctaveEngineAPI
     void (*Lua_getfield)(lua_State* L, int idx, const char* k);
     void (*Lua_setglobal)(lua_State* L, const char* name);
     void (*Lua_getglobal)(lua_State* L, const char* name);
-    // ... and more Lua wrappers (see OctaveEngineAPI.h for full list)
+    // ... and more Lua wrappers (see PolyphaseEngineAPI.h for full list)
 
     // ===== World Management =====
     World* (*GetWorld)(int32_t index);
@@ -362,7 +362,7 @@ struct OctaveEngineAPI
 };
 ```
 
-See `OctaveEngineAPI.h` for the complete API with documentation comments.
+See `PolyphaseEngineAPI.h` for the complete API with documentation comments.
 
 ---
 
@@ -371,7 +371,7 @@ See `OctaveEngineAPI.h` for the complete API with documentation comments.
 Use these macros for cross-platform compatibility:
 
 ```cpp
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 
 // OCTAVE_PLUGIN_API - marks functions for export
 // Expands to:
@@ -387,7 +387,7 @@ When building your addon, define `OCTAVE_PLUGIN_EXPORT` to export symbols:
 ```cpp
 // This is done automatically by the build system
 #define OCTAVE_PLUGIN_EXPORT
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 ```
 
 ---
@@ -501,7 +501,7 @@ Hot-reloading replaces your code while the editor is running. Follow these guide
 ```cpp
 static void* sMyCallbackHandle = nullptr;
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     // Register with a handle we can use to unregister
     sMyCallbackHandle = SomeSystem::RegisterCallback(MyCallback);
@@ -526,7 +526,7 @@ static void OnUnload()
 To add custom nodes that appear in the editor:
 
 ```cpp
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 #include "Node.h"  // From engine includes
 
 class MyCustomNode : public Node3D
@@ -655,7 +655,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 ```cpp
 static uint64_t sHookId = 0;
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     // hookId will be provided by RegisterEditorUI
     return 0;
@@ -687,9 +687,9 @@ In addition to the UI extension hooks above, addons can register for editor life
 
 All lifecycle hooks are registered through the `EditorUIHooks` struct in your `RegisterEditorUI` callback. Each registration takes a `HookId` for automatic cleanup on unload.
 
-### Editor Init Hooks (`OctavePluginDesc`)
+### Editor Init Hooks (`PolyphasePluginDesc`)
 
-These two hooks are set directly in `OctavePluginDesc`, not via `EditorUIHooks`:
+These two hooks are set directly in `PolyphasePluginDesc`, not via `EditorUIHooks`:
 
 | Callback | When Fired | Use Case |
 |----------|-----------|----------|
@@ -708,7 +708,7 @@ static void OnEditorReady()
     // Editor is fully up - safe to query project state, open windows, etc.
 }
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     // ... other fields ...
     desc->OnEditorPreInit = OnEditorPreInit;
@@ -893,7 +893,7 @@ hooks->AddToolbarItem(hookId, "MyToolbarButton", [](void*) {
 Add custom functions callable from Lua scripts:
 
 ```cpp
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 
 extern "C" {
 #include "lua.h"
@@ -1063,18 +1063,18 @@ The build system will:
 
 ### Static Plugin Registration
 
-In built games (non-editor), plugins are statically linked and must register themselves at startup. Use the `OCTAVE_REGISTER_PLUGIN` macro:
+In built games (non-editor), plugins are statically linked and must register themselves at startup. Use the `POLYPHASE_REGISTER_PLUGIN` macro:
 
 ```cpp
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 
 // Forward declaration
-extern "C" int OctavePlugin_GetDesc(OctavePluginDesc* desc);
+extern "C" int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc);
 
 // Static registration for built games (only when compiled-in, not DLL)
 #if !defined(OCTAVE_PLUGIN_EXPORT)
 #include "Plugins/RuntimePluginManager.h"
-OCTAVE_REGISTER_PLUGIN(MyAddon, OctavePlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(MyAddon, PolyphasePlugin_GetDesc)
 #endif
 
 // ... rest of plugin code ...
@@ -1089,7 +1089,7 @@ OCTAVE_REGISTER_PLUGIN(MyAddon, OctavePlugin_GetDesc)
 | Editor (hot-load) | Dynamic DLL loading | Yes |
 | Built game | Static registration | No |
 
-In the editor, plugins are loaded as DLLs and `OctavePlugin_GetDesc` is called via `GetProcAddress`/`dlsym`. In built games, the `OCTAVE_REGISTER_PLUGIN` macro registers the plugin at static initialization time, and the `RuntimePluginManager` calls `OnLoad` during engine startup.
+In the editor, plugins are loaded as DLLs and `PolyphasePlugin_GetDesc` is called via `GetProcAddress`/`dlsym`. In built games, the `POLYPHASE_REGISTER_PLUGIN` macro registers the plugin at static initialization time, and the `RuntimePluginManager` calls `OnLoad` during engine startup.
 
 ### Platform-Specific Code
 
@@ -1135,11 +1135,11 @@ In built games, `TickEditor` is NOT called (it's editor-only). Only `Tick` is ca
 
 - Check the build log in the Addons window
 - Verify all includes are correct
-- Ensure `OctavePluginAPI.h` is in your include path
+- Ensure `PolyphasePluginAPI.h` is in your include path
 
 ### Plugin Won't Load
 
-- Check that `OctavePlugin_GetDesc` is exported correctly
+- Check that `PolyphasePlugin_GetDesc` is exported correctly
 - Verify `apiVersion` matches `OCTAVE_PLUGIN_API_VERSION`
 - Look for errors in the editor console
 
@@ -1164,7 +1164,7 @@ Here's a complete native addon example with tick callbacks:
 ```json
 {
     "name": "Hello Native",
-    "author": "Octave Team",
+    "author": "Polyphase Team",
     "description": "A minimal native addon example.",
     "version": "1.0.0",
     "tags": ["example"],
@@ -1181,18 +1181,18 @@ Use `"target": "editor"` if your addon should only run in the editor and not be 
 
 **Source/HelloNative.cpp:**
 ```cpp
-#include "OctavePluginAPI.h"
+#include "PolyphasePluginAPI.h"
 
 // Static registration for built games (only when compiled-in, not DLL)
 #if !defined(OCTAVE_PLUGIN_EXPORT)
 #include "Plugins/RuntimePluginManager.h"
-OCTAVE_REGISTER_PLUGIN(HelloNative, OctavePlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(HelloNative, PolyphasePlugin_GetDesc)
 #endif
 
-static OctaveEngineAPI* sAPI = nullptr;
+static PolyphaseEngineAPI* sAPI = nullptr;
 static float sTotalTime = 0.0f;
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sAPI = api;
     sTotalTime = 0.0f;
@@ -1222,7 +1222,7 @@ static void TickEditor(float deltaTime)
     // Editor visualization, debug overlays, etc.
 }
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Hello Native";

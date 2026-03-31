@@ -33,7 +33,7 @@ bool mLogToFile = false;
 
 When `true`, all log messages are also written to a file on disk:
 
-- **File name**: `{ProjectName}.log` (or `Octave.log` if no project name is set)
+- **File name**: `{ProjectName}.log` (or `Polyphase.log` if no project name is set)
 - **Location**: The working directory
 - **Mode**: Write (`"w"`) - the file is overwritten each time the engine starts
 - **Format**: One message per line, no timestamps or severity prefixes in the file

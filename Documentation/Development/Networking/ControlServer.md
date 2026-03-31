@@ -1,10 +1,10 @@
 # Controller Server
 
-REST API server for remote control of the Octave editor.
+REST API server for remote control of the Polyphase editor.
 
 ## Overview
 
-The Controller Server provides an HTTP REST API that allows external tools to programmatically control the Octave editor. Use cases include:
+The Controller Server provides an HTTP REST API that allows external tools to programmatically control the Polyphase editor. Use cases include:
 
 - **AI Agents** — Automated scene manipulation and testing
 - **Automation Scripts** — Batch operations (import assets, build scenes)
@@ -199,7 +199,7 @@ void MyStateCallback(int32_t state, void* userData) {
     if (state == 1) printf("Controller server stopped!\n");
 }
 
-int OnLoad(OctaveEngineAPI* api) {
+int OnLoad(PolyphaseEngineAPI* api) {
     HookId hookId = GenerateHookId("com.mycompany.myaddon");
     api->editorUI->RegisterControllerRoute(
         hookId, "GET", "/api/addons/mydata", MyRouteHandler, nullptr);

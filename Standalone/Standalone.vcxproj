@@ -154,52 +154,52 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|Win32'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseSteam|Win32'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseEditor|Win32'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|x64'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseSteam|x64'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseEditor|x64'">
     <OutDir>$(ProjectDir)Build\Windows\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)Intermediate\Windows\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <TargetName>Octave</TargetName>
+    <TargetName>Polyphase</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -250,7 +250,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)External;$(VULKAN_SDK)/Include;$(SolutionDir)Engine;$(SolutionDir)Engine/Source;$(SolutionDir)Engine/Source/Engine;$(SolutionDir)External/Bullet;$(ProjectDir);$(SolutionDir)Engine/Source/Editor;$(SolutionDir)External/Assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;OCTAVE_IMGUI_EXPORT;OCTAVE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -282,7 +282,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(SolutionDir)External;$(SolutionDir)Engine;$(SolutionDir)Engine/Source;$(SolutionDir)Engine/Source/Engine;$(SolutionDir)External/Bullet;$(ProjectDir);$(SolutionDir)Engine/Source/Editor;$(SolutionDir)External/Lua;$(SolutionDir)External/Assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;OCTAVE_IMGUI_EXPORT;OCTAVE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -313,7 +313,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)External;$(VULKAN_SDK)/Include;$(SolutionDir)Engine;$(SolutionDir)Engine/Source;$(SolutionDir)Engine/Source/Engine;$(SolutionDir)External/Bullet;$(ProjectDir);$(SolutionDir)Engine/Source/Editor;$(SolutionDir)External/Lua;$(SolutionDir)External/Assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;OCTAVE_IMGUI_EXPORT;OCTAVE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -369,7 +369,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(SolutionDir)External;$(SolutionDir)Engine;$(SolutionDir)Engine/Source;$(SolutionDir)Engine/Source/Engine;$(SolutionDir)External/Bullet;$(ProjectDir);$(SolutionDir)Engine/Source/Editor;$(SolutionDir)External/Assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;OCTAVE_IMGUI_EXPORT;OCTAVE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;NOMINMAX;_CRT_SECURE_NO_WARNINGS=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -442,7 +442,7 @@
     <ResourceCompile Include="Standalone.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Octave.ico" />
+    <Image Include="Polyphase.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Assets/TinyLLMAsset.h"
 #include <string>
 #include <vector>
@@ -15,7 +15,7 @@
  * @class TinyLLMManager
  * @brief Singleton that manages LLM inference state.
  */
-class OCTAVE_API TinyLLMManager
+class POLYPHASE_API TinyLLMManager
 {
 public:
     static TinyLLMManager* Get();

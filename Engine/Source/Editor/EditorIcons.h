@@ -1,6 +1,6 @@
 // =============================================================================
 // EditorIcons.h — Generated from selection.icomoon.json
-// Font: OctaveIcons.ttf | 184 icons | Range: U+F000..U+F0B7
+// Font: PolyphaseIcons.ttf | 184 icons | Range: U+F000..U+F0B7
 // =============================================================================
 #pragma once
 
@@ -211,9 +211,9 @@ static const ImWchar kIconRanges[] = { 0xF000, 0xF0B7, 0 };
 
 
 // ---------------------------------------------------------------------------
-// Helper: merge OctaveIcons.ttf into an existing ImGui font atlas
+// Helper: merge PolyphaseIcons.ttf into an existing ImGui font atlas
 // ---------------------------------------------------------------------------
-inline void MergeOctaveIcons(ImFontAtlas* atlas, float pixelSize, const char* ttfPath)
+inline void MergePolyphaseIcons(ImFontAtlas* atlas, float pixelSize, const char* ttfPath)
 {
     ImFontConfig cfg;
     cfg.MergeMode        = true;

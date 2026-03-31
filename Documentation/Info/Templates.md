@@ -1,4 +1,4 @@
-# Octave Templates
+# Polyphase Templates
 
 Templates are pre-made project starting points that help you quickly begin new projects with a specific setup, assets, and code already in place.
 
@@ -149,8 +149,8 @@ my-template/           (repository root)
 
 Installed templates are stored in:
 
-- **Windows:** `%APPDATA%/OctaveEditor/Templates/`
-- **Linux:** `~/.config/OctaveEditor/Templates/`
+- **Windows:** `%APPDATA%/PolyphaseEditor/Templates/`
+- **Linux:** `~/.config/PolyphaseEditor/Templates/`
 
 Each template is stored in its own subdirectory named after its ID (typically the folder name from the zip or repo).
 
@@ -164,7 +164,7 @@ Here's the simplest possible template:
 ```json
 {
     "name": "Blank Lua Project",
-    "author": "Octave Team",
+    "author": "Polyphase Team",
     "description": "A minimal starting point with just a main scene.",
     "version": "1.0.0",
     "updated": "2024-01-01",
@@ -198,9 +198,9 @@ name=BlankProject
 ```json
 {
     "name": "2D Platformer Starter",
-    "author": "Octave Team",
+    "author": "Polyphase Team",
     "description": "A complete 2D platformer foundation with player movement, physics, tilemaps, and sample levels. Perfect for beginners learning game development.",
-    "url": "https://github.com/OctaveEngine/template-platformer",
+    "url": "https://github.com/polyphase-engine/template-platformer",
     "version": "2.1.0",
     "updated": "2024-06-15",
     "tags": ["2D", "platformer", "physics", "beginner", "sample"],

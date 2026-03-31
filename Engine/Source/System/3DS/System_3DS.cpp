@@ -276,7 +276,7 @@ void SYS_IterateDirectory(DirEntry& dirEntry)
     }
 }
 
-std::string SYS_GetOctavePath()
+std::string SYS_GetPolyphasePath()
 {
     return "";
 }
@@ -593,7 +593,7 @@ void SYS_Log(LogSeverity severity, const char* format, va_list arg)
 
     if (sLogFile == nullptr)
     {
-        sLogFile = fopen("sdmc:/octave_log.txt", "w");
+        sLogFile = fopen("sdmc:/polyphase_log.txt", "w");
     }
 
     if (sLogFile != nullptr)
@@ -603,7 +603,7 @@ void SYS_Log(LogSeverity severity, const char* format, va_list arg)
     }
 }
 
-OCTAVE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
+POLYPHASE_API void SYS_Assert(const char* exprString, const char* fileString, uint32_t lineNumber)
 {
     const char* fileName = strrchr(fileString, '/') ? strrchr(fileString, '/') + 1 : fileString;
     char str[256];

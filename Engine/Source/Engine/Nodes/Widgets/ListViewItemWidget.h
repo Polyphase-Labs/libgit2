@@ -4,7 +4,7 @@
 
 class ListViewWidget;
 
-class OCTAVE_API ListViewItemWidget : public Widget
+class POLYPHASE_API ListViewItemWidget : public Widget
 {
 public:
 

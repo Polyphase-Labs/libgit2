@@ -1776,7 +1776,7 @@ AssetDir* AssetManager::GetRootDirectory()
     return mRootDirectory;
 }
 
-std::string AssetManager::GetOctaveDirectory()
+std::string AssetManager::GetPolyphaseDirectory()
 {
     // Get the App Working Directory
     std::string wd = SYS_GetCurrentDirectoryPath();

@@ -1,11 +1,11 @@
 #!/bin/bash
 # ==========================================================================
 #  build_tarball_linux.sh
-#  Builds a .tar.gz distribution for Octave Engine (non-Debian distros).
+#  Builds a .tar.gz distribution for Polyphase Engine (non-Debian distros).
 #
 #  Prerequisites:
 #    - Python 3
-#    - Engine built (OctaveEditor ELF binary)
+#    - Engine built (PolyphaseEditor ELF binary)
 #
 #  Usage: bash Installers/build_tarball_linux.sh
 # ==========================================================================
@@ -18,7 +18,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "============================================"
-echo " Octave Engine - Tarball Builder"
+echo " Polyphase Engine - Tarball Builder"
 echo "============================================"
 echo ""
 
@@ -29,7 +29,7 @@ echo ""
 
 # --- Step 2: Read version ---
 VERSION="$(grep -oP 'Version=\K.*' dist/Editor/version.txt | tr -d '[:space:]')"
-TARBALL_NAME="OctaveEditor-linux-x64"
+TARBALL_NAME="PolyphaseEditor-linux-x64"
 TARBALL_DIR="dist/${TARBALL_NAME}"
 
 echo "[2/3] Assembling tarball structure (version ${VERSION})..."
@@ -38,19 +38,19 @@ echo "[2/3] Assembling tarball structure (version ${VERSION})..."
 rm -rf "$TARBALL_DIR"
 mkdir -p "$TARBALL_DIR"
 
-# --- Copy staged files into octave/ subdirectory ---
-cp -r dist/Editor "$TARBALL_DIR/octave"
+# --- Copy staged files into polyphase/ subdirectory ---
+cp -r dist/Editor "$TARBALL_DIR/polyphase"
 
 # --- Copy install/uninstall scripts and desktop files ---
 cp Installers/Linux/install.sh "$TARBALL_DIR/"
 cp Installers/Linux/uninstall.sh "$TARBALL_DIR/"
-cp Installers/Linux/octave-editor.desktop "$TARBALL_DIR/"
-cp Installers/Linux/octave-editor.xml "$TARBALL_DIR/"
+cp Installers/Linux/polyphase-editor.desktop "$TARBALL_DIR/"
+cp Installers/Linux/polyphase-editor.xml "$TARBALL_DIR/"
 
 # Make scripts executable
 chmod +x "$TARBALL_DIR/install.sh"
 chmod +x "$TARBALL_DIR/uninstall.sh"
-chmod +x "$TARBALL_DIR/octave/OctaveEditor" 2>/dev/null || true
+chmod +x "$TARBALL_DIR/polyphase/PolyphaseEditor" 2>/dev/null || true
 
 # --- Step 3: Create tarball ---
 echo "[3/3] Creating tarball..."

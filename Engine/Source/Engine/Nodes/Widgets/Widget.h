@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Rect.h"
 #include "EngineTypes.h"
 #include "Factory.h"
@@ -49,7 +49,7 @@ enum MarginFlag : uint8_t
     MF_Bottom       = 1 << 3
 };
 
-class OCTAVE_API Widget : public Node
+class POLYPHASE_API Widget : public Node
 {
 public:
 

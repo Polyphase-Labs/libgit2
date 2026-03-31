@@ -1,14 +1,22 @@
 <p align="center">
-  <img src="OctaveLogo_128.png"/>
+  <img src="PolyphaseLogo_128.png"/>
 </p>
 
-# Octave
+# Polyphase
 
-A 3D Game Engine for GameCube, Wii, 3DS, Windows, Linux, and Android
+A 3D Game Engine for GameCube, Wii, 3DS, Windows, Linux, and Android.
 
-[Tutorial Video](https://youtu.be/0CHLn0ie-DY)
+This is a modernized fork of [Octave Game Engine by mholtkamp/octave](https://github.com/mholtkamp/octave) . 
 
-[Lua Documentation](Documentation/Lua/README.md)
+[Tutorial Video (Octave v5)](https://youtu.be/0CHLn0ie-DY)
+
+[Documentation](https://polyphase-Engine.github.io/Polyphase-Engine/)
+
+[Lua Documentation](https://polyphase-Engine.github.io/Polyphase-Engine/Lua/)
+
+[C++ API Documentation](https://polyphase-Engine.github.io/Polyphase-Engine/api/annotated.html)
+
+
 
 ### Lua IntelliSense (VS Code)
 
@@ -45,17 +53,18 @@ Instructions for building from source below.
    - `pacman-key --recv-keys C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE --keyserver keyserver.ubuntu.com`
    - `pacman-key --lsign-key C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE`
    - Put this entry in `C:\devkitPro\msys2\etc\pacman.conf` above the `[dkp-libs]` entry:
-   ```
-   [libogc2-devkitpro]
-   Server = https://packages.libogc2.org/devkitpro/windows/$arch
-   Server = https://packages.extremscorner.org/devkitpro/windows/$arch
-   ```
+     
+     ```
+     [libogc2-devkitpro]
+     Server = https://packages.libogc2.org/devkitpro/windows/$arch
+     Server = https://packages.extremscorner.org/devkitpro/windows/$arch
+     ```
    - `pacman -Syuu`
    - `pacman -S gamecube-tools-git libogc2 libogc2-libdvm`
-      - Accept overwriting if asked.
+     - Accept overwriting if asked.
    - Restart computer if you've opened Visual Studio prior to installing `libogc2` to make sure the environment variables are found.
 3. Build shaders by running compile.bat in `/Engine/Shaders/GLSL`.
-4. Open Octave.sln.
+4. Open Polyphase.sln.
 5. Switch to the DebugEditor solution configuration.
 6. Set the Standalone project as the Startup Project.
 7. In the debug settings for Standalone, change the working directory to $(SolutionDir).
@@ -73,11 +82,12 @@ Instructions for building from source below.
    Note: libcurl4/curl is optional but required for the auto-update feature in the editor.
 
 2. Install Vulkan SDK version 1.3.275.0:
-
 - Download the 1.3.275.0 tar file from <https://vulkan.lunarg.com/sdk/home#linux>
-- Extract the tar file somewhere (e.g. ~/VulkanSDK/)
-- Add these to your ~/.bashrc file (replace `~/VulkanSDK` with the directory where you extracted the files to). You may instead add these to a .sh file in your /etc/profiles.d directory to set up Vulkan for all users.
 
+- Extract the tar file somewhere (e.g. ~/VulkanSDK/)
+
+- Add these to your ~/.bashrc file (replace `~/VulkanSDK` with the directory where you extracted the files to). You may instead add these to a .sh file in your /etc/profiles.d directory to set up Vulkan for all users.
+  
   ```
   export VULKAN_SDK=~/VulkanSDK/1.3.275.0/x86_64
   export PATH=$VULKAN_SDK/bin:$PATH
@@ -86,7 +96,6 @@ Instructions for building from source below.
   ```
 
 - Close and reopen your terminal to apply the .bashrc (or run `source ~/.bashrc`)
-
 1. Install devkitPro Pacman for GameCube/Wii/3DS development (Optional) (<https://devkitpro.org/wiki/devkitPro_pacman>)
    - wget <https://apt.devkitpro.org/install-devkitpro-pacman>
    - chmod +x ./install-devkitpro-pacman
@@ -99,28 +108,29 @@ Instructions for building from source below.
    - `sudo dkp-pacman-key --recv-keys C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE --keyserver keyserver.ubuntu.com`
    - `sudo dkp-pacman-key --lsign-key C8A2759C315CFBC3429CC2E422B803BA8AA3D7CE`
    - Put this entry in `/opt/devkitpro/pacman/etc/pacman.conf` above the `[dkp-libs]` entry:
-   ```
-   [libogc2-devkitpro]
-   Server = https://packages.libogc2.org/devkitpro/linux/$arch
-   Server = https://packages.extremscorner.org/devkitpro/linux/$arch
-   ```
+     
+     ```
+     [libogc2-devkitpro]
+     Server = https://packages.libogc2.org/devkitpro/linux/$arch
+     Server = https://packages.extremscorner.org/devkitpro/linux/$arch
+     ```
    - `sudo dkp-pacman -Syuu`
    - `sudo dkp-pacman -S gamecube-tools-git libogc2 libogc2-libdvm`
-      - Accept overwriting if asked.
+     - Accept overwriting if asked.
 4. cd Engine/Shaders/GLSL/ then run ./compile.sh.
 
 ### Compiling (Visual Studio Code)
 
-1. Open the root octave folder in VsCode (where this README is located).
+1. Open the root polyphase folder in VsCode (where this README is located).
 2. Install the C/C++ Extension Pack.
-3. Run the Octave Editor config (click the Run and Debug tab on the left, then in the drop down where the green Play button is, select `Octave Editor`).
+3. Run the Polyphase Editor config (click the Run and Debug tab on the left, then in the drop down where the green Play button is, select `Polyphase Editor`).
 
 ### Compiling (Terminal)
 
 1. From the project's root directory (where this README is located) `cd Standalone`
 2. Run `make -f Makefile_Linux_Editor`
 3. Go back to the root directory `cd ..`
-4. Run `Standalone/Build/Linux/OctaveEditor.elf` It's important that the working directory is the root directory where the Engine and Standalone folders are located.
+4. Run `Standalone/Build/Linux/PolyphaseEditor.elf` It's important that the working directory is the root directory where the Engine and Standalone folders are located.
 
 ## Packaging
 
@@ -139,36 +149,43 @@ CMake support is currently a work-in-progress, and only Linux support has been i
 - Install vorbis dev libraries `sudo apt install libvorbis-dev`
 
 # Docker
-Octave includes a Docker build system for reproducible builds across all supported platforms. You can also use the Docker system to build Octave itself from source without installing any dependencies on your host machine. You can get more information about using the Docker build system at [Documentation/Docker.md](Documentation/Info/Docker.md).
+
+Polyphase includes a Docker build system for reproducible builds across all supported platforms. You can also use the Docker system to build Polyphase itself from source without installing any dependencies on your host machine. You can get more information about using the Docker build system at [Documentation/Docker.md](Documentation/Info/Docker.md).
 
 ## Requirements
+
 - Install Docker from <https://docs.docker.com/get-docker/>
 
-## Build the Octave Docker Image
+## Build the Polyphase Docker Image
+
 From your terminal, run:
+
 ```bash
-# Clone the Octave repository if you haven't already, or to get the latest version
-git clone https://github.com/mholtkamp/octave
-# Move into the octave directory
-cd octave
+# Clone the Polyphase repository if you haven't already, or to get the latest version
+git clone https://github.com/polyphase-engine/polyphase-engine
+# Move into the polyphase directory
+cd polyphase-engine
 # Build the Docker image
 ./Docker/build.sh
 ```
 
 ## Packaging Games With Docker
+
 To package your game using the Docker build system, run the following command from the root of your project directory (where your .octp file is located):
+
 ```bash
-docker run --rm -v ./dist/3DS:/game -v .:/project octavegameengine build-3ds
+docker run --rm -v ./dist/3DS:/game -v .:/project polyphase-engine build-3ds
 ```
+
 This command mounts your project directory to `/project` in the Docker container, and tells the system to export your file to `./dist`. You should create the `dist` directory or whatever you want to export to beforehand or else the directory will be created by Docker and you will have to `sudo chmod -R 777 ./dist` to change permissions so you can access it.
  or do a `sudo rm -rf ./dist` to delete the directory.
 
 ### Available Docker Build Commands
+
 - `build-linux` - Build a Linux `.elf` executable
 - `build-gamecube` - Build a GameCube `.dol` file
 - `build-wii` - Build a Wii `.dol` file
 - `build-3ds` - Build a Nintendo `.3dsx` ROM
-
 
 # Special Thanks
 

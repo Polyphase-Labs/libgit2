@@ -1,8 +1,8 @@
-# Skybox in Octave Engine
+# Skybox in Polyphase Engine
 
 ## Overview
 
-Octave Engine supports skybox rendering through a standard `StaticMesh3D` node placed in the scene. The skybox is a large inverted sphere that surrounds the camera, displaying either a textured panorama or a solid color background. The editor provides menu shortcuts to create pre-configured skybox nodes.
+Polyphase Engine supports skybox rendering through a standard `StaticMesh3D` node placed in the scene. The skybox is a large inverted sphere that surrounds the camera, displaying either a textured panorama or a solid color background. The editor provides menu shortcuts to create pre-configured skybox nodes.
 
 ---
 
@@ -98,7 +98,7 @@ The skybox is a regular scene node, so it renders on all platforms that support 
 
 ## Ray Traced Sky (Vulkan Only)
 
-Separately from the skybox node, Octave supports ray traced sky colors used by the path tracer and light baker. These are configured in **Global Properties > Light Baking**:
+Separately from the skybox node, Polyphase supports ray traced sky colors used by the path tracer and light baker. These are configured in **Global Properties > Light Baking**:
 
 | Property | Description |
 |---|---|

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "Datum.h"
 
 enum class ByteExtra
@@ -10,7 +10,7 @@ enum class ByteExtra
     ExclusiveFlagWidget
 };
 
-class OCTAVE_API Property : public Datum
+class POLYPHASE_API Property : public Datum
 {
 public:
     Property();

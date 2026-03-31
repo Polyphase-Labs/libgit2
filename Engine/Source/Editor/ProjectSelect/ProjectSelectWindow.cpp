@@ -45,13 +45,13 @@ void ProjectSelectWindow::Open()
     const char* userProfile = getenv("USERPROFILE");
     if (userProfile != nullptr)
     {
-        defaultPath = std::string(userProfile) + "/Documents/OctaveProjects";
+        defaultPath = std::string(userProfile) + "/Documents/PolyphaseProjects";
     }
 #else
     const char* home = getenv("HOME");
     if (home != nullptr)
     {
-        defaultPath = std::string(home) + "/OctaveProjects";
+        defaultPath = std::string(home) + "/PolyphaseProjects";
     }
 #endif
     strncpy(mProjectPathBuffer, defaultPath.c_str(), sizeof(mProjectPathBuffer) - 1);
@@ -101,7 +101,7 @@ void ProjectSelectWindow::Draw()
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 
-    if (ImGui::Begin("Octave - Project Select", &mIsOpen, windowFlags))
+    if (ImGui::Begin("Polyphase - Project Select", &mIsOpen, windowFlags))
     {
         // Tab bar
         if (ImGui::BeginTabBar("ProjectSelectTabs"))

@@ -6,7 +6,7 @@ class Texture;
 class Quad;
 class Text;
 
-class OCTAVE_API ProgressBar : public Widget
+class POLYPHASE_API ProgressBar : public Widget
 {
 public:
 

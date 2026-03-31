@@ -6,7 +6,7 @@ class Texture;
 class Quad;
 class Text;
 
-class OCTAVE_API InputField : public Widget
+class POLYPHASE_API InputField : public Widget
 {
 public:
 

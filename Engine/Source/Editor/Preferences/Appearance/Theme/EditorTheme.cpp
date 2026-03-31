@@ -119,7 +119,7 @@ void ApplyDarkTheme()
 {
     ImGui::StyleColorsDark();
 
-    // Custom overrides for Octave
+    // Custom overrides for Polyphase
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Tab] = ImVec4(0.20f, 0.20f, 0.68f, 1.00f);
     colors[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.61f, 0.98f, 0.80f);
@@ -131,7 +131,7 @@ void ApplyLightTheme()
 {
     ImGui::StyleColorsLight();
 
-    // Custom overrides for Octave
+    // Custom overrides for Polyphase
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Tab] = ImVec4(0.40f, 0.40f, 0.78f, 1.00f);
     colors[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.61f, 0.98f, 0.80f);
@@ -234,7 +234,7 @@ void ApplyClassicTheme()
 {
     ImGui::StyleColorsClassic();
 
-    // Custom overrides for Octave
+    // Custom overrides for Polyphase
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_TitleBg] = colors[ImGuiCol_TitleBgActive];
 }

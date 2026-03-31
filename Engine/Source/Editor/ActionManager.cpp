@@ -612,7 +612,7 @@ void ActionManager::BuildPhase1()
 
     AppendBuildOutput("Firing pre-build hooks...\n");
     LogDebug("Begin packaging...");
-    std::string octaveDirectory = SYS_GetOctavePath();
+    std::string polyphaseDirectory = SYS_GetPolyphasePath();
 
     const EngineState* engineState = GetEngineState();
     bool standalone = engineState->mStandalone;
@@ -779,7 +779,7 @@ void ActionManager::BuildPhase1()
 
     if (embedded && !useRomfs)
     {
-        GatherScriptFiles((octaveDirectory + "Engine/Scripts/").c_str(), scriptFiles);
+        GatherScriptFiles((polyphaseDirectory + "Engine/Scripts/").c_str(), scriptFiles);
         GatherScriptFiles((projectDir + "/Scripts/").c_str(), scriptFiles);
 
         std::string packagesDir = projectDir + "Packages/";
@@ -807,7 +807,7 @@ void ActionManager::BuildPhase1()
     }
     else
     {
-        SYS_CopyDirectory((octaveDirectory + "Engine/Scripts/").c_str(), (packagedDir + "Engine/Scripts/").c_str());
+        SYS_CopyDirectory((polyphaseDirectory + "Engine/Scripts/").c_str(), (packagedDir + "Engine/Scripts/").c_str());
         SYS_CopyDirectory((projectDir + "Scripts/").c_str(), (packagedDir + projectName + "/Scripts/").c_str());
 
         std::string packagesDir = projectDir + "Packages/";
@@ -863,9 +863,9 @@ void ActionManager::BuildPhase1()
     {
         AppendBuildOutput("Compiling shaders...\n");
 #if PLATFORM_WINDOWS
-        std::string shaderCmd = "cd \"" + octaveDirectory + "Engine/Shaders/GLSL\" && \"./compile.bat\"";
+        std::string shaderCmd = "cd \"" + polyphaseDirectory + "Engine/Shaders/GLSL\" && \"./compile.bat\"";
 #else
-        std::string shaderCmd = "cd \"" + octaveDirectory + "Engine/Shaders/GLSL\" && \"./compile.sh\"";
+        std::string shaderCmd = "cd \"" + polyphaseDirectory + "Engine/Shaders/GLSL\" && \"./compile.sh\"";
 #endif
         mBuildState.mShaderCompileCommand = shaderCmd;
 
@@ -878,11 +878,11 @@ void ActionManager::BuildPhase1()
         CreateDir((packagedDir + "Engine/Shaders/").c_str());
         CreateDir((packagedDir + "Engine/Shaders/GLSL/").c_str());
 
-        SYS_CopyDirectory((octaveDirectory+"Engine/Shaders/GLSL/bin/").c_str(), (packagedDir + "Engine/Shaders/GLSL/bin/").c_str());
+        SYS_CopyDirectory((polyphaseDirectory+"Engine/Shaders/GLSL/bin/").c_str(), (packagedDir + "Engine/Shaders/GLSL/bin/").c_str());
     }
 
     // Romfs setup for 3DS
-    std::string intermediateDir = standalone ? octaveDirectory+"Standalone/Intermediate" : (projectDir + "/Intermediate");
+    std::string intermediateDir = standalone ? polyphaseDirectory+"Standalone/Intermediate" : (projectDir + "/Intermediate");
     std::string romfsDir = intermediateDir + "/Romfs";
     RemoveDir(romfsDir.c_str());
     CreateDir(intermediateDir.c_str());
@@ -901,8 +901,8 @@ void ActionManager::BuildPhase1()
     bool needCompile = true;
 
     std::string buildProjName = standalone ? "Standalone" : projectName;
-    std::string buildProjDir = standalone ? octaveDirectory+"Standalone/" : projectDir;
-    std::string buildDstExeName = standalone ? "Octave" : projectName;
+    std::string buildProjDir = standalone ? polyphaseDirectory+"Standalone/" : projectDir;
+    std::string buildDstExeName = standalone ? "Polyphase" : projectName;
 
     bool useSteam = mBuildState.mUseSteam;
 
@@ -911,11 +911,11 @@ void ActionManager::BuildPhase1()
     {
         prebuiltExePath = buildProjDir + "Build/Windows/x64/"
             + (useSteam ? "ReleaseSteam/" : "Release/")
-            + "Octave.exe";
+            + "Polyphase.exe";
     }
     else if (platform == Platform::Linux)
     {
-        prebuiltExePath = buildProjDir + "Build/Linux/Octave.elf";
+        prebuiltExePath = buildProjDir + "Build/Linux/Polyphase.elf";
     }
 
     if (standalone && !IsHeadless() &&
@@ -936,7 +936,7 @@ void ActionManager::BuildPhase1()
 
         if (platform == Platform::Windows)
         {
-            std::string solutionPath = "Octave.sln";
+            std::string solutionPath = "Polyphase.sln";
             if (engineState->mSolutionPath != "")
             {
                 solutionPath = engineState->mSolutionPath;
@@ -1010,7 +1010,7 @@ void ActionManager::BuildPhase1()
 
             if (platform == Platform::N3DS)
             {
-                ReplaceStringInFile(tmpMakefile, "OctaveApp", projectName);
+                ReplaceStringInFile(tmpMakefile, "PolyphaseApp", projectName);
                 ReplaceStringInFile(tmpMakefile, "$(CURDIR)/Makefile_3DS", "$(CURDIR)/Makefile_TEMP");
             }
 
@@ -1039,7 +1039,7 @@ void ActionManager::BuildPhase1()
 
             if (platform == Platform::Linux)
             {
-                std::string exeName = standalone ? "Octave" : projectName;
+                std::string exeName = standalone ? "Polyphase" : projectName;
                 mBuildState.mStripCommand = std::string("strip --strip-debug \"") + buildProjDir + "Build/Linux/" + exeName + ".elf\"";
             }
         }
@@ -1062,7 +1062,7 @@ void ActionManager::BuildPhase1()
         default: OCT_ASSERT(0); break;
         }
 
-        std::string exeNameBase = standalone ? "Octave" : projectName;
+        std::string exeNameBase = standalone ? "Polyphase" : projectName;
         std::string extension = ".exe";
 
         switch (platform)
@@ -1112,7 +1112,7 @@ void ActionManager::BuildPhase1()
         default: OCT_ASSERT(0); break;
         }
 
-        std::string exeNameBase = standalone ? "Octave" : projectName;
+        std::string exeNameBase = standalone ? "Polyphase" : projectName;
         std::string extension = ".exe";
         switch (platform)
         {
@@ -1302,12 +1302,12 @@ void ActionManager::FinalizeLocalBuild()
 
     if (standalone)
     {
-        SYS_MoveFile((packagedDir + "Octave" + extension).c_str(), (packagedDir + projectName + extension).c_str());
+        SYS_MoveFile((packagedDir + "Polyphase" + extension).c_str(), (packagedDir + projectName + extension).c_str());
     }
 
     if (platform == Platform::Windows && useSteam)
     {
-        SYS_CopyDirectory((projectDir + (standalone ? "../" : "../Octave/") + "External/Steam/redistributable_bin/win64/steam_api64.dll").c_str(), packagedDir.c_str());
+        SYS_CopyDirectory((projectDir + (standalone ? "../" : "../Polyphase/") + "External/Steam/redistributable_bin/win64/steam_api64.dll").c_str(), packagedDir.c_str());
 
         Stream idStream;
         const char* txtId = "480";
@@ -1537,7 +1537,7 @@ void ActionManager::DrawBuildModal()
 
 void ActionManager::PrepareRelease()
 {
-    // Make sure to change the OCTAVE_VERSION definition in Constants.h first.
+    // Make sure to change the POLYPHASE_VERSION definition in Constants.h first.
 
     // [ ] Package the project for current platform
     std::string platformName = "";
@@ -1562,7 +1562,7 @@ void ActionManager::PrepareRelease()
     OCT_ASSERT(homePath != nullptr);
     LogDebug("Home path = %s", homePath);
 
-    std::string stagingDir = std::string(homePath) + "/OctaveRelease/";
+    std::string stagingDir = std::string(homePath) + "/PolyphaseRelease/";
     SYS_RemoveDirectory(stagingDir.c_str());
     SYS_CreateDirectory(stagingDir.c_str());
 
@@ -1572,29 +1572,29 @@ void ActionManager::PrepareRelease()
     std::string cleanCmd = std::string("cd ") + stagingDir + " && git clean -xdf";
     SYS_Exec(cleanCmd.c_str());
 
-    // [ ] Copy this exectubable (Release Editor) to the staging directory, rename to OctaveEditor
+    // [ ] Copy this exectubable (Release Editor) to the staging directory, rename to PolyphaseEditor
 #if PLATFORM_WINDOWS
-    std::string cpEditorCmd = std::string("cp Standalone/Build/Windows/x64/ReleaseEditor/Octave.exe ") + stagingDir + "/OctaveEditor.exe";
+    std::string cpEditorCmd = std::string("cp Standalone/Build/Windows/x64/ReleaseEditor/Polyphase.exe ") + stagingDir + "/PolyphaseEditor.exe";
 #else
-    std::string cpEditorCmd = std::string("cp Standalone/Build/Linux/OctaveEditor.elf ") + stagingDir;// + std::string("OctaveEditor");
+    std::string cpEditorCmd = std::string("cp Standalone/Build/Linux/PolyphaseEditor.elf ") + stagingDir;// + std::string("PolyphaseEditor");
 #endif
 
     SYS_Exec(cpEditorCmd.c_str());
 
-    // [ ] Copy the packaged platform's Octave exe to the staging directory
+    // [ ] Copy the packaged platform's Polyphase exe to the staging directory
 #if PLATFORM_WINDOWS
-    std::string cpGameCmd = std::string("cp Standalone/Build/Windows/x64/Release/Octave.exe ") + stagingDir;
+    std::string cpGameCmd = std::string("cp Standalone/Build/Windows/x64/Release/Polyphase.exe ") + stagingDir;
 #else
-    std::string cpGameCmd = std::string("cp Standalone/Build/Linux/Octave.elf ") + stagingDir;// + std::string("Octave");
+    std::string cpGameCmd = std::string("cp Standalone/Build/Linux/Polyphase.elf ") + stagingDir;// + std::string("Polyphase");
 #endif
 
     SYS_Exec(cpGameCmd.c_str());
 
 #if PLATFORM_LINUX
     // Strip out debug symbols to keep the file size small.
-    std::string stripEditorCmd = std::string("strip --strip-debug ") + stagingDir + "OctaveEditor.elf";
+    std::string stripEditorCmd = std::string("strip --strip-debug ") + stagingDir + "PolyphaseEditor.elf";
     SYS_Exec(stripEditorCmd.c_str());
-    std::string stripCmd = std::string("strip --strip-debug ") + stagingDir + "Octave.elf";
+    std::string stripCmd = std::string("strip --strip-debug ") + stagingDir + "Polyphase.elf";
     SYS_Exec(stripCmd.c_str());
 #endif
 
@@ -2425,11 +2425,11 @@ void ActionManager::CreateNewProject(const char* folderPath, bool cpp, const cha
             octpFile = nullptr;
         }
 		std::string subProjFolder = ""; 
-        std::string octaveDirectory = SYS_GetOctavePath();
+        std::string polyphaseDirectory = SYS_GetPolyphasePath();
       
         if (cpp)
         {
-            std::string standaloneDir = octaveDirectory+ "Standalone/";
+            std::string standaloneDir = polyphaseDirectory+ "Standalone/";
 
             subProjFolder = newProjDir + newProjName.c_str();
             SYS_CreateDirectory(subProjFolder.c_str());
@@ -2448,62 +2448,62 @@ void ActionManager::CreateNewProject(const char* folderPath, bool cpp, const cha
             assetsFolder = subProjFolder + "Assets";
             scriptsFolder = subProjFolder + "Scripts";
 
-            // Copy Makefiles and replace "Octave"
-            CopyFileAndReplaceString(standaloneDir + "Makefile_3DS", subProjFolder + "Makefile_3DS", "Octave", newProjName);
-            ReplaceStringInFile(subProjFolder + "Makefile_3DS", "../Engine", "../Octave/Engine");
-            ReplaceStringInFile(subProjFolder + "Makefile_3DS", "../External", "../Octave/External");
-            CopyFileAndReplaceString(standaloneDir + "Makefile_GCN", subProjFolder + "Makefile_GCN", "Octave", newProjName);
-            ReplaceStringInFile(subProjFolder + "Makefile_GCN", "../Engine", "../Octave/Engine");
-            ReplaceStringInFile(subProjFolder + "Makefile_GCN", "../External", "../Octave/External");
-            CopyFileAndReplaceString(standaloneDir + "Makefile_Wii", subProjFolder + "Makefile_Wii", "Octave", newProjName);
-            ReplaceStringInFile(subProjFolder + "Makefile_Wii", "../Engine", "../Octave/Engine");
-            ReplaceStringInFile(subProjFolder + "Makefile_Wii", "../External", "../Octave/External");
-            CopyFileAndReplaceString(standaloneDir + "Makefile_Linux_Game", subProjFolder + "Makefile_Linux_Game", "Octave", newProjName);
-            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Game", "../Engine", "../Octave/Engine");
-            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Game", "../External", "../Octave/External");
-            CopyFileAndReplaceString(standaloneDir + "Makefile_Linux_Editor", subProjFolder + "Makefile_Linux_Editor", "Octave", newProjName);
-            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Editor", "../Engine", "../Octave/Engine");
-            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Editor", "../External", "../Octave/External");
+            // Copy Makefiles and replace "Polyphase"
+            CopyFileAndReplaceString(standaloneDir + "Makefile_3DS", subProjFolder + "Makefile_3DS", "Polyphase", newProjName);
+            ReplaceStringInFile(subProjFolder + "Makefile_3DS", "../Engine", "../Polyphase/Engine");
+            ReplaceStringInFile(subProjFolder + "Makefile_3DS", "../External", "../Polyphase/External");
+            CopyFileAndReplaceString(standaloneDir + "Makefile_GCN", subProjFolder + "Makefile_GCN", "Polyphase", newProjName);
+            ReplaceStringInFile(subProjFolder + "Makefile_GCN", "../Engine", "../Polyphase/Engine");
+            ReplaceStringInFile(subProjFolder + "Makefile_GCN", "../External", "../Polyphase/External");
+            CopyFileAndReplaceString(standaloneDir + "Makefile_Wii", subProjFolder + "Makefile_Wii", "Polyphase", newProjName);
+            ReplaceStringInFile(subProjFolder + "Makefile_Wii", "../Engine", "../Polyphase/Engine");
+            ReplaceStringInFile(subProjFolder + "Makefile_Wii", "../External", "../Polyphase/External");
+            CopyFileAndReplaceString(standaloneDir + "Makefile_Linux_Game", subProjFolder + "Makefile_Linux_Game", "Polyphase", newProjName);
+            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Game", "../Engine", "../Polyphase/Engine");
+            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Game", "../External", "../Polyphase/External");
+            CopyFileAndReplaceString(standaloneDir + "Makefile_Linux_Editor", subProjFolder + "Makefile_Linux_Editor", "Polyphase", newProjName);
+            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Editor", "../Engine", "../Polyphase/Engine");
+            ReplaceStringInFile(subProjFolder + "Makefile_Linux_Editor", "../External", "../Polyphase/External");
 
             // Copy and replace Standalone.vcxproj/filters and replace "Standalone" 
             CopyFileAndReplaceString(standaloneDir + "Standalone.vcxproj", subProjFolder + newProjName + ".vcxproj", "Standlone", newProjName);
-            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "Octave", newProjName);
-            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "../", "../Octave/");
-            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "$(SolutionDir)Engine", "$(SolutionDir)Octave\\Engine");
-            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "$(SolutionDir)External", "$(SolutionDir)Octave\\External");
-            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "..\\Engine\\", "..\\Octave\\Engine\\");
-            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "Standalone.rc", "$(SolutionDir)Octave\\Standalone\\Standalone.rc");
+            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "Polyphase", newProjName);
+            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "../", "../Polyphase/");
+            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "$(SolutionDir)Engine", "$(SolutionDir)Polyphase\\Engine");
+            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "$(SolutionDir)External", "$(SolutionDir)Polyphase\\External");
+            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "..\\Engine\\", "..\\Polyphase\\Engine\\");
+            ReplaceStringInFile(subProjFolder + newProjName + ".vcxproj", "Standalone.rc", "$(SolutionDir)Polyphase\\Standalone\\Standalone.rc");
             CpyFile(standaloneDir + "Standalone.vcxproj.filters", subProjFolder + newProjName + ".vcxproj.filters");
 
             // Copy Source folder
             CpyDir(standaloneDir + "Source", subProjFolder + "Source");
-            ReplaceStringInFile(subProjFolder + "Source/Main.cpp", "Octave", newProjName);
+            ReplaceStringInFile(subProjFolder + "Source/Main.cpp", "Polyphase", newProjName);
             ReplaceStringInFile(subProjFolder + "Source/Main.cpp", "config.mStandalone = true", "config.mStandalone = false");
 
             // Copy android files (whatevers in git, exclude .cxx and build)
             CpyDirWithExclusions(standaloneDir + "Android/", subProjFolder + "Android/", { "Build", "build", "Intermediate", ".gradle", ".cxx", ".vs", ".git", "imgui.ini", "assets"});
 
 #if 0
-            // Create a symlink to the Octave directory
-            CreateSymLink(octaveDirectory, newProjDir + "Octave");
+            // Create a symlink to the Polyphase directory
+            CreateSymLink(polyphaseDirectory, newProjDir + "Polyphase");
 #else
        
             // Copy Engine, External, to Proj folder (EXCLUDE Build and Intermediate folders)
-            CpyDirWithExclusions(octaveDirectory, newProjDir + "Octave/", {"Build", "build", "Intermediate", ".gradle", ".cxx", ".vs", ".git", "imgui.ini"});
+            CpyDirWithExclusions(polyphaseDirectory, newProjDir + "Polyphase/", {"Build", "build", "Intermediate", ".gradle", ".cxx", ".vs", ".git", "imgui.ini"});
 #endif
 
-            // Copy Octave.sln  - Replace "Standalone" with Proj Name
-            CpyFile(standaloneDir + "../Octave.sln", newProjDir + newProjName + ".sln");
-            ReplaceStringInFile(newProjDir + newProjName + ".sln", "Engine\\Engine.vcxproj", "Octave\\Engine\\Engine.vcxproj");
-            ReplaceStringInFile(newProjDir + newProjName + ".sln", "External\\", "Octave\\External\\");
+            // Copy Polyphase.sln  - Replace "Standalone" with Proj Name
+            CpyFile(standaloneDir + "../Polyphase.sln", newProjDir + newProjName + ".sln");
+            ReplaceStringInFile(newProjDir + newProjName + ".sln", "Engine\\Engine.vcxproj", "Polyphase\\Engine\\Engine.vcxproj");
+            ReplaceStringInFile(newProjDir + newProjName + ".sln", "External\\", "Polyphase\\External\\");
             ReplaceStringInFile(newProjDir + newProjName + ".sln", "Standalone", newProjName);
-            ReplaceStringInFile(newProjDir + newProjName + ".sln", "\"External\", \"External\",", "\"External\", \"Octave\\External\",");
+            ReplaceStringInFile(newProjDir + newProjName + ".sln", "\"External\", \"External\",", "\"External\", \"Polyphase\\External\",");
 
-            // Copy .vscode folder from Octave to SubProjDir
+            // Copy .vscode folder from Polyphase to SubProjDir
             CpyDir(standaloneDir + "../.vscode", newProjDir + ".vscode");
             ReplaceStringInFile(newProjDir + ".vscode/tasks.json", "Standalone", newProjName);
             ReplaceStringInFile(newProjDir + ".vscode/launch.json", "Standalone", newProjName);
-            ReplaceStringInFile(newProjDir + ".vscode/launch.json", "\"name\": \"Octave" , "\"name\": \"" + newProjName);
+            ReplaceStringInFile(newProjDir + ".vscode/launch.json", "\"name\": \"Polyphase" , "\"name\": \"" + newProjName);
 
         }
 
@@ -3098,7 +3098,7 @@ static void ConvertFileToByteString(
     outString += "\n};\n\n";
 }
 
-static void ParseGltfExtrasFromDoc(const rapidjson::Document& doc, std::unordered_map<std::string, OctaveNodeExtras>& result)
+static void ParseGltfExtrasFromDoc(const rapidjson::Document& doc, std::unordered_map<std::string, PolyphaseNodeExtras>& result)
 {
     if (!doc.HasMember("nodes") || !doc["nodes"].IsArray())
     {
@@ -3117,20 +3117,20 @@ static void ParseGltfExtrasFromDoc(const rapidjson::Document& doc, std::unordere
         std::string nodeName = node["name"].GetString();
         const rapidjson::Value& extras = node["extras"];
 
-        OctaveNodeExtras data;
-        bool hasOctaveData = false;
+        PolyphaseNodeExtras data;
+        bool hasPolyphaseData = false;
 
         // New mesh_type string property
         if (extras.HasMember("mesh_type") && extras["mesh_type"].IsString())
         {
             std::string mt = extras["mesh_type"].GetString();
             if (mt == "Node3D")
-                data.mMeshType = OctaveMeshType::Node3D;
+                data.mMeshType = PolyphaseMeshType::Node3D;
             else if (mt == "InstancedMesh")
-                data.mMeshType = OctaveMeshType::InstancedMesh;
+                data.mMeshType = PolyphaseMeshType::InstancedMesh;
             else
-                data.mMeshType = OctaveMeshType::StaticMesh;
-            hasOctaveData = true;
+                data.mMeshType = PolyphaseMeshType::StaticMesh;
+            hasPolyphaseData = true;
         }
         else
         {
@@ -3160,63 +3160,85 @@ static void ParseGltfExtrasFromDoc(const rapidjson::Document& doc, std::unordere
 
             if (hasLegacy)
             {
-                data.mMeshType = instanceMesh ? OctaveMeshType::InstancedMesh : OctaveMeshType::StaticMesh;
-                hasOctaveData = true;
+                data.mMeshType = instanceMesh ? PolyphaseMeshType::InstancedMesh : PolyphaseMeshType::StaticMesh;
+                hasPolyphaseData = true;
             }
         }
 
-        if (extras.HasMember("octave_asset") && extras["octave_asset"].IsString())
+        // Dual-key support: prefer "polyphase_*" keys, fall back to "octave_*" for backwards compat
         {
-            data.mAssetName = extras["octave_asset"].GetString();
-            if (!data.mAssetName.empty())
-                hasOctaveData = true;
+            const char* assetKey = extras.HasMember("polyphase_asset") ? "polyphase_asset" : "octave_asset";
+            if (extras.HasMember(assetKey) && extras[assetKey].IsString())
+            {
+                data.mAssetName = extras[assetKey].GetString();
+                if (!data.mAssetName.empty())
+                    hasPolyphaseData = true;
+            }
         }
 
-        if (extras.HasMember("octave_asset_uuid") && extras["octave_asset_uuid"].IsString())
         {
-            data.mAssetUuid = strtoull(extras["octave_asset_uuid"].GetString(), nullptr, 10);
-            if (data.mAssetUuid != 0)
-                hasOctaveData = true;
+            const char* uuidKey = extras.HasMember("polyphase_asset_uuid") ? "polyphase_asset_uuid" : "octave_asset_uuid";
+            if (extras.HasMember(uuidKey) && extras[uuidKey].IsString())
+            {
+                data.mAssetUuid = strtoull(extras[uuidKey].GetString(), nullptr, 10);
+                if (data.mAssetUuid != 0)
+                    hasPolyphaseData = true;
+            }
         }
 
-        if (extras.HasMember("octave_script") && extras["octave_script"].IsString())
         {
-            data.mScriptPath = extras["octave_script"].GetString();
-            if (!data.mScriptPath.empty())
-                hasOctaveData = true;
+            const char* scriptKey = extras.HasMember("polyphase_script") ? "polyphase_script" : "octave_script";
+            if (extras.HasMember(scriptKey) && extras[scriptKey].IsString())
+            {
+                data.mScriptPath = extras[scriptKey].GetString();
+                if (!data.mScriptPath.empty())
+                    hasPolyphaseData = true;
+            }
         }
 
-        if (extras.HasMember("octave_main_camera") && extras["octave_main_camera"].IsBool())
         {
-            data.mMainCamera = extras["octave_main_camera"].GetBool();
-            if (data.mMainCamera)
-                hasOctaveData = true;
-        }
-        else if (extras.HasMember("octave_main_camera") && extras["octave_main_camera"].IsInt())
-        {
-            data.mMainCamera = (extras["octave_main_camera"].GetInt() != 0);
-            if (data.mMainCamera)
-                hasOctaveData = true;
-        }
-
-        if (extras.HasMember("octave_script_props") && extras["octave_script_props"].IsString())
-        {
-            data.mScriptPropsJson = extras["octave_script_props"].GetString();
-        }
-        if (extras.HasMember("octave_script_props_types") && extras["octave_script_props_types"].IsString())
-        {
-            data.mScriptPropsTypesJson = extras["octave_script_props_types"].GetString();
+            const char* camKey = extras.HasMember("polyphase_main_camera") ? "polyphase_main_camera" : "octave_main_camera";
+            if (extras.HasMember(camKey) && extras[camKey].IsBool())
+            {
+                data.mMainCamera = extras[camKey].GetBool();
+                if (data.mMainCamera)
+                    hasPolyphaseData = true;
+            }
+            else if (extras.HasMember(camKey) && extras[camKey].IsInt())
+            {
+                data.mMainCamera = (extras[camKey].GetInt() != 0);
+                if (data.mMainCamera)
+                    hasPolyphaseData = true;
+            }
         }
 
-        if (extras.HasMember("octave_material_type") && extras["octave_material_type"].IsString())
         {
-            data.mMaterialType = extras["octave_material_type"].GetString();
-            hasOctaveData = true;
+            const char* propsKey = extras.HasMember("polyphase_script_props") ? "polyphase_script_props" : "octave_script_props";
+            if (extras.HasMember(propsKey) && extras[propsKey].IsString())
+            {
+                data.mScriptPropsJson = extras[propsKey].GetString();
+            }
+        }
+        {
+            const char* propsTypesKey = extras.HasMember("polyphase_script_props_types") ? "polyphase_script_props_types" : "octave_script_props_types";
+            if (extras.HasMember(propsTypesKey) && extras[propsTypesKey].IsString())
+            {
+                data.mScriptPropsTypesJson = extras[propsTypesKey].GetString();
+            }
         }
 
-        if (hasOctaveData)
         {
-            LogDebug("GltfExtras: node='%s' asset='%s' uuid=%llu meshType=%d script='%s'",
+            const char* matKey = extras.HasMember("polyphase_material_type") ? "polyphase_material_type" : "octave_material_type";
+            if (extras.HasMember(matKey) && extras[matKey].IsString())
+            {
+                data.mMaterialType = extras[matKey].GetString();
+                hasPolyphaseData = true;
+            }
+        }
+
+        if (hasPolyphaseData)
+        {
+            LogDebug("PolyphaseExtras: node='%s' asset='%s' uuid=%llu meshType=%d script='%s'",
                 nodeName.c_str(), data.mAssetName.c_str(), data.mAssetUuid,
                 (int)data.mMeshType, data.mScriptPath.c_str());
             result[nodeName] = data;
@@ -3235,7 +3257,7 @@ static Property* FindScriptProperty(Script* script, const char* name)
     return nullptr;
 }
 
-static void ApplyScriptPropertyOverrides(Node* node, const OctaveNodeExtras& extras)
+static void ApplyScriptPropertyOverrides(Node* node, const PolyphaseNodeExtras& extras)
 {
     if (extras.mScriptPropsJson.empty() || extras.mScriptPropsTypesJson.empty())
         return;
@@ -3323,9 +3345,9 @@ static void ApplyScriptPropertyOverrides(Node* node, const OctaveNodeExtras& ext
     }
 }
 
-static std::unordered_map<std::string, OctaveNodeExtras> ParseGltfExtras(const std::string& filePath)
+static std::unordered_map<std::string, PolyphaseNodeExtras> ParseGltfExtras(const std::string& filePath)
 {
-    std::unordered_map<std::string, OctaveNodeExtras> result;
+    std::unordered_map<std::string, PolyphaseNodeExtras> result;
 
     int32_t dotIndex = int32_t(filePath.find_last_of('.'));
     std::string extension = filePath.substr(dotIndex, filePath.size() - dotIndex);
@@ -3419,7 +3441,7 @@ static void ApplyMaterialTypeOverride(StaticMesh* mesh, const std::string& mater
     }
 }
 
-static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransform, const std::vector<StaticMesh*>& meshList, const SceneImportOptions& options, const std::unordered_map<std::string, OctaveNodeExtras>& extrasMap)
+static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransform, const std::vector<StaticMesh*>& meshList, const SceneImportOptions& options, const std::unordered_map<std::string, PolyphaseNodeExtras>& extrasMap)
 {
     if (node == nullptr || root == nullptr)
         return;
@@ -3428,7 +3450,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
 
     std::string nodeName = node->mName.C_Str();
 
-    OctaveNodeExtras extras;
+    PolyphaseNodeExtras extras;
     if (options.mApplyGltfExtras)
     {
         auto octIt = extrasMap.find(nodeName);
@@ -3444,7 +3466,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
     {
         if (extras.mAssetUuid != 0 || !extras.mAssetName.empty())
         {
-            LogDebug("OctaveExtras: Resolving asset for node '%s' — uuid=%llu name='%s'",
+            LogDebug("PolyphaseExtras: Resolving asset for node '%s' — uuid=%llu name='%s'",
                 nodeName.c_str(), extras.mAssetUuid, extras.mAssetName.c_str());
         }
 
@@ -3454,39 +3476,39 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
             if (a)
             {
                 assetMesh = a->As<StaticMesh>();
-                LogDebug("OctaveExtras: UUID lookup SUCCESS for node '%s' -> asset '%s'",
+                LogDebug("PolyphaseExtras: UUID lookup SUCCESS for node '%s' -> asset '%s'",
                     nodeName.c_str(), a->GetName().c_str());
             }
             else
             {
-                LogWarning("OctaveExtras: Could not find asset by UUID %llu for node '%s'", extras.mAssetUuid, nodeName.c_str());
+                LogWarning("PolyphaseExtras: Could not find asset by UUID %llu for node '%s'", extras.mAssetUuid, nodeName.c_str());
             }
         }
 
         if (assetMesh == nullptr && !extras.mAssetName.empty())
         {
             // Try path-based lookup first (e.g. "Assets/Models/SM_Cube"), then name-based
-            LogDebug("OctaveExtras: Trying path lookup '%s' for node '%s'", extras.mAssetName.c_str(), nodeName.c_str());
+            LogDebug("PolyphaseExtras: Trying path lookup '%s' for node '%s'", extras.mAssetName.c_str(), nodeName.c_str());
             Asset* a = AssetManager::Get()->LoadAssetByPath(extras.mAssetName);
             if (a)
             {
                 assetMesh = a->As<StaticMesh>();
-                LogDebug("OctaveExtras: Path lookup SUCCESS -> '%s' (type=%s)",
+                LogDebug("PolyphaseExtras: Path lookup SUCCESS -> '%s' (type=%s)",
                     a->GetName().c_str(), Asset::GetNameFromTypeId(a->GetType()));
             }
             else
             {
-                LogDebug("OctaveExtras: Path lookup FAILED, trying name lookup '%s'", extras.mAssetName.c_str());
+                LogDebug("PolyphaseExtras: Path lookup FAILED, trying name lookup '%s'", extras.mAssetName.c_str());
                 assetMesh = LoadAsset<StaticMesh>(extras.mAssetName);
                 if (assetMesh)
                 {
-                    LogDebug("OctaveExtras: Name lookup SUCCESS -> '%s'", assetMesh->GetName().c_str());
+                    LogDebug("PolyphaseExtras: Name lookup SUCCESS -> '%s'", assetMesh->GetName().c_str());
                 }
             }
 
             if (assetMesh == nullptr)
             {
-                LogWarning("OctaveExtras: Could not load asset '%s' for node '%s'", extras.mAssetName.c_str(), nodeName.c_str());
+                LogWarning("PolyphaseExtras: Could not load asset '%s' for node '%s'", extras.mAssetName.c_str(), nodeName.c_str());
             }
         }
     }
@@ -3502,7 +3524,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
 
             switch (extras.mMeshType)
             {
-            case OctaveMeshType::Node3D:
+            case PolyphaseMeshType::Node3D:
             {
                 Node3D* newNode3D = root->CreateChild<Node3D>();
                 newNode3D->SetTransform(transform);
@@ -3510,7 +3532,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
                 newNode = newNode3D;
                 break;
             }
-            case OctaveMeshType::InstancedMesh:
+            case PolyphaseMeshType::InstancedMesh:
             {
                 InstancedMesh3D* newInst = root->CreateChild<InstancedMesh3D>();
                 newInst->SetStaticMesh(meshToUse);
@@ -3533,7 +3555,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
                 newNode = newInst;
                 break;
             }
-            case OctaveMeshType::StaticMesh:
+            case PolyphaseMeshType::StaticMesh:
             default:
             {
                 StaticMesh3D* newMesh = root->CreateChild<StaticMesh3D>();
@@ -3564,12 +3586,12 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
     }
     else if (options.mApplyGltfExtras && (!extras.mAssetName.empty() || extras.mAssetUuid != 0))
     {
-        // Node has no embedded mesh but has an octave_asset reference
+        // Node has no embedded mesh but has a polyphase_asset reference
         Node* newNode = nullptr;
 
         switch (extras.mMeshType)
         {
-        case OctaveMeshType::Node3D:
+        case PolyphaseMeshType::Node3D:
         {
             Node3D* newNode3D = root->CreateChild<Node3D>();
             newNode3D->SetTransform(transform);
@@ -3577,7 +3599,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
             newNode = newNode3D;
             break;
         }
-        case OctaveMeshType::InstancedMesh:
+        case PolyphaseMeshType::InstancedMesh:
         {
             if (assetMesh != nullptr)
             {
@@ -3605,7 +3627,7 @@ static void SpawnAiNode(aiNode* node, Node* root, const glm::mat4& parentTransfo
             }
             break;
         }
-        case OctaveMeshType::StaticMesh:
+        case PolyphaseMeshType::StaticMesh:
         default:
         {
             if (assetMesh != nullptr)
@@ -3760,8 +3782,8 @@ void ActionManager::ImportScene(const SceneImportOptions& options)
                 return;
             }
 
-            // Parse Octave extras from glTF files
-            std::unordered_map<std::string, OctaveNodeExtras> extrasMap;
+            // Parse Polyphase extras from glTF files
+            std::unordered_map<std::string, PolyphaseNodeExtras> extrasMap;
             if (options.mApplyGltfExtras && (extension == ".gltf" || extension == ".glb"))
             {
                 extrasMap = ParseGltfExtras(filename);
@@ -3826,7 +3848,7 @@ void ActionManager::ImportScene(const SceneImportOptions& options)
             std::unordered_map<std::string, Texture*> textureMap;
 
             // Pre-scan: determine which mesh indices actually need new assets created.
-            // If ALL nodes referencing a mesh have an octave_asset extra, skip creating that mesh.
+            // If ALL nodes referencing a mesh have a polyphase_asset extra, skip creating that mesh.
             std::set<uint32_t> neededMeshIndices;
             std::function<void(aiNode*)> collectNeededMeshes = [&](aiNode* n) {
                 if (!n) return;
@@ -4057,7 +4079,7 @@ void ActionManager::ImportScene(const SceneImportOptions& options)
 
             for (uint32_t i = 0; i < numMeshes; ++i)
             {
-                // Skip meshes not needed (all referencing nodes have octave_asset extras)
+                // Skip meshes not needed (all referencing nodes have polyphase_asset extras)
                 if (neededMeshIndices.find(i) == neededMeshIndices.end())
                 {
                     meshList.push_back(nullptr);

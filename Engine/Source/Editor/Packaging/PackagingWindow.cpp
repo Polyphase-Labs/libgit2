@@ -902,7 +902,7 @@ std::string PackagingWindow::BuildDockerCommand(const BuildProfile& profile)
     // Get Docker image from preferences
     DockerModule* dockerModule = static_cast<DockerModule*>(
         PreferencesManager::Get()->FindModule("Packaging/Docker"));
-    std::string dockerImage = dockerModule ? dockerModule->GetDockerImage() : "vltmedia/octavegameengine-linux:dev";
+    std::string dockerImage = dockerModule ? dockerModule->GetDockerImage() : "polyphase-engine/polyphase-engine-linux:dev";
 
     // Get Docker executable from External preferences
     ExternalModule* ext = static_cast<ExternalModule*>(

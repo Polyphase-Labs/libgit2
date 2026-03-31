@@ -25,7 +25,7 @@ constexpr char kClientCredentialsSecret[] = "";
 
 constexpr char kEncryptionKey[] = "1111111111111111111111111111111111111111111111111111111111111111";
 
-//constexpr char kGameName[] = "Octave";
+//constexpr char kGameName[] = "Polyphase";
 
 static std::string EpicAccountIDToString(EOS_EpicAccountId InAccountId)
 {

@@ -38,7 +38,7 @@ void INP_ClearAllKeys()
 
     // Do not clear hardware keys
     // I think this is for Android?? not sure...
-    int32_t back = input.mKeys[OCTAVE_KEY_BACK];
+    int32_t back = input.mKeys[POLYPHASE_KEY_BACK];
 
     for (i = 0; i < INPUT_MAX_KEYS; i++)
     {
@@ -46,7 +46,7 @@ void INP_ClearAllKeys()
     }
 
     // Restore hardware keys
-    input.mKeys[OCTAVE_KEY_BACK] = back;
+    input.mKeys[POLYPHASE_KEY_BACK] = back;
 #endif
 }
 
@@ -106,70 +106,70 @@ char INP_ConvertKeyCodeToChar(int32_t key)
 
     switch (key)
     {
-    case OCTAVE_KEY_0: retChar = '0'; break;
-    case OCTAVE_KEY_1: retChar = '1'; break;
-    case OCTAVE_KEY_2: retChar = '2'; break;
-    case OCTAVE_KEY_3: retChar = '3'; break;
-    case OCTAVE_KEY_4: retChar = '4'; break;
-    case OCTAVE_KEY_5: retChar = '5'; break;
-    case OCTAVE_KEY_6: retChar = '6'; break;
-    case OCTAVE_KEY_7: retChar = '7'; break;
-    case OCTAVE_KEY_8: retChar = '8'; break;
-    case OCTAVE_KEY_9: retChar = '9'; break;
+    case POLYPHASE_KEY_0: retChar = '0'; break;
+    case POLYPHASE_KEY_1: retChar = '1'; break;
+    case POLYPHASE_KEY_2: retChar = '2'; break;
+    case POLYPHASE_KEY_3: retChar = '3'; break;
+    case POLYPHASE_KEY_4: retChar = '4'; break;
+    case POLYPHASE_KEY_5: retChar = '5'; break;
+    case POLYPHASE_KEY_6: retChar = '6'; break;
+    case POLYPHASE_KEY_7: retChar = '7'; break;
+    case POLYPHASE_KEY_8: retChar = '8'; break;
+    case POLYPHASE_KEY_9: retChar = '9'; break;
 
-    case OCTAVE_KEY_A: retChar = 'A'; break;
-    case OCTAVE_KEY_B: retChar = 'B'; break;
-    case OCTAVE_KEY_C: retChar = 'C'; break;
-    case OCTAVE_KEY_D: retChar = 'D'; break;
-    case OCTAVE_KEY_E: retChar = 'E'; break;
-    case OCTAVE_KEY_F: retChar = 'F'; break;
-    case OCTAVE_KEY_G: retChar = 'G'; break;
-    case OCTAVE_KEY_H: retChar = 'H'; break;
-    case OCTAVE_KEY_I: retChar = 'I'; break;
-    case OCTAVE_KEY_J: retChar = 'J'; break;
-    case OCTAVE_KEY_K: retChar = 'K'; break;
-    case OCTAVE_KEY_L: retChar = 'L'; break;
-    case OCTAVE_KEY_M: retChar = 'M'; break;
-    case OCTAVE_KEY_N: retChar = 'N'; break;
-    case OCTAVE_KEY_O: retChar = 'O'; break;
-    case OCTAVE_KEY_P: retChar = 'P'; break;
-    case OCTAVE_KEY_Q: retChar = 'Q'; break;
-    case OCTAVE_KEY_R: retChar = 'R'; break;
-    case OCTAVE_KEY_S: retChar = 'S'; break;
-    case OCTAVE_KEY_T: retChar = 'T'; break;
-    case OCTAVE_KEY_U: retChar = 'U'; break;
-    case OCTAVE_KEY_V: retChar = 'V'; break;
-    case OCTAVE_KEY_W: retChar = 'W'; break;
-    case OCTAVE_KEY_X: retChar = 'X'; break;
-    case OCTAVE_KEY_Y: retChar = 'Y'; break;
-    case OCTAVE_KEY_Z: retChar = 'Z'; break;
+    case POLYPHASE_KEY_A: retChar = 'A'; break;
+    case POLYPHASE_KEY_B: retChar = 'B'; break;
+    case POLYPHASE_KEY_C: retChar = 'C'; break;
+    case POLYPHASE_KEY_D: retChar = 'D'; break;
+    case POLYPHASE_KEY_E: retChar = 'E'; break;
+    case POLYPHASE_KEY_F: retChar = 'F'; break;
+    case POLYPHASE_KEY_G: retChar = 'G'; break;
+    case POLYPHASE_KEY_H: retChar = 'H'; break;
+    case POLYPHASE_KEY_I: retChar = 'I'; break;
+    case POLYPHASE_KEY_J: retChar = 'J'; break;
+    case POLYPHASE_KEY_K: retChar = 'K'; break;
+    case POLYPHASE_KEY_L: retChar = 'L'; break;
+    case POLYPHASE_KEY_M: retChar = 'M'; break;
+    case POLYPHASE_KEY_N: retChar = 'N'; break;
+    case POLYPHASE_KEY_O: retChar = 'O'; break;
+    case POLYPHASE_KEY_P: retChar = 'P'; break;
+    case POLYPHASE_KEY_Q: retChar = 'Q'; break;
+    case POLYPHASE_KEY_R: retChar = 'R'; break;
+    case POLYPHASE_KEY_S: retChar = 'S'; break;
+    case POLYPHASE_KEY_T: retChar = 'T'; break;
+    case POLYPHASE_KEY_U: retChar = 'U'; break;
+    case POLYPHASE_KEY_V: retChar = 'V'; break;
+    case POLYPHASE_KEY_W: retChar = 'W'; break;
+    case POLYPHASE_KEY_X: retChar = 'X'; break;
+    case POLYPHASE_KEY_Y: retChar = 'Y'; break;
+    case POLYPHASE_KEY_Z: retChar = 'Z'; break;
 
-    case OCTAVE_KEY_SPACE: retChar = ' '; break;
-    case OCTAVE_KEY_ENTER: retChar = '\n'; break;
+    case POLYPHASE_KEY_SPACE: retChar = ' '; break;
+    case POLYPHASE_KEY_ENTER: retChar = '\n'; break;
 
-    case OCTAVE_KEY_NUMPAD0: retChar = '0'; break;
-    case OCTAVE_KEY_NUMPAD1: retChar = '1'; break;
-    case OCTAVE_KEY_NUMPAD2: retChar = '2'; break;
-    case OCTAVE_KEY_NUMPAD3: retChar = '3'; break;
-    case OCTAVE_KEY_NUMPAD4: retChar = '4'; break;
-    case OCTAVE_KEY_NUMPAD5: retChar = '5'; break;
-    case OCTAVE_KEY_NUMPAD6: retChar = '6'; break;
-    case OCTAVE_KEY_NUMPAD7: retChar = '7'; break;
-    case OCTAVE_KEY_NUMPAD8: retChar = '8'; break;
-    case OCTAVE_KEY_NUMPAD9: retChar = '9'; break;
+    case POLYPHASE_KEY_NUMPAD0: retChar = '0'; break;
+    case POLYPHASE_KEY_NUMPAD1: retChar = '1'; break;
+    case POLYPHASE_KEY_NUMPAD2: retChar = '2'; break;
+    case POLYPHASE_KEY_NUMPAD3: retChar = '3'; break;
+    case POLYPHASE_KEY_NUMPAD4: retChar = '4'; break;
+    case POLYPHASE_KEY_NUMPAD5: retChar = '5'; break;
+    case POLYPHASE_KEY_NUMPAD6: retChar = '6'; break;
+    case POLYPHASE_KEY_NUMPAD7: retChar = '7'; break;
+    case POLYPHASE_KEY_NUMPAD8: retChar = '8'; break;
+    case POLYPHASE_KEY_NUMPAD9: retChar = '9'; break;
 
-    case OCTAVE_KEY_PERIOD: retChar = '.'; break;
-    case OCTAVE_KEY_COMMA: retChar = ','; break;
-    case OCTAVE_KEY_PLUS: retChar = '='; break;
-    case OCTAVE_KEY_MINUS: retChar = '-'; break;
-    case OCTAVE_KEY_COLON: retChar = ';'; break;
-    case OCTAVE_KEY_QUESTION: retChar = '/'; break;
-    case OCTAVE_KEY_SQUIGGLE: retChar = '`'; break;
-    case OCTAVE_KEY_LEFT_BRACKET: retChar = '['; break;
-    case OCTAVE_KEY_BACK_SLASH: retChar = '\\'; break;
-    case OCTAVE_KEY_RIGHT_BRACKET: retChar = ']'; break;
-    case OCTAVE_KEY_QUOTE: retChar = '\''; break;
-    case OCTAVE_KEY_DECIMAL: retChar = '.'; break;
+    case POLYPHASE_KEY_PERIOD: retChar = '.'; break;
+    case POLYPHASE_KEY_COMMA: retChar = ','; break;
+    case POLYPHASE_KEY_PLUS: retChar = '='; break;
+    case POLYPHASE_KEY_MINUS: retChar = '-'; break;
+    case POLYPHASE_KEY_COLON: retChar = ';'; break;
+    case POLYPHASE_KEY_QUESTION: retChar = '/'; break;
+    case POLYPHASE_KEY_SQUIGGLE: retChar = '`'; break;
+    case POLYPHASE_KEY_LEFT_BRACKET: retChar = '['; break;
+    case POLYPHASE_KEY_BACK_SLASH: retChar = '\\'; break;
+    case POLYPHASE_KEY_RIGHT_BRACKET: retChar = ']'; break;
+    case POLYPHASE_KEY_QUOTE: retChar = '\''; break;
+    case POLYPHASE_KEY_DECIMAL: retChar = '.'; break;
 
     default: break;
     }

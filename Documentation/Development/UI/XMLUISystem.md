@@ -1,6 +1,6 @@
 # XML/CSS UI System
 
-Octave supports declarative UI authoring through XML layouts and CSS stylesheets. This system builds on the existing Widget hierarchy, letting you define UI trees in markup instead of (or alongside) code.
+Polyphase supports declarative UI authoring through XML layouts and CSS stylesheets. This system builds on the existing Widget hierarchy, letting you define UI trees in markup instead of (or alongside) code.
 
 ---
 
@@ -440,7 +440,7 @@ This runs automatically as part of the existing Ctrl+R refresh (after script rel
 
 An XSD schema is generated for editor autocomplete, validation, and documentation of `.xml` UI files. Works with VS Code (Red Hat XML extension), IntelliJ, and other XML editors.
 
-**Generated file:** `Engine/Generated/XML/OctaveUIDocument.xsd`
+**Generated file:** `Engine/Generated/XML/PolyphaseUIDocument.xsd`
 
 **Regenerate:**
 ```bash
@@ -453,7 +453,7 @@ Add to `.vscode/settings.json`:
 ```json
 {
   "xml.fileAssociations": [
-    { "pattern": "**/*.xml", "systemId": "Engine/Generated/XML/OctaveUIDocument.xsd" }
+    { "pattern": "**/*.xml", "systemId": "Engine/Generated/XML/PolyphaseUIDocument.xsd" }
   ]
 }
 ```
@@ -461,7 +461,7 @@ Add to `.vscode/settings.json`:
 Or add inline per-file:
 ```xml
 <ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="../../Engine/Generated/XML/OctaveUIDocument.xsd">
+    xsi:noNamespaceSchemaLocation="../../Engine/Generated/XML/PolyphaseUIDocument.xsd">
 ```
 
 The schema encodes all elements, attributes (common, event, element-specific), and enum values (anchor modes, boolean, flex direction, word wrap). Update the XSD by editing the Python data structures in `Tools/generate_ui_xsd.py` and re-running the script.
@@ -485,4 +485,4 @@ Lua ──► UIDocument ──► Mount/Query/Bind/Events
 - `Engine/Source/Engine/UI/UITypes.h/.cpp` - Value parsing, property mapping
 - `Engine/Source/LuaBindings/UIDocument_Lua.h/.cpp` - Lua bindings
 - `Tools/generate_ui_xsd.py` - XSD schema generator
-- `Engine/Generated/XML/OctaveUIDocument.xsd` - Generated XSD schema
+- `Engine/Generated/XML/PolyphaseUIDocument.xsd` - Generated XSD schema

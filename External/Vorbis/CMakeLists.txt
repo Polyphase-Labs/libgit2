@@ -31,7 +31,7 @@ set(VORBIS_SOURCES
     smallft.c
     block.c
     envelope.c
-    window.c
+    vorbis_window.c
     lsp.c
     lpc.c
     analysis.c

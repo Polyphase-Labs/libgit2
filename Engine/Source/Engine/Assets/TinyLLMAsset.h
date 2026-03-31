@@ -39,7 +39,7 @@ struct TinyLLMConfig
  * @class TinyLLMAsset
  * @brief Asset containing a tiny LLM model and tokenizer.
  */
-class OCTAVE_API TinyLLMAsset : public Asset
+class POLYPHASE_API TinyLLMAsset : public Asset
 {
 public:
 

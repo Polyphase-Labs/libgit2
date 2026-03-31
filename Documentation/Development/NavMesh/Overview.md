@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Octave Engine NavMesh system provides runtime navigation mesh generation and pathfinding using the industry-standard [Recast](https://github.com/recastnavigation/recastnavigation) library for mesh generation and [Detour](https://github.com/recastnavigation/recastnavigation) for pathfinding queries.
+The Polyphase Engine NavMesh system provides runtime navigation mesh generation and pathfinding using the industry-standard [Recast](https://github.com/recastnavigation/recastnavigation) library for mesh generation and [Detour](https://github.com/recastnavigation/recastnavigation) for pathfinding queries.
 
 ## System Architecture
 

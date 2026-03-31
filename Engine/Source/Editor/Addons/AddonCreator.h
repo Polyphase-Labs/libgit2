@@ -43,7 +43,7 @@ struct PackageJsonData
     std::string mNativeTarget; // "editor" or "engine"
     std::string mSourceDir = "Source";
     std::string mBinaryName;
-    std::string mEntrySymbol = "OctavePlugin_GetDesc";
+    std::string mEntrySymbol = "PolyphasePlugin_GetDesc";
     int mApiVersion = 1;
 };
 

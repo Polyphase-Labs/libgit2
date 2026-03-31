@@ -6,7 +6,7 @@ class Texture;
 class Quad;
 class Text;
 
-class OCTAVE_API CheckBox : public Widget
+class POLYPHASE_API CheckBox : public Widget
 {
 public:
 

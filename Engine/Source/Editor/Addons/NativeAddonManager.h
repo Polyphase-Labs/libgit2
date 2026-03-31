@@ -8,8 +8,8 @@
 #if EDITOR
 
 #include "ProjectSelect/TemplateData.h"
-#include "Plugins/OctaveEngineAPI.h"
-#include "Plugins/OctavePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
 
 #include <string>
 #include <unordered_map>
@@ -60,7 +60,7 @@ struct NativeAddonState
     std::string mBuildError;
 
     // Plugin descriptor (after load)
-    OctavePluginDesc mDesc = {};
+    PolyphasePluginDesc mDesc = {};
     bool mDescValid = false;
 
     // Native metadata from package.json
@@ -218,7 +218,7 @@ public:
     /**
      * @brief Get the engine API struct for plugins.
      */
-    OctaveEngineAPI* GetEngineAPI() { return &mEngineAPI; }
+    PolyphaseEngineAPI* GetEngineAPI() { return &mEngineAPI; }
 
     // ===== Creation and Packaging =====
 
@@ -330,7 +330,7 @@ private:
                         const std::string& binaryName);
 
     std::unordered_map<std::string, NativeAddonState> mStates;
-    OctaveEngineAPI mEngineAPI;
+    PolyphaseEngineAPI mEngineAPI;
 };
 
 #endif // EDITOR

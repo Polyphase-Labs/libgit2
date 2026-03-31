@@ -235,22 +235,22 @@ void Viewport2D::HandleDefaultControls()
             }
         }
 
-        const bool spaceDown = IsKeyDown(OCTAVE_KEY_SPACE);
+        const bool spaceDown = IsKeyDown(POLYPHASE_KEY_SPACE);
 
         if (GetEditorState()->GetSelectedWidget() != nullptr)
         {
             // Space+G/R/S for gizmo operation (matching 3D behavior)
             if (spaceDown && !controlDown && !altDown)
             {
-                if (IsKeyJustDown(OCTAVE_KEY_G))
+                if (IsKeyJustDown(POLYPHASE_KEY_G))
                 {
                     GetEditorState()->mGizmoOperation = ImGuizmo::TRANSLATE;
                 }
-                if (IsKeyJustDown(OCTAVE_KEY_R))
+                if (IsKeyJustDown(POLYPHASE_KEY_R))
                 {
                     GetEditorState()->mGizmoOperation = ImGuizmo::ROTATE;
                 }
-                if (IsKeyJustDown(OCTAVE_KEY_S))
+                if (IsKeyJustDown(POLYPHASE_KEY_S))
                 {
                     GetEditorState()->mGizmoOperation = ImGuizmo::SCALE;
                 }
@@ -258,19 +258,19 @@ void Viewport2D::HandleDefaultControls()
             // G/R/S without Space for legacy cursor-locked transform mode
             else if (!controlDown && !altDown)
             {
-                if (IsKeyJustDown(OCTAVE_KEY_G))
+                if (IsKeyJustDown(POLYPHASE_KEY_G))
                 {
                     SetWidgetControlMode(WidgetControlMode::Translate);
                     SavePreTransforms();
                 }
 
-                if (IsKeyJustDown(OCTAVE_KEY_R))
+                if (IsKeyJustDown(POLYPHASE_KEY_R))
                 {
                     SetWidgetControlMode(WidgetControlMode::Rotate);
                     SavePreTransforms();
                 }
 
-                if (IsKeyJustDown(OCTAVE_KEY_S))
+                if (IsKeyJustDown(POLYPHASE_KEY_S))
                 {
                     SetWidgetControlMode(WidgetControlMode::Scale);
                     SavePreTransforms();
@@ -278,13 +278,13 @@ void Viewport2D::HandleDefaultControls()
             }
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_F) ||
-            IsKeyJustDown(OCTAVE_KEY_DECIMAL))
+        if (IsKeyJustDown(POLYPHASE_KEY_F) ||
+            IsKeyJustDown(POLYPHASE_KEY_DECIMAL))
         {
             ResetViewport();
         }
 
-        if (controlDown && IsKeyJustDown(OCTAVE_KEY_D))
+        if (controlDown && IsKeyJustDown(POLYPHASE_KEY_D))
         {
             // Duplicate node
             const std::vector<Node*>& selectedNodes = GetEditorState()->GetSelectedNodes();
@@ -301,16 +301,16 @@ void Viewport2D::HandleDefaultControls()
             }
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_DELETE))
+        if (IsKeyJustDown(POLYPHASE_KEY_DELETE))
         {
             ActionManager::Get()->DeleteSelectedNodes();
         }
 
-        if (altDown && IsKeyJustDown(OCTAVE_KEY_A))
+        if (altDown && IsKeyJustDown(POLYPHASE_KEY_A))
         {
             GetEditorState()->SetSelectedNode(nullptr);
         }
-        if (controlDown && IsKeyJustDown(OCTAVE_KEY_A))
+        if (controlDown && IsKeyJustDown(POLYPHASE_KEY_A))
         {
             std::vector<Node*> nodes = GetWorld(0)->GatherNodes();
 
@@ -500,12 +500,12 @@ void Viewport2D::HandleAxisLocking()
 {
     WidgetAxisLock newLock = WidgetAxisLock::None;
 
-    if (IsKeyJustDown(OCTAVE_KEY_X))
+    if (IsKeyJustDown(POLYPHASE_KEY_X))
     {
         newLock = WidgetAxisLock::AxisX;
     }
 
-    if (IsKeyJustDown(OCTAVE_KEY_Y))
+    if (IsKeyJustDown(POLYPHASE_KEY_Y))
     {
         newLock = WidgetAxisLock::AxisY;
     }

@@ -345,7 +345,7 @@ ShowDialog(self, "Quit Game?", "Are you sure you want to quit?",
 
 ## Example 6: Animated UI
 
-Octave has no built-in tween library, but you can build smooth animations using `TimerManager.SetTimer` combined with `Maths.Lerp`, `Maths.Damp`, and `Maths.Approach`.
+Polyphase has no built-in tween library, but you can build smooth animations using `TimerManager.SetTimer` combined with `Maths.Lerp`, `Maths.Damp`, and `Maths.Approach`.
 
 ### Reusable Tween Helper
 

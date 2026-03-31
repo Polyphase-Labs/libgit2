@@ -1,6 +1,6 @@
 # CSS Theme System
 
-The Octave Editor supports importing custom themes via `.css` files. This system maps a simplified CSS syntax to ImGui style colors and properties.
+The Polyphase Editor supports importing custom themes via `.css` files. This system maps a simplified CSS syntax to ImGui style colors and properties.
 
 ## Quick Start
 
@@ -138,7 +138,7 @@ button:active { background: #5E81AC; }
 ## Example: Nord Theme
 
 ```css
-/* Nord-inspired theme for Octave Editor */
+/* Nord-inspired theme for Polyphase Editor */
 
 :root {
     --polar0: #2E3440;
@@ -242,5 +242,5 @@ slider { grab: #C0392B; }
 - Switching themes fully resets all style properties before applying, so there is no bleed between themes.
 - CSS comments (`/* ... */` and `// ...`) are supported.
 - The `style` block is a custom extension, not standard CSS.
-- Theme files are stored in `AppData/Roaming/OctaveEditor/Preferences/Themes/` on Windows.
+- Theme files are stored in `AppData/Roaming/PolyphaseEditor/Preferences/Themes/` on Windows.
 - Use the "Reimport" button to update a custom theme from a new or edited CSS file.

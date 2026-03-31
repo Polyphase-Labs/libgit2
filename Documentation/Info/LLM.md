@@ -2,7 +2,7 @@
 
 ## What is `.llm/`?
 
-The `.llm/` directory at the repository root contains a suite of markdown files designed to help AI coding assistants (LLMs) understand and navigate the Octave Engine codebase efficiently.
+The `.llm/` directory at the repository root contains a suite of markdown files designed to help AI coding assistants (LLMs) understand and navigate the Polyphase Engine codebase efficiently.
 
 Without these files, an AI assistant must rediscover the project's architecture, conventions, and file layout from scratch each session — reading dozens of files just to orient itself before it can help with actual work. The `.llm/` docs solve this by providing a pre-built map of the codebase.
 

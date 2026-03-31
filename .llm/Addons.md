@@ -2,15 +2,15 @@
 
 ## Overview
 
-Octave has two plugin systems: a **RuntimePluginManager** for game/runtime plugins and a **NativeAddonManager** (editor-only) for editor extensions. Both share the same `EditorUIHooks` API for editor integration.
+Polyphase has two plugin systems: a **RuntimePluginManager** for game/runtime plugins and a **NativeAddonManager** (editor-only) for editor extensions. Both share the same `EditorUIHooks` API for editor integration.
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `Engine/Source/Plugins/RuntimePluginManager.h/.cpp` | Runtime plugin lifecycle |
-| `Engine/Source/Plugins/OctavePluginAPI.h` | Plugin descriptor struct |
-| `Engine/Source/Plugins/OctaveEngineAPI.h` | Engine API exposed to plugins |
+| `Engine/Source/Plugins/PolyphasePluginAPI.h` | Plugin descriptor struct |
+| `Engine/Source/Plugins/PolyphaseEngineAPI.h` | Engine API exposed to plugins |
 | `Engine/Source/Plugins/EditorUIHooks.h` | Editor UI extension API (~940 lines) |
 | `Engine/Source/Editor/Addons/NativeAddonManager.cpp` | Editor addon hot-reload system |
 | `Engine/Source/Editor/Addons/AddonManager.cpp` | Addon discovery and management |
@@ -23,13 +23,13 @@ Octave has two plugin systems: a **RuntimePluginManager** for game/runtime plugi
 ```cpp
 #define OCTAVE_PLUGIN_API_VERSION 2
 
-struct OctavePluginDesc {
+struct PolyphasePluginDesc {
     uint32_t apiVersion;           // Must match OCTAVE_PLUGIN_API_VERSION
     const char* pluginName;
     const char* pluginVersion;     // e.g., "1.0.0"
 
     // Lifecycle
-    int (*OnLoad)(OctaveEngineAPI* api);    // Return 0 on success
+    int (*OnLoad)(PolyphaseEngineAPI* api);    // Return 0 on success
     void (*OnUnload)();
 
     // Per-frame
@@ -51,22 +51,22 @@ struct OctavePluginDesc {
 
 Static registration via macro:
 ```cpp
-OCTAVE_REGISTER_PLUGIN(myPlugin, MyPlugin_GetDesc)
+POLYPHASE_REGISTER_PLUGIN(myPlugin, MyPlugin_GetDesc)
 ```
 
 This creates a static registrar that calls `QueuePluginRegistration()` before `main()`. The `RuntimePluginManager` processes queued registrations during `Create()`.
 
 ## Plugin Lifecycle
 
-1. **Static init**: `OCTAVE_REGISTER_PLUGIN` queues the plugin
+1. **Static init**: `POLYPHASE_REGISTER_PLUGIN` queues the plugin
 2. **Create()**: RuntimePluginManager processes queued registrations
 3. **Initialize()**: Calls `OnLoad()`, `RegisterTypes()`, `RegisterScriptFuncs()` for each plugin
 4. **Main loop**: `TickAllPlugins(deltaTime)` calls `Tick()` (and `TickEditor()` in editor builds)
 5. **Shutdown()**: Calls `OnUnload()` for each plugin
 
-## Engine API (OctaveEngineAPI)
+## Engine API (PolyphaseEngineAPI)
 
-Exposed to plugins via `OctaveEngineAPI*` passed to `OnLoad()`:
+Exposed to plugins via `PolyphaseEngineAPI*` passed to `OnLoad()`:
 
 **Logging**: `LogDebug()`, `LogWarning()`, `LogError()`
 
@@ -133,7 +133,7 @@ Located in `Engine/Source/Editor/Addons/`. Manages editor-side addon loading, in
 
 **Location:** `Plugins/Blender/octave-gameengine-connect/`
 
-A Python Blender addon that exports glTF with Octave metadata (mesh type, asset reference, script, material type). Demonstrates external tooling integration rather than runtime plugin API usage.
+A Python Blender addon that exports glTF with Polyphase metadata (mesh type, asset reference, script, material type). Demonstrates external tooling integration rather than runtime plugin API usage.
 
 ## Documentation
 

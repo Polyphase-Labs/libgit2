@@ -1082,3 +1082,18 @@ public:
     virtual const char* GetNodeCategory() const override { return "Input"; }
     virtual glm::vec4 GetNodeColor() const override;
 };
+
+// =============================================================================
+// Script Nodes
+// =============================================================================
+
+class CallScriptFunctionNode : public GraphNode
+{
+public:
+    DECLARE_GRAPH_NODE(CallScriptFunctionNode, GraphNode);
+    virtual void SetupPins() override;
+    virtual void Evaluate() override;
+    virtual const char* GetNodeTypeName() const override { return "Call Script Function"; }
+    virtual const char* GetNodeCategory() const override { return "Script"; }
+    virtual glm::vec4 GetNodeColor() const override;
+};

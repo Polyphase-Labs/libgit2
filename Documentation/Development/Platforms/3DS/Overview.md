@@ -10,7 +10,7 @@
 | **Bottom Screen** | 320 x 240 (resistive touch) | 320 x 240 (resistive touch) |
 | **Right Stick** | Circle Pad Pro (accessory) | C-Stick (built-in) |
 
-Octave detects the New 3DS at startup via `APT_CheckNew3DS()` and enables CPU speedup automatically. See `SYS_GetPlatformTier()` which returns **1** on New 3DS and **0** on the original model.
+Polyphase detects the New 3DS at startup via `APT_CheckNew3DS()` and enables CPU speedup automatically. See `SYS_GetPlatformTier()` which returns **1** on New 3DS and **0** on the original model.
 
 ## Toolchain & Build System
 
@@ -36,7 +36,7 @@ make -f Makefile_3DS -j12
 
 **Output:** Static library `Build/3DS/lib<target>.a`, used when linking the final `.3dsx` homebrew executable.
 
-**Docker:** 3DS builds are also supported via Docker (`docker run ... octavegameengine build-3ds`).
+**Docker:** 3DS builds are also supported via Docker (`docker run ... polyphase-engine build-3ds`).
 
 ## Graphics (Citro3D)
 

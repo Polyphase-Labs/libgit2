@@ -60,7 +60,7 @@ To send games directly to your 3DS:
 ### Requirements
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- The `octavegameengine` Docker image built (see Docker.md)
+- The `polyphase-engine` Docker image built (see Docker.md)
 
 ### When Docker is Used
 

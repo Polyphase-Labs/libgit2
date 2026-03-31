@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Octave Game",
+            "name": "Polyphase Game",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Standalone/Build/Linux/Octave.elf",
+            "program": "${workspaceFolder}/Standalone/Build/Linux/Polyphase.elf",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -27,10 +27,10 @@
         },
 
         {
-            "name": "Octave Editor",
+            "name": "Polyphase Editor",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Standalone/Build/Linux/OctaveEditor.elf",
+            "program": "${workspaceFolder}/Standalone/Build/Linux/PolyphaseEditor.elf",
             "args": ["-validate", "0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -49,12 +49,12 @@
         },
 
         {
-            "name": "Octave Wii",
+            "name": "Polyphase Wii",
             "type": "cppdbg",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "/usr/games/dolphin-emu",
-            "args": ["--exec=${workspaceFolder}/Standalone/Build/Wii/Octave.elf", "&"],
+            "args": ["--exec=${workspaceFolder}/Standalone/Build/Wii/Polyphase.elf", "&"],
             "preLaunchTask": "Make Standalone Wii",
             "MIMode": "",
         }

@@ -40,11 +40,11 @@ void DockerModule::Render()
     }
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip("Docker image name (e.g., vltmedia/octavegameengine-linux:dev)");
+        ImGui::SetTooltip("Docker image name (e.g., polyphase-engine/polyphasegameengine-linux:dev)");
     }
 
     ImGui::Spacing();
-    ImGui::TextDisabled("Default: vltmedia/octavegameengine-linux:dev");
+    ImGui::TextDisabled("Default: polyphase-engine/polyphasegameengine-linux:dev");
 
     if (changed)
     {
@@ -54,7 +54,7 @@ void DockerModule::Render()
 
 void DockerModule::LoadSettings(const rapidjson::Document& doc)
 {
-    mDockerImage = JsonSettings::GetString(doc, "dockerImage", "vltmedia/octavegameengine-linux:dev");
+    mDockerImage = JsonSettings::GetString(doc, "dockerImage", "polyphase-engine/polyphasegameengine-linux:dev");
 }
 
 void DockerModule::SaveSettings(rapidjson::Document& doc)

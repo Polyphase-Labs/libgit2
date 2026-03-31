@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string>
 
-#include "OctaveAPI.h"
+#include "PolyphaseAPI.h"
 #include "EngineTypes.h"
 #include "Property.h"
 
@@ -22,14 +22,14 @@ void Shutdown();
 
 void Quit();
 
-OCTAVE_API class World* GetWorld(int32_t index);
-OCTAVE_API int32_t GetNumWorlds();
+POLYPHASE_API class World* GetWorld(int32_t index);
+POLYPHASE_API int32_t GetNumWorlds();
 
-OCTAVE_API struct EngineState* GetEngineState();
-OCTAVE_API const struct EngineConfig* GetEngineConfig();
-OCTAVE_API struct EngineConfig* GetMutableEngineConfig();
+POLYPHASE_API struct EngineState* GetEngineState();
+POLYPHASE_API const struct EngineConfig* GetEngineConfig();
+POLYPHASE_API struct EngineConfig* GetMutableEngineConfig();
 
-OCTAVE_API const class Clock* GetAppClock();
+POLYPHASE_API const class Clock* GetAppClock();
 
 // Default scene names to search for when no explicit scene is specified
 // Developers can modify this list to add custom default scene names
@@ -81,5 +81,5 @@ void ReadCommandLineArgs(int32_t argc, char** argv);
 
 
 #if LUA_ENABLED
-OCTAVE_API lua_State* GetLua();
+POLYPHASE_API lua_State* GetLua();
 #endif

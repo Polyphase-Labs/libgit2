@@ -49,7 +49,7 @@ endif
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET		:=	Octave
+TARGET		:=	Polyphase
 BUILD		:=	Intermediate/Linux/Editor
 SOURCES		:=	Source \
 				Generated
@@ -124,7 +124,7 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 
 export OUTPUT	:=	$(OUTPUT_DIR)/$(TARGET)Editor.elf
 export ENGINE_LIB := $(CURDIR)/../Engine/Build/Linux/libEngineEditor.a
-export OCTAVE_EDITOR	:= 1
+export POLYPHASE_EDITOR	:= 1
 .PHONY: $(BUILD) clean
 
 #---------------------------------------------------------------------------------

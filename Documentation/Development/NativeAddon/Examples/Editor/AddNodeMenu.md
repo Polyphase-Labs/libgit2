@@ -11,7 +11,7 @@ This example demonstrates how to extend the "Add Node" submenu that appears in t
 ```json
 {
     "name": "Custom Node Types Addon",
-    "author": "Octave Examples",
+    "author": "Polyphase Examples",
     "description": "Adds custom node types to the Add Node menu.",
     "version": "1.0.0",
     "tags": ["editor", "example"],
@@ -27,15 +27,15 @@ This example demonstrates how to extend the "Add Node" submenu that appears in t
 ### Source/CustomNodeTypesAddon.cpp
 
 ```cpp
-#include "Plugins/OctavePluginAPI.h"
-#include "Plugins/OctaveEngineAPI.h"
+#include "Plugins/PolyphasePluginAPI.h"
+#include "Plugins/PolyphaseEngineAPI.h"
 
 #if EDITOR
 #include "Plugins/EditorUIHooks.h"
 #include "imgui.h"
 #endif
 
-static OctaveEngineAPI* sEngineAPI = nullptr;
+static PolyphaseEngineAPI* sEngineAPI = nullptr;
 
 #if EDITOR
 /**
@@ -98,7 +98,7 @@ static void DrawCustomAssetTypes(void* parentNode, void* userData)
 }
 #endif
 
-static int OnLoad(OctaveEngineAPI* api)
+static int OnLoad(PolyphaseEngineAPI* api)
 {
     sEngineAPI = api;
     return 0;
@@ -123,7 +123,7 @@ static void RegisterEditorUI(EditorUIHooks* hooks, uint64_t hookId)
 }
 #endif
 
-extern "C" OCTAVE_PLUGIN_API int OctavePlugin_GetDesc(OctavePluginDesc* desc)
+extern "C" OCTAVE_PLUGIN_API int PolyphasePlugin_GetDesc(PolyphasePluginDesc* desc)
 {
     desc->apiVersion = OCTAVE_PLUGIN_API_VERSION;
     desc->pluginName = "Custom Node Types Addon";

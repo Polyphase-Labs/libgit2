@@ -31,7 +31,7 @@ All functions prefixed with `SYS_`. Categories:
 - `SYS_CopyFile()`, `SYS_CopyDirectory()`, `SYS_CopyDirectoryRecursive()`
 - `SYS_OpenDirectory()`, `SYS_IterateDirectory()`, `SYS_CloseDirectory()` — directory iteration
 
-**Paths:** `SYS_GetExecutablePath()`, `SYS_GetOctavePath()`, `SYS_GetCurrentDirectoryPath()`, `SYS_GetAbsolutePath()`
+**Paths:** `SYS_GetExecutablePath()`, `SYS_GetPolyphasePath()`, `SYS_GetCurrentDirectoryPath()`, `SYS_GetAbsolutePath()`
 
 **Threading:**
 - `SYS_CreateThread(func, arg)`, `SYS_JoinThread()`, `SYS_DestroyThread()`

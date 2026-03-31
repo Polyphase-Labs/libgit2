@@ -79,7 +79,7 @@ HttpResponse HttpClient::Get(const std::string& url, int timeoutMs)
 
     // Open session
     HINTERNET hSession = WinHttpOpen(
-        L"OctaveEngine/1.0",
+        L"PolyphaseEngine/1.0",
         WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
         WINHTTP_NO_PROXY_NAME,
         WINHTTP_NO_PROXY_BYPASS,
@@ -125,7 +125,7 @@ HttpResponse HttpClient::Get(const std::string& url, int timeoutMs)
     // Add headers for GitHub API
     WinHttpAddRequestHeaders(hRequest,
         L"Accept: application/vnd.github.v3+json\r\n"
-        L"User-Agent: OctaveEngine/1.0\r\n",
+        L"User-Agent: PolyphaseEngine/1.0\r\n",
         (DWORD)-1, WINHTTP_ADDREQ_FLAG_ADD);
 
     // Send request
@@ -207,7 +207,7 @@ bool HttpClient::DownloadFile(
 
     // Open session
     HINTERNET hSession = WinHttpOpen(
-        L"OctaveEngine/1.0",
+        L"PolyphaseEngine/1.0",
         WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
         WINHTTP_NO_PROXY_NAME,
         WINHTTP_NO_PROXY_BYPASS,
@@ -249,7 +249,7 @@ bool HttpClient::DownloadFile(
 
     // Add user agent
     WinHttpAddRequestHeaders(hRequest,
-        L"User-Agent: OctaveEngine/1.0\r\n",
+        L"User-Agent: PolyphaseEngine/1.0\r\n",
         (DWORD)-1, WINHTTP_ADDREQ_FLAG_ADD);
 
     // Send request

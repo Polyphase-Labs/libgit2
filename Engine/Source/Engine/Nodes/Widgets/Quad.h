@@ -16,7 +16,7 @@ enum class ObjectFit : uint8_t
     Count
 };
 
-class OCTAVE_API Quad : public Widget
+class POLYPHASE_API Quad : public Widget
 {
 public:
 

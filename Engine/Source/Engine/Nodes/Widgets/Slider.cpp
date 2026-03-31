@@ -164,14 +164,14 @@ void Slider::Tick(float deltaTime)
     {
         float stepAmount = (mStep > 0.0f) ? mStep : (mMaxValue - mMinValue) * 0.05f;
 
-        if (IsKeyJustDownRepeat(OCTAVE_KEY_LEFT) ||
+        if (IsKeyJustDownRepeat(POLYPHASE_KEY_LEFT) ||
             IsGamepadButtonJustDown(GAMEPAD_L_LEFT, 0) ||
             IsGamepadButtonJustDown(GAMEPAD_LEFT, 0))
         {
             SetValue(mValue - stepAmount);
         }
 
-        if (IsKeyJustDownRepeat(OCTAVE_KEY_RIGHT) ||
+        if (IsKeyJustDownRepeat(POLYPHASE_KEY_RIGHT) ||
             IsGamepadButtonJustDown(GAMEPAD_L_RIGHT, 0) ||
             IsGamepadButtonJustDown(GAMEPAD_RIGHT, 0))
         {

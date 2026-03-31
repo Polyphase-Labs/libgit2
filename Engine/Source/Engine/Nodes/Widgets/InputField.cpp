@@ -215,7 +215,7 @@ void InputField::Tick(float deltaTime)
     bool shift = IsShiftDown();
     bool ctrl = IsControlDown();
 
-    if (IsKeyJustDownRepeat(OCTAVE_KEY_LEFT))
+    if (IsKeyJustDownRepeat(POLYPHASE_KEY_LEFT))
     {
         if (ctrl)
         {
@@ -227,7 +227,7 @@ void InputField::Tick(float deltaTime)
         }
     }
 
-    if (IsKeyJustDownRepeat(OCTAVE_KEY_RIGHT))
+    if (IsKeyJustDownRepeat(POLYPHASE_KEY_RIGHT))
     {
         if (ctrl)
         {
@@ -239,7 +239,7 @@ void InputField::Tick(float deltaTime)
         }
     }
 
-    if (IsKeyJustDown(OCTAVE_KEY_HOME))
+    if (IsKeyJustDown(POLYPHASE_KEY_HOME))
     {
         int32_t oldPos = mCaretPosition;
         mCaretPosition = 0;
@@ -259,7 +259,7 @@ void InputField::Tick(float deltaTime)
         }
     }
 
-    if (IsKeyJustDown(OCTAVE_KEY_END))
+    if (IsKeyJustDown(POLYPHASE_KEY_END))
     {
         int32_t oldPos = mCaretPosition;
         mCaretPosition = (int32_t)mTextContent.size();
@@ -280,7 +280,7 @@ void InputField::Tick(float deltaTime)
     }
 
     // Delete keys
-    if (IsKeyJustDownRepeat(OCTAVE_KEY_BACKSPACE))
+    if (IsKeyJustDownRepeat(POLYPHASE_KEY_BACKSPACE))
     {
         if (HasSelection())
         {
@@ -292,7 +292,7 @@ void InputField::Tick(float deltaTime)
         }
     }
 
-    if (IsKeyJustDownRepeat(OCTAVE_KEY_DELETE))
+    if (IsKeyJustDownRepeat(POLYPHASE_KEY_DELETE))
     {
         if (HasSelection())
         {
@@ -305,7 +305,7 @@ void InputField::Tick(float deltaTime)
     }
 
     // Enter/submit
-    if (IsKeyJustDown(OCTAVE_KEY_ENTER))
+    if (IsKeyJustDown(POLYPHASE_KEY_ENTER))
     {
         EmitSignal("TextSubmitted", { this });
         CallFunction("OnTextSubmitted", { this });
@@ -314,12 +314,12 @@ void InputField::Tick(float deltaTime)
     // Copy/Paste/Cut
     if (ctrl)
     {
-        if (IsKeyJustDown(OCTAVE_KEY_C) && HasSelection())
+        if (IsKeyJustDown(POLYPHASE_KEY_C) && HasSelection())
         {
             SYS_SetClipboardText(GetSelectedText());
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_V))
+        if (IsKeyJustDown(POLYPHASE_KEY_V))
         {
             std::string clipboard = SYS_GetClipboardText();
             if (!clipboard.empty())
@@ -332,13 +332,13 @@ void InputField::Tick(float deltaTime)
             }
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_X) && HasSelection())
+        if (IsKeyJustDown(POLYPHASE_KEY_X) && HasSelection())
         {
             SYS_SetClipboardText(GetSelectedText());
             DeleteSelection();
         }
 
-        if (IsKeyJustDown(OCTAVE_KEY_A))
+        if (IsKeyJustDown(POLYPHASE_KEY_A))
         {
             SelectAll();
         }
@@ -481,7 +481,7 @@ void InputField::MoveCaret(int32_t delta, bool select)
     }
     else
     {
-        mCaretPosition = glm::clamp(mCaretPosition + delta, 0, (int32_t)mTextContent.size());
+        mCaretPosition = glm::clamp(mCaretPosition + delta, (int32_t)0, (int32_t)mTextContent.size());
     }
 
     if (select)
@@ -795,7 +795,7 @@ void InputField::SetText(const std::string& text)
         }
 
         // Clamp caret position
-        mCaretPosition = glm::clamp(mCaretPosition, 0, (int32_t)mTextContent.size());
+        mCaretPosition = glm::clamp(mCaretPosition, (int32_t)0, (int32_t)mTextContent.size());
         ClearSelection();
         mScrollOffset = 0.0f;
         MarkDirty();
@@ -823,7 +823,7 @@ const std::string& InputField::GetPlaceholder() const
 
 void InputField::SetCaretPosition(int32_t pos)
 {
-    pos = glm::clamp(pos, 0, (int32_t)mTextContent.size());
+    pos = glm::clamp(pos, (int32_t)0, (int32_t)mTextContent.size());
     if (mCaretPosition != pos)
     {
         mCaretPosition = pos;
@@ -894,8 +894,8 @@ void InputField::DeleteSelection()
 
 void InputField::Select(int32_t start, int32_t end)
 {
-    start = glm::clamp(start, 0, (int32_t)mTextContent.size());
-    end = glm::clamp(end, 0, (int32_t)mTextContent.size());
+    start = glm::clamp(start, (int32_t)0, (int32_t)mTextContent.size());
+    end = glm::clamp(end, (int32_t)0, (int32_t)mTextContent.size());
 
     if (start > end)
     {
@@ -975,7 +975,7 @@ void InputField::SetMaxLength(int32_t maxLen)
         if (mMaxLength > 0 && (int32_t)mTextContent.size() > mMaxLength)
         {
             mTextContent = mTextContent.substr(0, mMaxLength);
-            mCaretPosition = glm::clamp(mCaretPosition, 0, (int32_t)mTextContent.size());
+            mCaretPosition = glm::clamp(mCaretPosition, (int32_t)0, (int32_t)mTextContent.size());
             ClearSelection();
             MarkDirty();
         }

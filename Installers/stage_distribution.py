@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-stage_distribution.py - Assembles distributable files for Octave Engine.
+stage_distribution.py - Assembles distributable files for Polyphase Engine.
 
 Copies only the files needed for distribution from the dev tree into a
 clean output directory. This is the shared foundation for both Windows
@@ -42,16 +42,16 @@ def log(msg, verbose=False):
 
 
 def extract_version(engine_root):
-    """Extract OCTAVE_VERSION from Constants.h."""
+    """Extract POLYPHASE_VERSION from Constants.h."""
     constants_path = engine_root / "Engine" / "Source" / "Engine" / "Constants.h"
     if not constants_path.exists():
         print(f"WARNING: {constants_path} not found, defaulting to version 0")
         return "0"
     text = constants_path.read_text(encoding="utf-8", errors="replace")
-    match = re.search(r"#define\s+OCTAVE_VERSION\s+(\d+)", text)
+    match = re.search(r"#define\s+POLYPHASE_VERSION\s+(\d+)", text)
     if match:
         return match.group(1)
-    print("WARNING: OCTAVE_VERSION not found in Constants.h, defaulting to 0")
+    print("WARNING: POLYPHASE_VERSION not found in Constants.h, defaulting to 0")
     return "0"
 
 
@@ -141,7 +141,7 @@ def stage(platform, output_dir, engine_root, verbose=False):
     dist.mkdir(parents=True, exist_ok=True)
 
     version = extract_version(engine_root)
-    print(f"Octave Engine version: {version}")
+    print(f"Polyphase Engine version: {version}")
     print(f"Platform: {platform}")
     print(f"Output: {dist.resolve()}")
     print()
@@ -154,19 +154,19 @@ def stage(platform, output_dir, engine_root, verbose=False):
     # --- Binary ---
     print("Staging binary...")
     if platform == "windows":
-        binary_src = engine_root / "Standalone" / "Build" / "Windows" / "x64" / "ReleaseEditor" / "Octave.exe"
-        binary_dst = dist / "Octave.exe"
+        binary_src = engine_root / "Standalone" / "Build" / "Windows" / "x64" / "ReleaseEditor" / "Polyphase.exe"
+        binary_dst = dist / "Polyphase.exe"
     else:
-        # Linux binary - Makefile produces OctaveEditor.elf, we install as OctaveEditor
-        binary_src = engine_root / "Standalone" / "Build" / "Linux" / "OctaveEditor.elf"
+        # Linux binary - Makefile produces PolyphaseEditor.elf, we install as PolyphaseEditor
+        binary_src = engine_root / "Standalone" / "Build" / "Linux" / "PolyphaseEditor.elf"
         if not binary_src.exists():
-            binary_src = engine_root / "Build" / "Linux" / "OctaveEditor.elf"
+            binary_src = engine_root / "Build" / "Linux" / "PolyphaseEditor.elf"
         if not binary_src.exists():
-            binary_src = engine_root / "OctaveEditor.elf"
+            binary_src = engine_root / "PolyphaseEditor.elf"
         if not binary_src.exists():
             # Also try without .elf extension
-            binary_src = engine_root / "Standalone" / "Build" / "Linux" / "OctaveEditor"
-        binary_dst = dist / "OctaveEditor"
+            binary_src = engine_root / "Standalone" / "Build" / "Linux" / "PolyphaseEditor"
+        binary_dst = dist / "PolyphaseEditor"
 
     if copy_file(binary_src, binary_dst, verbose):
         log(f"Binary: {binary_src}", verbose)
@@ -227,23 +227,23 @@ def stage(platform, output_dir, engine_root, verbose=False):
     # --- Prebuilt game executable (for standalone packaging without recompile) ---
     print("Staging prebuilt game executable...")
     if platform == "windows":
-        game_exe = engine_root / "Standalone" / "Build" / "Windows" / "x64" / "Release" / "Octave.exe"
-        game_dst = dist / "Standalone" / "Build" / "Windows" / "x64" / "Release" / "Octave.exe"
+        game_exe = engine_root / "Standalone" / "Build" / "Windows" / "x64" / "Release" / "Polyphase.exe"
+        game_dst = dist / "Standalone" / "Build" / "Windows" / "x64" / "Release" / "Polyphase.exe"
         if copy_file(game_exe, game_dst, verbose):
             log(f"Game exe: {game_exe}", verbose)
         else:
             print("  WARNING: Prebuilt game exe not found (builds will require compilation)")
     else:
-        game_exe = engine_root / "Standalone" / "Build" / "Linux" / "Octave.elf"
-        game_dst = dist / "Standalone" / "Build" / "Linux" / "Octave.elf"
+        game_exe = engine_root / "Standalone" / "Build" / "Linux" / "Polyphase.elf"
+        game_dst = dist / "Standalone" / "Build" / "Linux" / "Polyphase.elf"
         if copy_file(game_exe, game_dst, verbose):
             log(f"Game exe: {game_exe}", verbose)
         else:
             print("  WARNING: Prebuilt game exe not found (builds will require compilation)")
 
-    # --- Octave.sln (needed for C++ project creation) ---
-    print("Staging Octave.sln...")
-    copy_file(engine_root / "Octave.sln", dist / "Octave.sln", verbose)
+    # --- Polyphase.sln (needed for C++ project creation) ---
+    print("Staging Polyphase.sln...")
+    copy_file(engine_root / "Polyphase.sln", dist / "Polyphase.sln", verbose)
 
     # --- .vscode (needed for C++ project creation) ---
     print("Staging .vscode/...")
@@ -262,7 +262,7 @@ def stage(platform, output_dir, engine_root, verbose=False):
 
     # --- Root files ---
     print("Staging root files...")
-    for fname in ["LICENSE", "OctaveLogo_128.png", "OctaveLogo_256.png"]:
+    for fname in ["LICENSE", "PolyphaseLogo_128.png", "PolyphaseLogo_256.png"]:
         copy_file(engine_root / fname, dist / fname, verbose)
 
     # --- Create Engine/Saves directory (writable at runtime) ---
@@ -271,12 +271,12 @@ def stage(platform, output_dir, engine_root, verbose=False):
     # --- Import libraries for native addon builds ---
     print("Staging import libraries for native addon builds...")
     if platform == "windows":
-        # Octave.lib - import library for native addons to link against
-        octave_lib = engine_root / "Standalone" / "Build" / "Windows" / "x64" / "ReleaseEditor" / "Octave.lib"
-        if copy_file(octave_lib, dist / "Octave.lib", verbose):
-            log(f"Octave.lib: {octave_lib}", verbose)
+        # Polyphase.lib - import library for native addons to link against
+        polyphase_lib = engine_root / "Standalone" / "Build" / "Windows" / "x64" / "ReleaseEditor" / "Polyphase.lib"
+        if copy_file(polyphase_lib, dist / "Polyphase.lib", verbose):
+            log(f"Polyphase.lib: {polyphase_lib}", verbose)
         else:
-            print("  WARNING: Octave.lib not found - native addon builds may fail")
+            print("  WARNING: Polyphase.lib not found - native addon builds may fail")
 
         # Lua.lib - required for native addons using Lua
         lua_lib = engine_root / "External" / "Lua" / "Build" / "Windows" / "x64" / "ReleaseEditor" / "Lua.lib"
@@ -302,7 +302,7 @@ def stage(platform, output_dir, engine_root, verbose=False):
     # --- Write version file ---
     # INI format so Inno Setup's ReadIni() can parse it
     (dist / "version.txt").write_text(
-        f"[Octave]\nVersion={version}\n", encoding="utf-8"
+        f"[Polyphase]\nVersion={version}\n", encoding="utf-8"
     )
 
     print()
@@ -312,7 +312,7 @@ def stage(platform, output_dir, engine_root, verbose=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Stage Octave Engine files for distribution."
+        description="Stage Polyphase Engine files for distribution."
     )
     parser.add_argument(
         "--platform",

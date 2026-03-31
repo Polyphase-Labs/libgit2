@@ -15,7 +15,7 @@ The New Nintendo 3DS variant is detected at startup via `APT_CheckNew3DS()`, whi
 
 ## Architecture: World-per-Screen
 
-On 3DS, Octave creates **two World objects** at startup -- one per screen:
+On 3DS, Polyphase creates **two World objects** at startup -- one per screen:
 
 ```
 World 0  -->  Top screen (screen index 0)

@@ -8,7 +8,7 @@ class Text;
 class Button;
 class Canvas;
 
-class OCTAVE_API ComboBox : public Widget
+class POLYPHASE_API ComboBox : public Widget
 {
 public:
 

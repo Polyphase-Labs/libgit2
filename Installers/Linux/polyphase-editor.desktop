@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=Octave Engine
+Name=Polyphase Engine
 Comment=Multi-platform game engine with visual editor
-Exec=octave-editor %F
-Icon=octave-editor
+Exec=polyphase-editor %F
+Icon=polyphase-editor
 Terminal=false
 Categories=Development;IDE;
-MimeType=application/x-octave-project;
+MimeType=application/x-polyphase-project;
 Keywords=game;engine;editor;3d;2d;lua;
 StartupNotify=true

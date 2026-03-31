@@ -35,7 +35,7 @@ public:
 
 private:
     /** @brief Docker image name for building */
-    std::string mDockerImage = "vltmedia/octavegameengine-linux:dev";
+    std::string mDockerImage = "polyphase-engine/polyphase-engine-linux:dev";
 };
 
 #endif

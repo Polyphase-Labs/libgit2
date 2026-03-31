@@ -131,7 +131,7 @@ void AutoUpdaterWindow::DrawUpdateAvailable()
     ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "A new version is available!");
     ImGui::Spacing();
 
-    ImGui::Text("Current version: %s", OCTAVE_VERSION_STRING);
+    ImGui::Text("Current version: %s", POLYPHASE_VERSION_STRING);
     ImGui::Text("New version: %s", release.GetVersion().c_str());
 
     ImGui::Spacing();
@@ -259,7 +259,7 @@ void AutoUpdaterWindow::DrawUpToDate()
     ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "You're up to date!");
     ImGui::Spacing();
 
-    ImGui::Text("Current version: %s", OCTAVE_VERSION_STRING);
+    ImGui::Text("Current version: %s", POLYPHASE_VERSION_STRING);
 
     ImGui::Spacing();
 

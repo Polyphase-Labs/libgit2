@@ -5,7 +5,7 @@
 class Texture;
 class Quad;
 
-class OCTAVE_API Slider : public Widget
+class POLYPHASE_API Slider : public Widget
 {
 public:
 

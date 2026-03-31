@@ -63,11 +63,11 @@ void INP_Update()
     input.mGamepads[0].mButtons[GAMEPAD_DOWN] = down & KEY_DDOWN;
     input.mGamepads[0].mButtons[GAMEPAD_UP] = down & KEY_DUP;
 
-    // Map D-pad to arrow keyboard keys so IsKeyDown(OCTAVE_KEY_UP) etc. works
-    input.mKeys[OCTAVE_KEY_UP] = (down & KEY_DUP) != 0;
-    input.mKeys[OCTAVE_KEY_DOWN] = (down & KEY_DDOWN) != 0;
-    input.mKeys[OCTAVE_KEY_LEFT] = (down & KEY_DLEFT) != 0;
-    input.mKeys[OCTAVE_KEY_RIGHT] = (down & KEY_DRIGHT) != 0;
+    // Map D-pad to arrow keyboard keys so IsKeyDown(POLYPHASE_KEY_UP) etc. works
+    input.mKeys[POLYPHASE_KEY_UP] = (down & KEY_DUP) != 0;
+    input.mKeys[POLYPHASE_KEY_DOWN] = (down & KEY_DDOWN) != 0;
+    input.mKeys[POLYPHASE_KEY_LEFT] = (down & KEY_DLEFT) != 0;
+    input.mKeys[POLYPHASE_KEY_RIGHT] = (down & KEY_DRIGHT) != 0;
     input.mGamepads[0].mButtons[GAMEPAD_START] = down & KEY_START;
     input.mGamepads[0].mButtons[GAMEPAD_SELECT] = down & KEY_SELECT;
 
