@@ -481,7 +481,7 @@ void InputField::MoveCaret(int32_t delta, bool select)
     }
     else
     {
-        mCaretPosition = glm::clamp(mCaretPosition + delta, 0, (int32_t)mTextContent.size());
+        mCaretPosition = glm::clamp(mCaretPosition + delta, (int32_t)0, (int32_t)mTextContent.size());
     }
 
     if (select)
@@ -795,7 +795,7 @@ void InputField::SetText(const std::string& text)
         }
 
         // Clamp caret position
-        mCaretPosition = glm::clamp(mCaretPosition, 0, (int32_t)mTextContent.size());
+        mCaretPosition = glm::clamp(mCaretPosition, (int32_t)0, (int32_t)mTextContent.size());
         ClearSelection();
         mScrollOffset = 0.0f;
         MarkDirty();
@@ -823,7 +823,7 @@ const std::string& InputField::GetPlaceholder() const
 
 void InputField::SetCaretPosition(int32_t pos)
 {
-    pos = glm::clamp(pos, 0, (int32_t)mTextContent.size());
+    pos = glm::clamp(pos, (int32_t)0, (int32_t)mTextContent.size());
     if (mCaretPosition != pos)
     {
         mCaretPosition = pos;
@@ -894,8 +894,8 @@ void InputField::DeleteSelection()
 
 void InputField::Select(int32_t start, int32_t end)
 {
-    start = glm::clamp(start, 0, (int32_t)mTextContent.size());
-    end = glm::clamp(end, 0, (int32_t)mTextContent.size());
+    start = glm::clamp(start, (int32_t)0, (int32_t)mTextContent.size());
+    end = glm::clamp(end, (int32_t)0, (int32_t)mTextContent.size());
 
     if (start > end)
     {
@@ -975,7 +975,7 @@ void InputField::SetMaxLength(int32_t maxLen)
         if (mMaxLength > 0 && (int32_t)mTextContent.size() > mMaxLength)
         {
             mTextContent = mTextContent.substr(0, mMaxLength);
-            mCaretPosition = glm::clamp(mCaretPosition, 0, (int32_t)mTextContent.size());
+            mCaretPosition = glm::clamp(mCaretPosition, (int32_t)0, (int32_t)mTextContent.size());
             ClearSelection();
             MarkDirty();
         }

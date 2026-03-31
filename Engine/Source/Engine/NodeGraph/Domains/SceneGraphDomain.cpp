@@ -252,6 +252,9 @@ void SceneGraphDomain::RegisterNodeTypes()
     AddNodeType(MousePositionNode::GetStaticType(), "Mouse Position", "Input", glm::vec4(0.8f, 0.6f, 0.1f, 1.0f));
     AddNodeType(ScrollWheelNode::GetStaticType(), "Scroll Wheel", "Input", glm::vec4(0.8f, 0.6f, 0.1f, 1.0f));
 
+    // Script nodes
+    AddNodeType(CallScriptFunctionNode::GetStaticType(), "Call Script Function", "Script", glm::vec4(0.7f, 0.4f, 0.9f, 1.0f));
+
     // Point Generation nodes
     static const glm::vec4 kPointColor(0.9f, 0.55f, 0.1f, 1.0f);
     AddNodeType(CreatePointsGridNode::GetStaticType(), "Create Points Grid", "Point", kPointColor);

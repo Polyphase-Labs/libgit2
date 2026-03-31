@@ -552,7 +552,7 @@ int32_t ComboBox::GetOptionCount() const
 
 void ComboBox::SetSelectedIndex(int32_t index)
 {
-    index = glm::clamp(index, -1, (int32_t)mOptions.size() - 1);
+    index = glm::clamp(index, (int32_t)-1, (int32_t)mOptions.size() - 1);
     if (mSelectedIndex != index)
     {
         mSelectedIndex = index;
@@ -599,9 +599,9 @@ void ComboBox::Open()
         if (mSelectedIndex >= 0)
         {
             // Try to center the selected item
-            mScrollOffset = glm::max(0, mSelectedIndex - visibleCount / 2);
+            mScrollOffset = glm::max((int32_t)0, mSelectedIndex - visibleCount / 2);
             // Clamp to valid range
-            int32_t maxOffset = glm::max(0, (int32_t)mOptions.size() - visibleCount);
+            int32_t maxOffset = glm::max((int32_t)0, (int32_t)mOptions.size() - visibleCount);
             mScrollOffset = glm::min(mScrollOffset, maxOffset);
         }
         else
@@ -697,7 +697,7 @@ void ComboBox::SetMaxVisibleItems(int32_t count)
 {
     if (mMaxVisibleItems != count)
     {
-        mMaxVisibleItems = glm::max(1, count);
+        mMaxVisibleItems = glm::max((int32_t)1, count);
         MarkDirty();
     }
 }
@@ -750,7 +750,7 @@ void ComboBox::CycleHoveredIndex(int32_t delta)
 
     // Clamp to valid range across ALL options (not just visible)
     int32_t maxIndex = (int32_t)mOptions.size() - 1;
-    newIndex = glm::clamp(newIndex, 0, maxIndex);
+    newIndex = glm::clamp(newIndex, (int32_t)0, maxIndex);
 
     if (mHoveredIndex != newIndex)
     {

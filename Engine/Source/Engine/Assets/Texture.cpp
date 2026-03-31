@@ -158,8 +158,8 @@ void CookTexture(
         {
             if (downsampleFactor > 1)
             {
-                texWidth = glm::max(texWidth >> (downsampleFactor - 1), 1);
-                texHeight = glm::max(texHeight >> (downsampleFactor - 1), 1);
+                texWidth = glm::max(texWidth >> (downsampleFactor - 1), (int32_t)1);
+                texHeight = glm::max(texHeight >> (downsampleFactor - 1), (int32_t)1);
             }
 
             if (consoleMaxTextureSize > 0)
@@ -177,12 +177,12 @@ void CookTexture(
             if (texWidth >= texHeight)
             {
                 texWidth = hardwareMax;
-                texHeight = glm::max(int32_t(hardwareMax / whRatio + 0.5f), 1);
+                texHeight = glm::max(int32_t(hardwareMax / whRatio + 0.5f), (int32_t)1);
             }
             else
             {
                 texHeight = hardwareMax;
-                texWidth = glm::max(int32_t(hardwareMax * whRatio + 0.5f), 1);
+                texWidth = glm::max(int32_t(hardwareMax * whRatio + 0.5f), (int32_t)1);
             }
         }
 
@@ -254,7 +254,7 @@ void CookTexture(
             //int32_t maxLod = int32_t(texture->GetMipLevels()) - 1;
             maxLod = static_cast<int32_t>(floor(log2(std::min(texWidth, texHeight))) + 1) - 3;
 
-            maxLod = glm::max(maxLod, 0);
+            maxLod = glm::max(maxLod, (int32_t)0);
             cookCmd += " mipmap=yes ";
             cookCmd += "minlod=0 ";
             cookCmd += "maxLod=";

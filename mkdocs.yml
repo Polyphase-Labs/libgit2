@@ -33,6 +33,7 @@ nav:
 
   - Development:
       - Install Environment:
+          - Quick Start: Info/QuickStart.md
           - Terminal: Development/SetupEnvironment/Terminal.md
           - Windows: Development/SetupEnvironment/Windows.md
           - Linux: Development/SetupEnvironment/Linux.md

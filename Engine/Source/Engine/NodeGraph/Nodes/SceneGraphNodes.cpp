@@ -15,6 +15,7 @@
 #include "Engine.h"
 #include "Clock.h"
 #include "Nodes/NodeGraphPlayer.h"
+#include "Script.h"
 #include "Log.h"
 #include "Utilities.h"
 #include "InputDevices.h"
@@ -2656,3 +2657,86 @@ void ScrollWheelNode::Evaluate()
 }
 
 glm::vec4 ScrollWheelNode::GetNodeColor() const { return kInputNodeColor; }
+
+// =============================================================================
+// CallScriptFunctionNode
+// =============================================================================
+
+static const glm::vec4 kScriptNodeColor = glm::vec4(0.7f, 0.4f, 0.9f, 1.0f);
+
+DEFINE_GRAPH_NODE(CallScriptFunctionNode);
+
+void CallScriptFunctionNode::SetupPins()
+{
+    AddInputPin("Exec", DatumType::Execution);
+    AddInputPin("Target", DatumType::Node, Datum((Node*)nullptr));
+    AddInputPin("Function", DatumType::String, Datum(std::string("")));
+    AddInputPin("Param 1", DatumType::Float, Datum(0.0f));
+    AddInputPin("Param 2", DatumType::Float, Datum(0.0f));
+    AddInputPin("Param 3", DatumType::Float, Datum(0.0f));
+    AddInputPin("Param 4", DatumType::Float, Datum(0.0f));
+    AddInputPin("Param Count", DatumType::Integer, Datum(0));
+    AddOutputPin("Exec", DatumType::Execution);
+    AddOutputPin("Return", DatumType::Float);
+    AddOutputPin("Success", DatumType::Bool);
+}
+
+void CallScriptFunctionNode::Evaluate()
+{
+    Node* targetNode = GetInputValue(1).GetNode().Get();
+    std::string funcName = GetInputValue(2).GetString();
+    Datum param1 = GetInputValue(3);
+    Datum param2 = GetInputValue(4);
+    Datum param3 = GetInputValue(5);
+    Datum param4 = GetInputValue(6);
+    int32_t paramCount = GetInputValue(7).GetInteger();
+
+    bool success = false;
+    Datum returnValue(0.0f);
+
+    // If no target specified, use the owner node's parent (the node that has the Script)
+    if (targetNode == nullptr)
+    {
+        Node* owner = GetOwnerNode(this);
+        if (owner != nullptr)
+        {
+            targetNode = owner->GetParent();
+        }
+    }
+
+    if (targetNode != nullptr && !funcName.empty())
+    {
+        Script* script = targetNode->GetScript();
+        if (script != nullptr && script->HasFunction(funcName.c_str()))
+        {
+            // Call with appropriate number of parameters
+            paramCount = glm::clamp(paramCount, (int32_t)0, (int32_t)4);
+
+            switch (paramCount)
+            {
+                case 0:
+                    returnValue = script->CallFunctionR(funcName.c_str());
+                    break;
+                case 1:
+                    returnValue = script->CallFunctionR(funcName.c_str(), param1);
+                    break;
+                case 2:
+                    returnValue = script->CallFunctionR(funcName.c_str(), param1, param2);
+                    break;
+                case 3:
+                    returnValue = script->CallFunctionR(funcName.c_str(), param1, param2, param3);
+                    break;
+                case 4:
+                    returnValue = script->CallFunctionR(funcName.c_str(), param1, param2, param3, param4);
+                    break;
+            }
+            success = true;
+        }
+    }
+
+    TriggerExecutionPin(0);
+    SetOutputValue(1, returnValue);
+    SetOutputValue(2, Datum(success));
+}
+
+glm::vec4 CallScriptFunctionNode::GetNodeColor() const { return kScriptNodeColor; }
