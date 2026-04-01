@@ -562,10 +562,13 @@ void Voxel3D::RebuildMeshInternal()
                 VoxelFace face = GetFaceFromNormal(n);
                 uint16_t tile = info.mAtlasTile[static_cast<int>(face)];
 
-                // Project positions onto face plane (un-centered coordinates)
-                glm::vec2 p0 = ProjectToFacePlane(v0.mPosition + centerOffset, n);
-                glm::vec2 p1 = ProjectToFacePlane(v1.mPosition + centerOffset, n);
-                glm::vec2 p2 = ProjectToFacePlane(v2.mPosition + centerOffset, n);
+                // Project positions onto face plane.
+                // PolyVox applies a -0.5 offset to decoded positions, so add it
+                // back to get clean integer grid coordinates for UV mapping.
+                glm::vec3 uvOffset = centerOffset + glm::vec3(0.5f);
+                glm::vec2 p0 = ProjectToFacePlane(v0.mPosition + uvOffset, n);
+                glm::vec2 p1 = ProjectToFacePlane(v1.mPosition + uvOffset, n);
+                glm::vec2 p2 = ProjectToFacePlane(v2.mPosition + uvOffset, n);
 
                 // Compute UV relative to triangle minimum.
                 // glm::fract fails for integers (fract(5.0)=0), so instead
