@@ -9,6 +9,9 @@
 
 #include "Graphics/Graphics.h"
 
+#include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionDispatch/btInternalEdgeUtility.h>
+
 // Disable warnings for PolyVox external library
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -195,6 +198,7 @@ void Voxel3D::Copy(Node* srcNode, bool recurse)
 
 void Voxel3D::Destroy()
 {
+    DestroyTriangleCollisionData();
     GFX_DestroyVoxel3DResource(this);
 
     if (mVolume != nullptr)
@@ -741,10 +745,63 @@ void Voxel3D::UpdateBounds()
 
 void Voxel3D::RecreateCollisionShape()
 {
-    // Simple bounding box collision for MVP
-    glm::vec3 halfExtents = glm::vec3(mDimensions) * 0.5f;
-    btBoxShape* boxShape = new btBoxShape(btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
-    SetCollisionShape(boxShape);
+    DestroyTriangleCollisionData();
+
+    if (mVertices.empty() || mIndices.empty())
+    {
+        SetCollisionShape(GetEmptyCollisionShape());
+        return;
+    }
+
+    // Build collision vertex/index arrays from the generated mesh
+    mCollisionVertices.resize(mVertices.size());
+    for (size_t i = 0; i < mVertices.size(); ++i)
+    {
+        mCollisionVertices[i] = mVertices[i].mPosition;
+    }
+
+    mCollisionIndices.resize(mIndices.size());
+    for (size_t i = 0; i < mIndices.size(); ++i)
+    {
+        mCollisionIndices[i] = static_cast<int32_t>(mIndices[i]);
+    }
+
+    mTriangleIndexVertexArray = new btTriangleIndexVertexArray();
+
+    btIndexedMesh mesh;
+    mesh.m_numTriangles = static_cast<int>(mCollisionIndices.size() / 3);
+    mesh.m_triangleIndexBase = reinterpret_cast<const unsigned char*>(mCollisionIndices.data());
+    mesh.m_triangleIndexStride = sizeof(int32_t) * 3;
+    mesh.m_numVertices = static_cast<int>(mCollisionVertices.size());
+    mesh.m_vertexBase = reinterpret_cast<const unsigned char*>(mCollisionVertices.data());
+    mesh.m_vertexStride = sizeof(glm::vec3);
+
+    mTriangleIndexVertexArray->addIndexedMesh(mesh, PHY_INTEGER);
+
+    btBvhTriangleMeshShape* triShape = new btBvhTriangleMeshShape(mTriangleIndexVertexArray, true);
+
+    mTriangleInfoMap = new btTriangleInfoMap();
+    btGenerateInternalEdgeInfo(triShape, mTriangleInfoMap);
+
+    SetCollisionShape(triShape);
+}
+
+void Voxel3D::DestroyTriangleCollisionData()
+{
+    if (mTriangleInfoMap != nullptr)
+    {
+        delete mTriangleInfoMap;
+        mTriangleInfoMap = nullptr;
+    }
+
+    if (mTriangleIndexVertexArray != nullptr)
+    {
+        delete mTriangleIndexVertexArray;
+        mTriangleIndexVertexArray = nullptr;
+    }
+
+    mCollisionVertices.clear();
+    mCollisionIndices.clear();
 }
 
 void Voxel3D::DecompressVoxelData()

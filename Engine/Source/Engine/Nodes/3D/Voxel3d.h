@@ -8,6 +8,10 @@
 // don't ship PolyVox headers (GX, C3D). The full includes live in Voxel3d.cpp.
 namespace PolyVox { template<typename VoxelType> class RawVolume; }
 
+class btTriangleIndexVertexArray;
+class btBvhTriangleMeshShape;
+struct btTriangleInfoMap;
+
 // Voxel type: 0 = air (empty), 1-255 = solid material IDs
 using VoxelType = uint8_t;
 
@@ -100,6 +104,7 @@ protected:
     void UploadMeshData();
     void UpdateBounds();
     void RecreateCollisionShape();
+    void DestroyTriangleCollisionData();
     void DecompressVoxelData();
     glm::vec4 MaterialIdToColor(VoxelType materialId) const;
 
@@ -128,6 +133,12 @@ protected:
 
     // Default material
     MaterialRef mDefaultMaterial;
+
+    // Triangle collision data (kept alive while shape is in use)
+    std::vector<glm::vec3> mCollisionVertices;
+    std::vector<int32_t> mCollisionIndices;
+    btTriangleIndexVertexArray* mTriangleIndexVertexArray = nullptr;
+    btTriangleInfoMap* mTriangleInfoMap = nullptr;
 
     // Atlas texturing configuration
     TextureRef mAtlasTexture;
