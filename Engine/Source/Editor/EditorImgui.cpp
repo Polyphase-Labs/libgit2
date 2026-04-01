@@ -69,6 +69,7 @@
 #include "Timeline/TimelinePanel.h"
 #include "NodeGraph/NodeGraphPanel.h"
 #include "Profiling/ProfilingWindow.h"
+#include "TextureAtlas/TextureAtlasViewer.h"
 #include "Preferences/General/GeneralModule.h"
 #include "Preferences/PreferencesManager.h"
 #include "Preferences/External/LaunchersModule.h"
@@ -670,6 +671,18 @@ static void DrawDockspace()
     if (ImGui::BeginDock(ICON_CURVEGRAPH "  Profiling", nullptr, 0))
     {
         GetProfilingWindow()->DrawContent();
+    }
+    ImGui::EndDock();
+    ImGui::PopStyleColor();
+
+    // --- Texture Atlas Viewer dock ---
+    {
+        ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, bg);
+    }
+    if (ImGui::BeginDock("Texture Atlas Viewer", nullptr, 0))
+    {
+        GetTextureAtlasViewer()->DrawPanel();
     }
     ImGui::EndDock();
     ImGui::PopStyleColor();
@@ -8514,6 +8527,11 @@ static void DrawMainMenuBar()
             if (ImGui::MenuItem("Check Build Dependencies"))
             {
                 GetBuildDependencyWindow()->Open();
+            }
+
+            if (ImGui::MenuItem("Texture Atlas Viewer"))
+            {
+                GetEditorState()->mShowTextureAtlasViewer = !GetEditorState()->mShowTextureAtlasViewer;
             }
 
             ImGui::Separator();

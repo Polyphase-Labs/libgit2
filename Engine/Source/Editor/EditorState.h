@@ -198,6 +198,9 @@ struct EditorState
 
     // Profiling Panel state
     bool mShowProfilingPanel = false;
+
+    // Texture Atlas Viewer state
+    bool mShowTextureAtlasViewer = false;
     TimelineRef mEditedTimelineRef;
     TimelineInstance* mTimelinePreviewInstance = nullptr;
     float mTimelinePlayheadTime = 0.0f;
