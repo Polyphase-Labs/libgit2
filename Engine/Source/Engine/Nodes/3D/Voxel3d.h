@@ -23,7 +23,7 @@ enum class VoxelFace : uint8_t
 // Per-material texture configuration for atlas-based texturing
 struct VoxelMaterialInfo
 {
-    uint16_t mAtlasTile[3] = {0, 0, 0};  // [Top, Bottom, Side] tile indices
+    int32_t mAtlasTile[3] = {0, 0, 0};  // [Top, Bottom, Side] tile indices
     glm::vec4 mTintColor = glm::vec4(1.0f);  // Optional color multiplier
     bool mUseTexture = false;  // false = use vertex color (backward compat)
 };
@@ -41,6 +41,7 @@ public:
 
     virtual void Create() override;
     virtual void Destroy() override;
+    virtual void Copy(Node* srcNode, bool recurse) override;
     Voxel3DResource* GetResource();
 
     virtual void Tick(float deltaTime) override;
@@ -77,8 +78,8 @@ public:
     void SetAtlasEnabled(bool enabled);
     bool IsAtlasEnabled() const { return mEnableAtlasTexturing; }
 
-    void SetMaterialTexture(VoxelType id, uint16_t topTile, uint16_t bottomTile, uint16_t sideTile);
-    void SetMaterialTexture(VoxelType id, uint16_t allFacesTile);
+    void SetMaterialTexture(VoxelType id, int32_t topTile, int32_t bottomTile, int32_t sideTile);
+    void SetMaterialTexture(VoxelType id, int32_t allFacesTile);
     void SetMaterialTint(VoxelType id, const glm::vec4& tint);
     void DisableMaterialTexture(VoxelType id);
     const VoxelMaterialInfo& GetMaterialInfo(VoxelType id) const { return mMaterialTable[id]; }

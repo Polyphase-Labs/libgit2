@@ -31,6 +31,7 @@
 #include "Nodes/3D/Capsule3d.h"
 #include "Nodes/3D/ShadowMesh3d.h"
 #include "Nodes/3D/TextMesh3d.h"
+#include "Nodes/3D/Voxel3d.h"
 #include "World.h"
 
 #include "Assets/Scene.h"
@@ -70,6 +71,7 @@
 #include "NodeGraph/NodeGraphPanel.h"
 #include "Profiling/ProfilingWindow.h"
 #include "TextureAtlas/TextureAtlasViewer.h"
+#include "VoxelSculpt/VoxelSculptManager.h"
 #include "Preferences/General/GeneralModule.h"
 #include "Preferences/PreferencesManager.h"
 #include "Preferences/External/LaunchersModule.h"
@@ -8661,9 +8663,9 @@ static void DrawMainMenuBar()
             curMode = int(EditorMode::Count) + int(paintMode) - 1;
         }
 
-        const char* modeStrings[] = { "Scene", "2D", "3D", "Paint Colors", "Paint Instances"};
-        ImGui::SetNextItemWidth(70);
-        ImGui::Combo("##EditorMode", &curMode, modeStrings, 5);
+        const char* modeStrings[] = { "Scene", "2D", "3D", "Paint Colors", "Paint Instances", "Voxel Sculpt"};
+        ImGui::SetNextItemWidth(80);
+        ImGui::Combo("##EditorMode", &curMode, modeStrings, 6);
 
         if (curMode == 3)
         {
@@ -8674,6 +8676,11 @@ static void DrawMainMenuBar()
         {
             curMode = (int)EditorMode::Scene3D;
             paintMode = PaintMode::Instance;
+        }
+        else if (curMode == 5)
+        {
+            curMode = (int)EditorMode::Scene3D;
+            paintMode = PaintMode::Voxel;
         }
         else
         {
@@ -10535,6 +10542,128 @@ void EditorImguiDraw()
         else if (paintMode == PaintMode::Instance)
         {
             DrawPaintInstancesPanel();
+        }
+        else if (paintMode == PaintMode::Voxel)
+        {
+            // Voxel sculpt panel
+            ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()));
+            ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
+            ImGui::Begin("Voxel Sculpt", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+
+            VoxelSculptManager* mgr = GetEditorState()->mVoxelSculptManager;
+
+            Node* sel = GetEditorState()->GetSelectedNode();
+            if (sel != nullptr && sel->GetType() == Voxel3D::GetStaticType())
+            {
+                Voxel3D* voxel = static_cast<Voxel3D*>(sel);
+
+                // Mode selector
+                int mode = (int)mgr->mOptions.mMode;
+                ImGui::RadioButton("Add", &mode, 0); ImGui::SameLine();
+                ImGui::RadioButton("Remove", &mode, 1); ImGui::SameLine();
+                ImGui::RadioButton("Paint", &mode, 2);
+                mgr->mOptions.mMode = (VoxelSculptMode)mode;
+
+                // Brush radius
+                ImGui::SliderInt("Radius", &mgr->mOptions.mBrushRadius, 1, 8);
+
+                // Material ID (for Add and Paint modes)
+                if (mgr->mOptions.mMode != VoxelSculptMode::Remove)
+                {
+                    int matId = (int)mgr->mOptions.mMaterialId;
+                    ImGui::SliderInt("Material", &matId, 1, 255);
+                    mgr->mOptions.mMaterialId = (uint8_t)matId;
+                }
+
+                // Hover info
+                if (mgr->mHoverValid)
+                {
+                    ImGui::Separator();
+                    ImGui::Text("Voxel: %d, %d, %d", mgr->mHoverVoxel.x, mgr->mHoverVoxel.y, mgr->mHoverVoxel.z);
+                }
+
+                // Material palette editor
+                ImGui::Separator();
+                if (ImGui::Button("Rebuild Mesh"))
+                {
+                    voxel->MarkDirty();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Reset Mesh"))
+                {
+                    voxel->Fill(0);
+                    voxel->MarkDirty();
+                }
+                if (ImGui::CollapsingHeader("Material Palette", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    // Show how many materials are configured
+                    int numConfigured = 0;
+                    for (int i = 1; i < 256; ++i)
+                    {
+                        if (voxel->GetMaterialInfo(static_cast<VoxelType>(i)).mUseTexture)
+                            numConfigured++;
+                    }
+                    ImGui::Text("Configured: %d materials", numConfigured);
+
+                    // Material slot editors (show slots 1-16)
+                    for (int i = 1; i <= 16; ++i)
+                    {
+                        ImGui::PushID(i);
+                        const VoxelMaterialInfo& info = voxel->GetMaterialInfo(static_cast<VoxelType>(i));
+
+                        char label[32];
+                        snprintf(label, sizeof(label), "Mat %d", i);
+
+                        bool isOpen = ImGui::TreeNode(label);
+
+                        // Show a quick summary on the same line
+                        if (info.mUseTexture)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextDisabled("T:%d B:%d S:%d", info.mAtlasTile[0], info.mAtlasTile[1], info.mAtlasTile[2]);
+                        }
+
+                        if (isOpen)
+                        {
+                            bool enabled = info.mUseTexture;
+                            if (ImGui::Checkbox("Enabled", &enabled))
+                            {
+                                if (enabled)
+                                    voxel->SetMaterialTexture(static_cast<VoxelType>(i), info.mAtlasTile[0], info.mAtlasTile[1], info.mAtlasTile[2]);
+                                else
+                                    voxel->DisableMaterialTexture(static_cast<VoxelType>(i));
+                            }
+
+                            if (enabled)
+                            {
+                                int top = info.mAtlasTile[0];
+                                int bottom = info.mAtlasTile[1];
+                                int side = info.mAtlasTile[2];
+                                bool changed = false;
+
+                                changed |= ImGui::InputInt("Top", &top);
+                                changed |= ImGui::InputInt("Bottom", &bottom);
+                                changed |= ImGui::InputInt("Side", &side);
+
+                                if (changed)
+                                {
+                                    voxel->SetMaterialTexture(static_cast<VoxelType>(i), top, bottom, side);
+                                }
+                            }
+
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::PopID();
+                    }
+                }
+            }
+            else
+            {
+                ImGui::TextWrapped("Select a Voxel3D node to begin sculpting.");
+            }
+
+            ImGui::End();
         }
 
         if (GetEditorState()->GetEditorMode() == EditorMode::Scene2D)

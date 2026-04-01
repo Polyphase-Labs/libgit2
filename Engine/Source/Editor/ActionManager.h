@@ -170,6 +170,7 @@ public:
     void EXE_UnlinkScene(Node* node);
     void EXE_ResetScene(Node* node);
     void EXE_SetInstanceColors(const std::vector<ActionSetInstanceColorsData>& data);
+    void EXE_SetVoxels(class Voxel3D* voxel, const std::vector<struct VoxelChange>& changes);
     void EXE_SetInstanceData(InstancedMesh3D* instMesh, int32_t startIndex, const std::vector<MeshInstanceData>& data);
 
     /**
@@ -622,4 +623,18 @@ protected:
     TypeId mNewParentType;
     ArrayOrientation mArrayOrientation = ArrayOrientation::Vertical;
     bool mFirstExecute = true;
+};
+
+struct VoxelChange;
+class Voxel3D;
+
+class ActionSetVoxels : public Action
+{
+public:
+    DECLARE_ACTION_INTERFACE(SetVoxels);
+    ActionSetVoxels(Voxel3D* voxel, const std::vector<VoxelChange>& changes);
+
+protected:
+    Voxel3D* mVoxel = nullptr;
+    std::vector<VoxelChange> mChanges;
 };

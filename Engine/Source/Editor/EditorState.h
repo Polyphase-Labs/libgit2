@@ -27,6 +27,7 @@ class Camera3D;
 class Viewport3D;
 class Viewport2D;
 class PaintManager;
+class VoxelSculptManager;
 struct SubSceneOverride;
 
 enum class ControlMode
@@ -66,6 +67,7 @@ enum class PaintMode
     None,
     Color,
     Instance,
+    Voxel,
 
     Count
 };
@@ -164,6 +166,7 @@ struct EditorState
     std::vector<RecentScene> mRecentScenes;
     PaintMode mPaintMode = PaintMode::None;
     PaintManager* mPaintManager = nullptr;
+    VoxelSculptManager* mVoxelSculptManager = nullptr;
     bool mNodePropertySelect = false;
     int32_t mNodePropertySelectIndex = 0;
     std::string mNodePropertySelectName = "";

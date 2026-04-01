@@ -33,6 +33,16 @@ bool Voxel3D::HandlePropChange(Datum* datum, uint32_t index, const void* newValu
     OCT_ASSERT(prop != nullptr);
     Voxel3D* voxelComp = static_cast<Voxel3D*>(prop->mOwner);
 
+    // If atlas settings changed, update the material texture binding
+    if (MaterialLite* mat = voxelComp->mDefaultMaterial.Get<MaterialLite>())
+    {
+        Texture* atlasTex = voxelComp->mAtlasTexture.Get<Texture>();
+        if (atlasTex != nullptr && voxelComp->mEnableAtlasTexturing)
+        {
+            mat->SetTexture(0, atlasTex);
+        }
+    }
+
     voxelComp->MarkDirty();
 
     return false;
@@ -94,11 +104,14 @@ void Voxel3D::Create()
         mVolume = new PolyVox::RawVolume<VoxelType>(region);
     }
 
+    // If this is a new volume (not loaded from scene), fill with a test cube
+    // Check BEFORE decompressing, since DecompressVoxelData clears mCompressedData.
+    bool hasLoadedData = !mCompressedData.empty();
+
     // Decompress loaded voxel data if any
     DecompressVoxelData();
 
-    // If this is a new volume (not loaded from scene), fill with a test cube
-    if (newVolume && mCompressedData.empty())
+    if (newVolume && !hasLoadedData)
     {
         // Fill a smaller cube in the center as a test
         int32_t margin = 4;
@@ -122,7 +135,60 @@ void Voxel3D::Create()
     {
         mat->SetShadingModel(ShadingModel::Lit);
         mat->SetVertexColorMode(VertexColorMode::Modulate);
+
+        // If atlas texture was loaded from scene, bind it to the material
+        Texture* atlasTex = mAtlasTexture.Get<Texture>();
+        if (atlasTex != nullptr && mEnableAtlasTexturing)
+        {
+            mat->SetTexture(0, atlasTex);
+        }
     }
+
+    MarkDirty();
+}
+
+void Voxel3D::Copy(Node* srcNode, bool recurse)
+{
+    Mesh3D::Copy(srcNode, recurse);
+
+    if (srcNode->GetType() != Voxel3D::GetStaticType())
+        return;
+
+    Voxel3D* src = static_cast<Voxel3D*>(srcNode);
+
+    // Copy volume data
+    if (src->mVolume != nullptr)
+    {
+        // Recreate volume if dimensions differ
+        if (mVolume == nullptr || mDimensions != src->mDimensions)
+        {
+            if (mVolume != nullptr)
+                delete mVolume;
+
+            mDimensions = src->mDimensions;
+            PolyVox::Region region(
+                PolyVox::Vector3DInt32(0, 0, 0),
+                PolyVox::Vector3DInt32(mDimensions.x - 1, mDimensions.y - 1, mDimensions.z - 1)
+            );
+            mVolume = new PolyVox::RawVolume<VoxelType>(region);
+        }
+
+        // Copy all voxels
+        const auto& region = src->mVolume->getEnclosingRegion();
+        for (int32_t z = region.getLowerZ(); z <= region.getUpperZ(); ++z)
+        {
+            for (int32_t y = region.getLowerY(); y <= region.getUpperY(); ++y)
+            {
+                for (int32_t x = region.getLowerX(); x <= region.getUpperX(); ++x)
+                {
+                    mVolume->setVoxel(x, y, z, src->mVolume->getVoxel(x, y, z));
+                }
+            }
+        }
+    }
+
+    // Copy material table
+    mMaterialTable = src->mMaterialTable;
 
     MarkDirty();
 }
@@ -221,6 +287,10 @@ void Voxel3D::SaveStream(Stream& stream, Platform platform)
         {
             stream.WriteBytes(compressed.data(), static_cast<uint32_t>(compressed.size()));
         }
+
+        LogDebug("Voxel3D::SaveStream - dims(%d,%d,%d) compressedSize=%u",
+            mDimensions.x, mDimensions.y, mDimensions.z,
+            static_cast<uint32_t>(compressed.size()));
     }
     else
     {
@@ -249,9 +319,9 @@ void Voxel3D::SaveStream(Stream& stream, Platform platform)
         if (mMaterialTable[i].mUseTexture)
         {
             stream.WriteUint8(static_cast<uint8_t>(i));
-            stream.WriteUint16(mMaterialTable[i].mAtlasTile[0]);
-            stream.WriteUint16(mMaterialTable[i].mAtlasTile[1]);
-            stream.WriteUint16(mMaterialTable[i].mAtlasTile[2]);
+            stream.WriteInt32(mMaterialTable[i].mAtlasTile[0]);
+            stream.WriteInt32(mMaterialTable[i].mAtlasTile[1]);
+            stream.WriteInt32(mMaterialTable[i].mAtlasTile[2]);
             stream.WriteVec4(mMaterialTable[i].mTintColor);
         }
     }
@@ -274,6 +344,9 @@ void Voxel3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
         stream.ReadBytes(mCompressedData.data(), compressedSize);
     }
 
+    LogDebug("Voxel3D::LoadStream - dims(%d,%d,%d) compressedSize=%u version=%u",
+        mDimensions.x, mDimensions.y, mDimensions.z, compressedSize, version);
+
     // Atlas texturing configuration (added in ASSET_VERSION_VOXEL3D_ATLAS)
     if (version >= ASSET_VERSION_VOXEL3D_ATLAS)
     {
@@ -288,9 +361,22 @@ void Voxel3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
         {
             uint8_t id = stream.ReadUint8();
             VoxelMaterialInfo& info = mMaterialTable[id];
-            info.mAtlasTile[0] = stream.ReadUint16();
-            info.mAtlasTile[1] = stream.ReadUint16();
-            info.mAtlasTile[2] = stream.ReadUint16();
+
+            if (version >= ASSET_VERSION_VOXEL3D_ATLAS_INT32)
+            {
+                // New format: int32_t tile indices
+                info.mAtlasTile[0] = stream.ReadInt32();
+                info.mAtlasTile[1] = stream.ReadInt32();
+                info.mAtlasTile[2] = stream.ReadInt32();
+            }
+            else
+            {
+                // Old format: uint16_t tile indices
+                info.mAtlasTile[0] = static_cast<int32_t>(stream.ReadUint16());
+                info.mAtlasTile[1] = static_cast<int32_t>(stream.ReadUint16());
+                info.mAtlasTile[2] = static_cast<int32_t>(stream.ReadUint16());
+            }
+
             info.mTintColor = stream.ReadVec4();
             info.mUseTexture = true;
         }
@@ -470,7 +556,7 @@ static glm::vec2 ProjectToFacePlane(const glm::vec3& pos, const glm::vec3& norma
 }
 
 // Helper: Convert local UV to atlas UV for a given tile
-static glm::vec2 LocalToAtlasUV(glm::vec2 local, uint16_t tile, uint32_t tilesX, uint32_t tilesY)
+static glm::vec2 LocalToAtlasUV(glm::vec2 local, int32_t tile, uint32_t tilesX, uint32_t tilesY)
 {
     float tileW = 1.0f / static_cast<float>(tilesX);
     float tileH = 1.0f / static_cast<float>(tilesY);
@@ -560,7 +646,7 @@ void Voxel3D::RebuildMeshInternal()
             if (info.mUseTexture)
             {
                 VoxelFace face = GetFaceFromNormal(n);
-                uint16_t tile = info.mAtlasTile[static_cast<int>(face)];
+                int32_t tile = info.mAtlasTile[static_cast<int>(face)];
 
                 // Project positions onto face plane.
                 // PolyVox applies a -0.5 offset to decoded positions, so add it
@@ -765,7 +851,7 @@ void Voxel3D::SetAtlasEnabled(bool enabled)
     }
 }
 
-void Voxel3D::SetMaterialTexture(VoxelType id, uint16_t topTile, uint16_t bottomTile, uint16_t sideTile)
+void Voxel3D::SetMaterialTexture(VoxelType id, int32_t topTile, int32_t bottomTile, int32_t sideTile)
 {
     VoxelMaterialInfo& info = mMaterialTable[id];
     info.mAtlasTile[static_cast<int>(VoxelFace::Top)] = topTile;
@@ -775,7 +861,7 @@ void Voxel3D::SetMaterialTexture(VoxelType id, uint16_t topTile, uint16_t bottom
     MarkDirty();
 }
 
-void Voxel3D::SetMaterialTexture(VoxelType id, uint16_t allFacesTile)
+void Voxel3D::SetMaterialTexture(VoxelType id, int32_t allFacesTile)
 {
     SetMaterialTexture(id, allFacesTile, allFacesTile, allFacesTile);
 }

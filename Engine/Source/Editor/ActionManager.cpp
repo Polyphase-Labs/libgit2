@@ -52,7 +52,9 @@
 #include "Timeline/TimelineActions.h"
 #include "Log.h"
 
+#include "Nodes/3D/Voxel3d.h"
 #include "Nodes/3D/Mesh3d.h"
+#include "VoxelSculpt/VoxelSculptManager.h"
 #include "Nodes/3D/StaticMesh3d.h"
 #include "Nodes/3D/PointLight3d.h"
 #include "Nodes/3D/DirectionalLight3d.h"
@@ -2198,6 +2200,12 @@ void ActionManager::EXE_ResetScene(Node* node)
 void ActionManager::EXE_SetInstanceColors(const std::vector<ActionSetInstanceColorsData>& data)
 {
     ActionSetInstanceColors* action = new ActionSetInstanceColors(data);
+    ActionManager::Get()->ExecuteAction(action);
+}
+
+void ActionManager::EXE_SetVoxels(Voxel3D* voxel, const std::vector<VoxelChange>& changes)
+{
+    ActionSetVoxels* action = new ActionSetVoxels(voxel, changes);
     ActionManager::Get()->ExecuteAction(action);
 }
 
@@ -6420,6 +6428,35 @@ void ActionManager::UpgradeProject()
     }
 
     LogDebug("Project upgrade complete. Upgraded: %d, Failed: %d", upgradedCount, failedCount);
+}
+
+// ---------------------------------------------------------------------------
+// ActionSetVoxels
+// ---------------------------------------------------------------------------
+
+ActionSetVoxels::ActionSetVoxels(Voxel3D* voxel, const std::vector<VoxelChange>& changes)
+    : mVoxel(voxel), mChanges(changes)
+{
+}
+
+void ActionSetVoxels::Execute()
+{
+    if (mVoxel == nullptr) return;
+
+    for (const auto& c : mChanges)
+    {
+        mVoxel->SetVoxel(c.x, c.y, c.z, c.newValue);
+    }
+}
+
+void ActionSetVoxels::Reverse()
+{
+    if (mVoxel == nullptr) return;
+
+    for (const auto& c : mChanges)
+    {
+        mVoxel->SetVoxel(c.x, c.y, c.z, c.oldValue);
+    }
 }
 
 #endif

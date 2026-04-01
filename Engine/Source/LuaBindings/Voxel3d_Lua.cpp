@@ -161,15 +161,15 @@ int Voxel3D_Lua::SetMaterialTexture(lua_State* L)
     if (numArgs >= 5)
     {
         // 4-arg version: (id, top, bottom, side)
-        uint16_t topTile = static_cast<uint16_t>(lua_tointeger(L, 3));
-        uint16_t bottomTile = static_cast<uint16_t>(lua_tointeger(L, 4));
-        uint16_t sideTile = static_cast<uint16_t>(lua_tointeger(L, 5));
+        int32_t topTile = static_cast<int32_t>(lua_tointeger(L, 3));
+        int32_t bottomTile = static_cast<int32_t>(lua_tointeger(L, 4));
+        int32_t sideTile = static_cast<int32_t>(lua_tointeger(L, 5));
         voxel->SetMaterialTexture(static_cast<VoxelType>(materialId), topTile, bottomTile, sideTile);
     }
     else
     {
         // 2-arg version: (id, allFacesTile)
-        uint16_t tile = static_cast<uint16_t>(lua_tointeger(L, 3));
+        int32_t tile = static_cast<int32_t>(lua_tointeger(L, 3));
         voxel->SetMaterialTexture(static_cast<VoxelType>(materialId), tile);
     }
 

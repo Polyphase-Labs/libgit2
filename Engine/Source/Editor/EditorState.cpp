@@ -35,6 +35,7 @@
 #include "Viewport3d.h"
 #include "Viewport2d.h"
 #include "PaintManager.h"
+#include "VoxelSculpt/VoxelSculptManager.h"
 #include "Script.h"
 #include "Addons/AddonCreator.h"
 #include "Input/Input.h"
@@ -66,6 +67,7 @@ void EditorState::Init()
     mViewport3D = new Viewport3D();
     mViewport2D = new Viewport2D();
     mPaintManager = new PaintManager();
+    mVoxelSculptManager = new VoxelSculptManager();
 
     mOverlayText = Node::Construct<Text>();
     mOverlayText->SetName("Overlay Text");
@@ -102,6 +104,9 @@ void EditorState::Shutdown()
 
     delete mPaintManager;
     mPaintManager = nullptr;
+
+    delete mVoxelSculptManager;
+    mVoxelSculptManager = nullptr;
 
     if (mTimelinePreviewInstance != nullptr)
     {
@@ -422,6 +427,11 @@ void EditorState::HandleNodeDestroy(Node* node)
     if (mPaintManager)
     {
         mPaintManager->HandleNodeDestroy(node);
+    }
+
+    if (mVoxelSculptManager)
+    {
+        mVoxelSculptManager->HandleNodeDestroy(node);
     }
 }
 

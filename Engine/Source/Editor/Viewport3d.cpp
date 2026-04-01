@@ -22,6 +22,7 @@
 #include "EditorConstants.h"
 #include "EditorUtils.h"
 #include "PaintManager.h"
+#include "VoxelSculpt/VoxelSculptManager.h"
 #include "Nodes/3D/StaticMesh3d.h"
 #include "Nodes/3D/PointLight3d.h"
 #include "Nodes/3D/DirectionalLight3d.h"
@@ -80,7 +81,14 @@ void Viewport3D::Update(float deltaTime)
 
     if (GetEditorState()->GetPaintMode() != PaintMode::None && controlMode == ControlMode::Default)
     {
-        GetEditorState()->mPaintManager->Update();
+        if (GetEditorState()->GetPaintMode() == PaintMode::Voxel)
+        {
+            GetEditorState()->mVoxelSculptManager->Update();
+        }
+        else
+        {
+            GetEditorState()->mPaintManager->Update();
+        }
     }
 
     INP_GetMousePosition(mPrevMouseX, mPrevMouseY);
