@@ -3,18 +3,9 @@
 #include "Nodes/3D/Mesh3d.h"
 #include "Vertex.h"
 
-// Disable warnings for PolyVox external library
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4267) // conversion from 'size_t' to 'type', possible loss of data
-#endif
-
-#include <PolyVox/RawVolume.h>
-#include <PolyVox/Region.h>
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+// Forward-declare PolyVox types so this header compiles on platforms that
+// don't ship PolyVox headers (GX, C3D). The full includes live in Voxel3d.cpp.
+namespace PolyVox { template<typename VoxelType> class RawVolume; }
 
 // Voxel type: 0 = air (empty), 1-255 = solid material IDs
 using VoxelType = uint8_t;

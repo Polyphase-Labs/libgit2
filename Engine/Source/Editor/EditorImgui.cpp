@@ -4034,6 +4034,7 @@ static void DrawScenePanel()
             AlternatingRowBackground();
             bool nodeClicked = ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen();
             bool nodeMiddleClicked = ImGui::IsItemClicked(ImGuiMouseButton_Middle);
+            ImGui::OpenPopupOnItemClick("##NodeCtx", ImGuiPopupFlags_MouseButtonRight);
             bool expandChildren = trackingNode || (nodeMiddleClicked && IsControlDown());
             bool collapseChildren = !expandChildren && nodeMiddleClicked;
 
@@ -4257,7 +4258,7 @@ static void DrawScenePanel()
                 GetEditorState()->mTrackSelectedNode = false;
             }
 
-            if (ImGui::BeginPopupContextItem())
+            if (ImGui::BeginPopup("##NodeCtx"))
             {
                 bool setTextInputFocus = false;
                 bool closeContextPopup = false;

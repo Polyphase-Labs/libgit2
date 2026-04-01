@@ -13,6 +13,8 @@
 #pragma warning(disable: 4267) // conversion from 'size_t' to 'type', possible loss of data
 #endif
 
+#include <PolyVox/RawVolume.h>
+#include <PolyVox/Region.h>
 #include <PolyVox/CubicSurfaceExtractor.h>
 #include <PolyVox/Mesh.h>
 

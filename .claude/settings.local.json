@@ -34,7 +34,8 @@
       "Bash(find /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine/Engine/Source -name *Thread* -o -name *Async* -o -name *Job*)",
       "Bash(grep:*)",
       "Bash(find /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine/Engine/Source/Graphics/Vulkan -name \"*.h\" -exec basename {})",
-      "Bash(wc -l \"/M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine/Engine/Source/LuaBindings\"/*.cpp)"
+      "Bash(wc -l \"/M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine/Engine/Source/LuaBindings\"/*.cpp)",
+      "Bash(find /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine -path *Graphics/GX* -o -path *Graphics/C3D*)"
     ]
   }
 }

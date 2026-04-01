@@ -212,6 +212,11 @@ struct Voxel3DResource
 #if API_VULKAN
     Buffer* mVertexBuffer = nullptr;
     Buffer* mIndexBuffer = nullptr;
+#elif API_GX
+    void* mVertexData = nullptr;
+    uint32_t mVertexDataSize = 0;
+    void* mDisplayList = nullptr;
+    uint32_t mDisplayListSize = 0;
 #elif API_C3D
     DoubleBuffer mVertexData;
     DoubleBuffer mIndexData;
