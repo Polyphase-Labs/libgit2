@@ -347,6 +347,12 @@ void Voxel3D::RebuildMesh()
 {
     RebuildMeshInternal();
     RecreateCollisionShape();
+
+    // Mark upload dirty so GPU buffers get updated
+    for (int i = 0; i < MAX_FRAMES; ++i)
+    {
+        mUploadDirty[i] = true;
+    }
 }
 
 void Voxel3D::SetDimensions(glm::ivec3 dims)

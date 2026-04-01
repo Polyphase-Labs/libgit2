@@ -36,7 +36,7 @@ BUILD		:=	Intermediate/3DS
 SOURCES		:=	Source \
 				Generated
 DATA		:=	Data
-INCLUDES	:=	../Engine/Include ../Engine/Include/Engine ../External ../External/Bullet
+INCLUDES	:=	../Engine/Include ../Engine/Include/Engine ../External ../External/Bullet ../Engine/External/PolyVox/include
 GRAPHICS	:=	Graphics
 GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	$(CURDIR)/Build/3DS/romfs
