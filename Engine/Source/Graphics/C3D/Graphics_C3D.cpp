@@ -1258,6 +1258,11 @@ void GFX_DrawVoxel3D(Voxel3D* voxel)
         OCT_ASSERT(material != nullptr);
     }
 
+    // Force full material and lighting setup for Voxel3D
+    // This ensures TEV units and light environment are properly configured
+    gC3dContext.mLastBoundMaterial = nullptr;
+    gC3dContext.mLightEnv.mLightingChannels = 0;  // Force lighting reconfiguration
+
     BindMaterial(material, voxel, true, false);
 
     // Upload Uniforms

@@ -1372,24 +1372,26 @@ void BindMaterialDescriptorSet(Material* material)
 
         UniformBlock uniformBlock = WriteUniformBlock(&ubo, sizeof(ubo));
 
-        // Ensure we are using valid textures
+        // Ensure we are using valid textures with valid GPU resources
         Renderer* renderer = Renderer::Get();
+        Image* images[4] = {};
         for (uint32_t i = 0; i < 4; ++i)
         {
-            Texture* texture = textures[i];
-            if (texture == nullptr)
+            Texture* tex = textures[i];
+            if (tex == nullptr || tex->GetResource()->mImage == nullptr)
             {
-                texture = renderer->mWhiteTexture.Get<Texture>();
-                OCT_ASSERT(texture != nullptr);
+                tex = renderer->mWhiteTexture.Get<Texture>();
             }
+            OCT_ASSERT(tex != nullptr && tex->GetResource()->mImage != nullptr);
+            images[i] = tex->GetResource()->mImage;
         }
 
         DescriptorSet::Begin("Lite Material DS")
             .WriteUniformBuffer(MD_UNIFORM_BUFFER, uniformBlock)
-            .WriteImage(MD_TEXTURE_START + 0, textures[0]->GetResource()->mImage)
-            .WriteImage(MD_TEXTURE_START + 1, textures[1]->GetResource()->mImage)
-            .WriteImage(MD_TEXTURE_START + 2, textures[2]->GetResource()->mImage)
-            .WriteImage(MD_TEXTURE_START + 3, textures[3]->GetResource()->mImage)
+            .WriteImage(MD_TEXTURE_START + 0, images[0])
+            .WriteImage(MD_TEXTURE_START + 1, images[1])
+            .WriteImage(MD_TEXTURE_START + 2, images[2])
+            .WriteImage(MD_TEXTURE_START + 3, images[3])
             .Build()
             .Bind(cb, 2);
     }
@@ -1414,11 +1416,11 @@ void BindMaterialDescriptorSet(Material* material)
             if (param.mType == ShaderParameterType::Texture)
             {
                 Texture* texture = param.mTextureValue.Get<Texture>();
-                if (texture == nullptr)
+                if (texture == nullptr || texture->GetResource()->mImage == nullptr)
                 {
                     texture = renderer->mWhiteTexture.Get<Texture>();
-                    OCT_ASSERT(texture != nullptr);
                 }
+                OCT_ASSERT(texture != nullptr && texture->GetResource()->mImage != nullptr);
 
                 matSet.WriteImage(param.mOffset, texture->GetResource()->mImage);
             }

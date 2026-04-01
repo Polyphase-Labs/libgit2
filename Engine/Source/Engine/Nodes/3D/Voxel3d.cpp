@@ -103,8 +103,13 @@ void Voxel3D::Create()
         RebuildMeshInternal();
     }
 
-    // Create default material
-    mDefaultMaterial = MaterialLite::New(LoadAsset<MaterialLite>("M_DefaultLit"));
+    // Create default material with Lit shading for proper lighting
+    mDefaultMaterial = MaterialLite::New(LoadAsset<MaterialLite>("M_Default"));
+    if (MaterialLite* mat = mDefaultMaterial.Get<MaterialLite>())
+    {
+        mat->SetShadingModel(ShadingModel::Lit);
+        mat->SetVertexColorMode(VertexColorMode::Modulate);
+    }
 
     MarkDirty();
 }
@@ -398,29 +403,54 @@ void Voxel3D::RebuildMeshInternal()
     // Offset to center mesh around origin
     glm::vec3 centerOffset = glm::vec3(mDimensions) * 0.5f;
 
-    mVertices.clear();
-    mVertices.reserve(decodedMesh.getNoOfVertices());
-
-    for (uint32_t i = 0; i < decodedMesh.getNoOfVertices(); ++i)
+    // Build a temporary vertex array from the decoded mesh
+    size_t numDecodedVerts = decodedMesh.getNoOfVertices();
+    std::vector<VertexColor> decoded;
+    decoded.reserve(numDecodedVerts);
+    for (uint32_t i = 0; i < numDecodedVerts; ++i)
     {
         const auto& pv = decodedMesh.getVertex(i);
         VertexColor v;
         v.mPosition = glm::vec3(pv.position.getX(), pv.position.getY(), pv.position.getZ()) - centerOffset;
-        v.mNormal = glm::vec3(pv.normal.getX(), pv.normal.getY(), pv.normal.getZ());
+        v.mNormal = glm::vec3(0.0f);
         v.mTexcoord0 = glm::vec2(0.0f);
         v.mTexcoord1 = glm::vec2(0.0f);
-        // Color from material ID
-        glm::vec4 color = MaterialIdToColor(pv.data);
-        v.mColor = ColorFloat4ToUint32(color);
-        mVertices.push_back(v);
+        v.mColor = ColorFloat4ToUint32(MaterialIdToColor(pv.data));
+        decoded.push_back(v);
     }
 
-    // Copy indices
+    // PolyVox's cubic extractor shares vertices across face boundaries.
+    // Assigning face normals in-place causes the last triangle touching a shared
+    // vertex to overwrite the normal, producing incorrect shading on adjacent faces.
+    // Fix: unpack every triangle to 3 unique vertices (flat shading) so no vertex
+    // is shared across faces. This gives each face a clean, correct normal.
+    size_t numIndices = decodedMesh.getNoOfIndices();
+    mVertices.clear();
+    mVertices.reserve(numIndices); // 3 unique verts per triangle corner
     mIndices.clear();
-    mIndices.reserve(decodedMesh.getNoOfIndices());
-    for (uint32_t i = 0; i < decodedMesh.getNoOfIndices(); ++i)
+    mIndices.reserve(numIndices);
+
+    for (size_t i = 0; i + 2 < numIndices; i += 3)
     {
-        mIndices.push_back(static_cast<IndexType>(decodedMesh.getIndex(i)));
+        VertexColor v0 = decoded[decodedMesh.getIndex(static_cast<uint32_t>(i))];
+        VertexColor v1 = decoded[decodedMesh.getIndex(static_cast<uint32_t>(i + 1))];
+        VertexColor v2 = decoded[decodedMesh.getIndex(static_cast<uint32_t>(i + 2))];
+
+        glm::vec3 edge1 = v1.mPosition - v0.mPosition;
+        glm::vec3 edge2 = v2.mPosition - v0.mPosition;
+        glm::vec3 cross = glm::cross(edge1, edge2);
+        float len = glm::length(cross);
+        glm::vec3 n = (len > 1e-6f) ? (cross / len) : glm::vec3(0.0f, 1.0f, 0.0f);
+
+        v0.mNormal = v1.mNormal = v2.mNormal = n;
+
+        IndexType base = static_cast<IndexType>(mVertices.size());
+        mVertices.push_back(v0);
+        mVertices.push_back(v1);
+        mVertices.push_back(v2);
+        mIndices.push_back(base);
+        mIndices.push_back(base + 1);
+        mIndices.push_back(base + 2);
     }
 
     mNumVertices = static_cast<uint32_t>(mVertices.size());
