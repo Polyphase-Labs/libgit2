@@ -22,6 +22,7 @@
 #include "Nodes/3D/ShadowMesh3d.h"
 #include "Nodes/3D/TextMesh3d.h"
 #include "Nodes/3D/Particle3d.h"
+#include "Nodes/3D/Voxel3d.h"
 
 #include "Assertion.h"
 #include <stdlib.h>
@@ -1179,22 +1180,123 @@ void GFX_DrawTextMeshComp(TextMesh3D* textMeshComp)
 // Voxel3D
 void GFX_CreateVoxel3DResource(Voxel3D* voxel)
 {
-    // TODO: Implement C3D Voxel3D support
+    // DoubleBuffers are allocated on first update
 }
 
 void GFX_DestroyVoxel3DResource(Voxel3D* voxel)
 {
-    // TODO: Implement C3D Voxel3D support
+    Voxel3DResource* resource = voxel->GetResource();
+    resource->mVertexData.Free();
+    resource->mIndexData.Free();
 }
 
 void GFX_UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
 {
-    // TODO: Implement C3D Voxel3D support
+    if (vertices.size() == 0 || indices.size() == 0)
+        return;
+
+    Voxel3DResource* resource = voxel->GetResource();
+
+    uint32_t numVertices = uint32_t(vertices.size());
+    uint32_t numIndices = uint32_t(indices.size());
+
+    size_t vertexBufferSize = numVertices * sizeof(VertexColor);
+    size_t indexBufferSize = numIndices * sizeof(IndexType);
+
+    // Reallocate if buffers are too small
+    if (resource->mVertexData.GetSize() < vertexBufferSize)
+    {
+        resource->mVertexData.Free();
+        resource->mVertexData.Alloc(vertexBufferSize);
+    }
+
+    if (resource->mIndexData.GetSize() < indexBufferSize)
+    {
+        resource->mIndexData.Free();
+        resource->mIndexData.Alloc(indexBufferSize);
+    }
+
+    // Update buffer data
+    resource->mVertexData.Update(vertices.data(), vertexBufferSize);
+    resource->mIndexData.Update(indices.data(), indexBufferSize);
+
+    // Flush the data cache so the GPU gets the updated data
+    GSPGPU_FlushDataCache(resource->mVertexData.Get(), vertexBufferSize);
+    GSPGPU_FlushDataCache(resource->mIndexData.Get(), indexBufferSize);
 }
 
 void GFX_DrawVoxel3D(Voxel3D* voxel)
 {
-    // TODO: Implement C3D Voxel3D support
+    uint32_t numIndices = voxel->GetNumIndices();
+    if (numIndices == 0)
+        return;
+
+    Voxel3DResource* resource = voxel->GetResource();
+
+    // Bind shader program
+    BindVertexShader(ShaderId::StaticMesh);
+
+    // Setup vertex attributes for VertexColor format
+    C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
+    AttrInfo_Init(attrInfo);
+    AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3);         // v0=position
+    AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2);         // v1=texcoord0
+    AttrInfo_AddLoader(attrInfo, 2, GPU_FLOAT, 2);         // v2=texcoord1
+    AttrInfo_AddLoader(attrInfo, 3, GPU_FLOAT, 3);         // v3=normal
+    AttrInfo_AddLoader(attrInfo, 4, GPU_UNSIGNED_BYTE, 4); // v4=color
+
+    // Setup vertex buffer state
+    C3D_BufInfo* bufInfo = C3D_GetBufInfo();
+    BufInfo_Init(bufInfo);
+    BufInfo_Add(bufInfo, resource->mVertexData.Get(), sizeof(VertexColor), 5, 0x43210);
+
+    // Bind material
+    MaterialLite* material = Material::AsLite(voxel->GetMaterial());
+    if (material == nullptr)
+    {
+        material = Renderer::Get()->GetDefaultMaterial();
+        OCT_ASSERT(material != nullptr);
+    }
+
+    BindMaterial(material, voxel, true, false);
+
+    // Upload Uniforms
+    C3D_Mtx worldMtx;
+    C3D_Mtx viewMtx;
+    C3D_Mtx worldViewMtx;
+
+    glm::mat4 modelSrc = voxel->GetRenderTransform();
+    glm::mat4 viewSrc = gC3dContext.mWorld->GetActiveCamera()->GetViewMatrix();
+
+    CopyMatrixGlmToC3d(&worldMtx, modelSrc);
+    CopyMatrixGlmToC3d(&viewMtx, viewSrc);
+    Mtx_Multiply(&worldViewMtx, &viewMtx, &worldMtx);
+
+    C3D_Mtx projMtx;
+    glm::mat4 projSrc = gC3dContext.mWorld->GetActiveCamera()->GetProjectionMatrix();
+    memcpy(&projMtx, &projSrc, sizeof(float) * 4 * 4);
+
+    C3D_Mtx normalMtx;
+    memcpy(&normalMtx, &worldViewMtx, sizeof(float) * 4 * 4);
+    Mtx_Inverse(&normalMtx);
+    Mtx_Transpose(&normalMtx);
+
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, gC3dContext.mStaticMeshLocs.mWorldViewMtx, &worldViewMtx);
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, gC3dContext.mStaticMeshLocs.mNormalMtx, &normalMtx);
+    C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, gC3dContext.mStaticMeshLocs.mProjMtx, &projMtx);
+
+    UploadUvOffsetScale(gC3dContext.mStaticMeshLocs.mUvOffsetScale0, material, 0);
+    UploadUvOffsetScale(gC3dContext.mStaticMeshLocs.mUvOffsetScale1, material, 1);
+
+    C3D_FVUnifSet(GPU_VERTEX_SHADER, gC3dContext.mStaticMeshLocs.mUvMaps, material->GetUvMap(0), material->GetUvMap(1), material->GetUvMap(2), 0);
+    C3D_FVUnifSet(GPU_VERTEX_SHADER, gC3dContext.mStaticMeshLocs.mColorMult, 1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Draw with indexed rendering
+    C3D_DrawElements(
+        GPU_TRIANGLES,
+        numIndices,
+        C3D_UNSIGNED_SHORT,
+        resource->mIndexData.Get());
 }
 
 // ParticleComp
