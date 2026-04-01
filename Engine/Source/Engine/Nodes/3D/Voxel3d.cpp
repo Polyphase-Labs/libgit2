@@ -347,6 +347,20 @@ void Voxel3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
     LogDebug("Voxel3D::LoadStream - dims(%d,%d,%d) compressedSize=%u version=%u",
         mDimensions.x, mDimensions.y, mDimensions.z, compressedSize, version);
 
+    // When instantiated from a scene, Create() is called before LoadStream(), so the
+    // volume already exists but was filled with default data. Recreate it with the
+    // correct dimensions and decompress the loaded voxel data now.
+    if (mVolume != nullptr)
+    {
+        delete mVolume;
+        PolyVox::Region region(
+            PolyVox::Vector3DInt32(0, 0, 0),
+            PolyVox::Vector3DInt32(mDimensions.x - 1, mDimensions.y - 1, mDimensions.z - 1)
+        );
+        mVolume = new PolyVox::RawVolume<VoxelType>(region);
+        DecompressVoxelData();
+    }
+
     // Atlas texturing configuration (added in ASSET_VERSION_VOXEL3D_ATLAS)
     if (version >= ASSET_VERSION_VOXEL3D_ATLAS)
     {
