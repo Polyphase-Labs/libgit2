@@ -33,6 +33,15 @@ struct Voxel3D_Lua
     // Dimensions
     static int GetDimensions(lua_State* L);
 
+    // Atlas texturing
+    static int SetAtlasTexture(lua_State* L);
+    static int GetAtlasTexture(lua_State* L);
+    static int SetAtlasEnabled(lua_State* L);
+    static int IsAtlasEnabled(lua_State* L);
+    static int SetMaterialTexture(lua_State* L);
+    static int SetMaterialTint(lua_State* L);
+    static int DisableMaterialTexture(lua_State* L);
+
     static void Bind();
 };
 

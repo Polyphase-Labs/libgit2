@@ -1,6 +1,8 @@
 #include "LuaBindings/Voxel3d_Lua.h"
 #include "LuaBindings/Mesh3d_Lua.h"
 #include "LuaBindings/Vector_Lua.h"
+#include "LuaBindings/Asset_Lua.h"
+#include "LuaBindings/Texture_Lua.h"
 #include "LuaBindings/LuaUtils.h"
 
 #if LUA_ENABLED
@@ -95,6 +97,106 @@ int Voxel3D_Lua::GetDimensions(lua_State* L)
     return 1;
 }
 
+int Voxel3D_Lua::SetAtlasTexture(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    Texture* texture = nullptr;
+    if (!lua_isnil(L, 2))
+    {
+        texture = CHECK_TEXTURE(L, 2);
+    }
+
+    uint32_t tilesX = 16;
+    uint32_t tilesY = 16;
+    if (lua_gettop(L) >= 3)
+    {
+        tilesX = static_cast<uint32_t>(lua_tointeger(L, 3));
+    }
+    if (lua_gettop(L) >= 4)
+    {
+        tilesY = static_cast<uint32_t>(lua_tointeger(L, 4));
+    }
+
+    voxel->SetAtlasTexture(texture, tilesX, tilesY);
+
+    return 0;
+}
+
+int Voxel3D_Lua::GetAtlasTexture(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+
+    Texture* texture = voxel->GetAtlasTexture();
+
+    Asset_Lua::Create(L, texture);
+    return 1;
+}
+
+int Voxel3D_Lua::SetAtlasEnabled(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    bool enabled = lua_toboolean(L, 2) != 0;
+
+    voxel->SetAtlasEnabled(enabled);
+
+    return 0;
+}
+
+int Voxel3D_Lua::IsAtlasEnabled(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+
+    bool enabled = voxel->IsAtlasEnabled();
+
+    lua_pushboolean(L, enabled);
+    return 1;
+}
+
+int Voxel3D_Lua::SetMaterialTexture(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    int32_t materialId = static_cast<int32_t>(lua_tointeger(L, 2));
+
+    int numArgs = lua_gettop(L);
+    if (numArgs >= 5)
+    {
+        // 4-arg version: (id, top, bottom, side)
+        uint16_t topTile = static_cast<uint16_t>(lua_tointeger(L, 3));
+        uint16_t bottomTile = static_cast<uint16_t>(lua_tointeger(L, 4));
+        uint16_t sideTile = static_cast<uint16_t>(lua_tointeger(L, 5));
+        voxel->SetMaterialTexture(static_cast<VoxelType>(materialId), topTile, bottomTile, sideTile);
+    }
+    else
+    {
+        // 2-arg version: (id, allFacesTile)
+        uint16_t tile = static_cast<uint16_t>(lua_tointeger(L, 3));
+        voxel->SetMaterialTexture(static_cast<VoxelType>(materialId), tile);
+    }
+
+    return 0;
+}
+
+int Voxel3D_Lua::SetMaterialTint(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    int32_t materialId = static_cast<int32_t>(lua_tointeger(L, 2));
+    glm::vec4 tint = CHECK_VECTOR(L, 3);
+
+    voxel->SetMaterialTint(static_cast<VoxelType>(materialId), tint);
+
+    return 0;
+}
+
+int Voxel3D_Lua::DisableMaterialTexture(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    int32_t materialId = static_cast<int32_t>(lua_tointeger(L, 2));
+
+    voxel->DisableMaterialTexture(static_cast<VoxelType>(materialId));
+
+    return 0;
+}
+
 void Voxel3D_Lua::Bind()
 {
     lua_State* L = GetLua();
@@ -113,6 +215,15 @@ void Voxel3D_Lua::Bind()
     REGISTER_TABLE_FUNC(L, mtIndex, RebuildMesh);
     REGISTER_TABLE_FUNC(L, mtIndex, IsDirty);
     REGISTER_TABLE_FUNC(L, mtIndex, GetDimensions);
+
+    // Atlas texturing
+    REGISTER_TABLE_FUNC(L, mtIndex, SetAtlasTexture);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetAtlasTexture);
+    REGISTER_TABLE_FUNC(L, mtIndex, SetAtlasEnabled);
+    REGISTER_TABLE_FUNC(L, mtIndex, IsAtlasEnabled);
+    REGISTER_TABLE_FUNC(L, mtIndex, SetMaterialTexture);
+    REGISTER_TABLE_FUNC(L, mtIndex, SetMaterialTint);
+    REGISTER_TABLE_FUNC(L, mtIndex, DisableMaterialTexture);
 
     lua_pop(L, 1);
     OCT_ASSERT(lua_gettop(L) == 0);

@@ -2,6 +2,7 @@
 
 #include "Nodes/3D/Mesh3d.h"
 #include "Vertex.h"
+#include <array>
 
 // Forward-declare PolyVox types so this header compiles on platforms that
 // don't ship PolyVox headers (GX, C3D). The full includes live in Voxel3d.cpp.
@@ -9,6 +10,23 @@ namespace PolyVox { template<typename VoxelType> class RawVolume; }
 
 // Voxel type: 0 = air (empty), 1-255 = solid material IDs
 using VoxelType = uint8_t;
+
+// Face direction for per-face textures
+enum class VoxelFace : uint8_t
+{
+    Top = 0,    // +Y
+    Bottom,     // -Y
+    Side,       // +X, -X, +Z, -Z
+    Count
+};
+
+// Per-material texture configuration for atlas-based texturing
+struct VoxelMaterialInfo
+{
+    uint16_t mAtlasTile[3] = {0, 0, 0};  // [Top, Bottom, Side] tile indices
+    glm::vec4 mTintColor = glm::vec4(1.0f);  // Optional color multiplier
+    bool mUseTexture = false;  // false = use vertex color (backward compat)
+};
 
 class POLYPHASE_API Voxel3D : public Mesh3D
 {
@@ -52,6 +70,18 @@ public:
     // Dimensions
     glm::ivec3 GetDimensions() const { return mDimensions; }
     void SetDimensions(glm::ivec3 dims);
+
+    // Atlas texturing API
+    void SetAtlasTexture(Texture* atlas, uint32_t tilesX = 16, uint32_t tilesY = 16);
+    Texture* GetAtlasTexture() const;
+    void SetAtlasEnabled(bool enabled);
+    bool IsAtlasEnabled() const { return mEnableAtlasTexturing; }
+
+    void SetMaterialTexture(VoxelType id, uint16_t topTile, uint16_t bottomTile, uint16_t sideTile);
+    void SetMaterialTexture(VoxelType id, uint16_t allFacesTile);
+    void SetMaterialTint(VoxelType id, const glm::vec4& tint);
+    void DisableMaterialTexture(VoxelType id);
+    const VoxelMaterialInfo& GetMaterialInfo(VoxelType id) const { return mMaterialTable[id]; }
 
     virtual Bounds GetLocalBounds() const override;
 
@@ -97,4 +127,11 @@ protected:
 
     // Default material
     MaterialRef mDefaultMaterial;
+
+    // Atlas texturing configuration
+    TextureRef mAtlasTexture;
+    uint32_t mAtlasTilesX = 16;
+    uint32_t mAtlasTilesY = 16;
+    bool mEnableAtlasTexturing = false;
+    std::array<VoxelMaterialInfo, 256> mMaterialTable;
 };

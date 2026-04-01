@@ -1,9 +1,11 @@
 #include "Nodes/3D/Voxel3d.h"
 #include "Renderer.h"
 #include "AssetManager.h"
+#include "Asset.h"
 #include "Log.h"
 
 #include "Assets/MaterialLite.h"
+#include "Assets/Texture.h"
 
 #include "Graphics/Graphics.h"
 
@@ -61,11 +63,20 @@ void Voxel3D::GatherProperties(std::vector<Property>& outProps)
 {
     Mesh3D::GatherProperties(outProps);
 
-    SCOPED_CATEGORY("Voxel");
+    {
+        SCOPED_CATEGORY("Voxel");
+        outProps.push_back(Property(DatumType::Integer, "Dimension X", this, &mDimensions.x, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Dimension Y", this, &mDimensions.y, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Dimension Z", this, &mDimensions.z, 1, HandlePropChange));
+    }
 
-    outProps.push_back(Property(DatumType::Integer, "Dimension X", this, &mDimensions.x, 1, HandlePropChange));
-    outProps.push_back(Property(DatumType::Integer, "Dimension Y", this, &mDimensions.y, 1, HandlePropChange));
-    outProps.push_back(Property(DatumType::Integer, "Dimension Z", this, &mDimensions.z, 1, HandlePropChange));
+    {
+        SCOPED_CATEGORY("Atlas Texturing");
+        outProps.push_back(Property(DatumType::Bool, "Enable Atlas", this, &mEnableAtlasTexturing, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Asset, "Atlas Texture", this, &mAtlasTexture, 1, HandlePropChange, int32_t(Texture::GetStaticType())));
+        outProps.push_back(Property(DatumType::Integer, "Tiles X", this, &mAtlasTilesX, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Tiles Y", this, &mAtlasTilesY, 1, HandlePropChange));
+    }
 }
 
 void Voxel3D::Create()
@@ -215,6 +226,35 @@ void Voxel3D::SaveStream(Stream& stream, Platform platform)
     {
         stream.WriteUint32(0);
     }
+
+    // Atlas texturing configuration
+    stream.WriteBool(mEnableAtlasTexturing);
+    stream.WriteAsset(mAtlasTexture);
+    stream.WriteUint32(mAtlasTilesX);
+    stream.WriteUint32(mAtlasTilesY);
+
+    // Write material table (sparse - only entries with mUseTexture=true)
+    uint32_t numMaterials = 0;
+    for (uint32_t i = 0; i < 256; ++i)
+    {
+        if (mMaterialTable[i].mUseTexture)
+        {
+            ++numMaterials;
+        }
+    }
+    stream.WriteUint32(numMaterials);
+
+    for (uint32_t i = 0; i < 256; ++i)
+    {
+        if (mMaterialTable[i].mUseTexture)
+        {
+            stream.WriteUint8(static_cast<uint8_t>(i));
+            stream.WriteUint16(mMaterialTable[i].mAtlasTile[0]);
+            stream.WriteUint16(mMaterialTable[i].mAtlasTile[1]);
+            stream.WriteUint16(mMaterialTable[i].mAtlasTile[2]);
+            stream.WriteVec4(mMaterialTable[i].mTintColor);
+        }
+    }
 }
 
 void Voxel3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
@@ -232,6 +272,28 @@ void Voxel3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
     {
         mCompressedData.resize(compressedSize);
         stream.ReadBytes(mCompressedData.data(), compressedSize);
+    }
+
+    // Atlas texturing configuration (added in ASSET_VERSION_VOXEL3D_ATLAS)
+    if (version >= ASSET_VERSION_VOXEL3D_ATLAS)
+    {
+        mEnableAtlasTexturing = stream.ReadBool();
+        stream.ReadAsset(mAtlasTexture);
+        mAtlasTilesX = stream.ReadUint32();
+        mAtlasTilesY = stream.ReadUint32();
+
+        // Read material table
+        uint32_t numMaterials = stream.ReadUint32();
+        for (uint32_t m = 0; m < numMaterials; ++m)
+        {
+            uint8_t id = stream.ReadUint8();
+            VoxelMaterialInfo& info = mMaterialTable[id];
+            info.mAtlasTile[0] = stream.ReadUint16();
+            info.mAtlasTile[1] = stream.ReadUint16();
+            info.mAtlasTile[2] = stream.ReadUint16();
+            info.mTintColor = stream.ReadVec4();
+            info.mUseTexture = true;
+        }
     }
 
     MarkDirty();
@@ -388,6 +450,38 @@ Bounds Voxel3D::GetLocalBounds() const
     return mBounds;
 }
 
+// Helper: Determine face type from normal
+static VoxelFace GetFaceFromNormal(const glm::vec3& n)
+{
+    if (n.y > 0.5f) return VoxelFace::Top;
+    if (n.y < -0.5f) return VoxelFace::Bottom;
+    return VoxelFace::Side;
+}
+
+// Helper: Project world position onto face plane (returns 2D coordinates)
+static glm::vec2 ProjectToFacePlane(const glm::vec3& pos, const glm::vec3& normal)
+{
+    if (glm::abs(normal.x) > 0.5f)
+        return glm::vec2(pos.z, pos.y);  // X-face: use Z, Y
+    else if (glm::abs(normal.y) > 0.5f)
+        return glm::vec2(pos.x, pos.z);  // Y-face: use X, Z
+    else
+        return glm::vec2(pos.x, pos.y);  // Z-face: use X, Y
+}
+
+// Helper: Convert local UV to atlas UV for a given tile
+static glm::vec2 LocalToAtlasUV(glm::vec2 local, uint16_t tile, uint32_t tilesX, uint32_t tilesY)
+{
+    float tileW = 1.0f / static_cast<float>(tilesX);
+    float tileH = 1.0f / static_cast<float>(tilesY);
+    uint32_t tx = tile % tilesX;
+    uint32_t ty = tile / tilesX;
+    return glm::vec2(
+        static_cast<float>(tx) * tileW + local.x * tileW,
+        static_cast<float>(ty) * tileH + local.y * tileH
+    );
+}
+
 void Voxel3D::RebuildMeshInternal()
 {
     if (mVolume == nullptr)
@@ -396,9 +490,18 @@ void Voxel3D::RebuildMeshInternal()
         return;
     }
 
-    // Extract cubic mesh from volume
-    auto region = mVolume->getEnclosingRegion();
-    auto mesh = PolyVox::extractCubicMesh(mVolume, region);
+    // Extract cubic mesh from volume.
+    // PolyVox only checks negative neighbors, so faces at the upper boundary
+    // (e.g., between voxel at x=31 and air at x=32) are missed unless we
+    // expand the extraction region by 1 on the upper side.
+    auto enclosing = mVolume->getEnclosingRegion();
+    PolyVox::Region region(
+        enclosing.getLowerCorner(),
+        enclosing.getUpperCorner() + PolyVox::Vector3DInt32(1, 1, 1)
+    );
+    // Disable quad merging so each voxel face is a separate 1x1 quad.
+    // This is required for correct per-voxel atlas UV mapping.
+    auto mesh = PolyVox::extractCubicMesh(mVolume, region, PolyVox::DefaultIsQuadNeeded<VoxelType>(), false);
     auto decodedMesh = PolyVox::decodeMesh(mesh);
 
     // Convert to engine vertex format
@@ -416,7 +519,8 @@ void Voxel3D::RebuildMeshInternal()
         v.mPosition = glm::vec3(pv.position.getX(), pv.position.getY(), pv.position.getZ()) - centerOffset;
         v.mNormal = glm::vec3(0.0f);
         v.mTexcoord0 = glm::vec2(0.0f);
-        v.mTexcoord1 = glm::vec2(0.0f);
+        // Store material ID in texcoord1.x for atlas UV lookup later
+        v.mTexcoord1 = glm::vec2(static_cast<float>(pv.data), 0.0f);
         v.mColor = ColorFloat4ToUint32(MaterialIdToColor(pv.data));
         decoded.push_back(v);
     }
@@ -445,6 +549,43 @@ void Voxel3D::RebuildMeshInternal()
         glm::vec3 n = (len > 1e-6f) ? (cross / len) : glm::vec3(0.0f, 1.0f, 0.0f);
 
         v0.mNormal = v1.mNormal = v2.mNormal = n;
+
+        // Generate atlas UVs if enabled
+        if (mEnableAtlasTexturing && mAtlasTexture.Get() != nullptr)
+        {
+            // All vertices in a face share the same material ID (stored in texcoord1.x)
+            VoxelType matId = static_cast<VoxelType>(v0.mTexcoord1.x);
+            const VoxelMaterialInfo& info = mMaterialTable[matId];
+
+            if (info.mUseTexture)
+            {
+                VoxelFace face = GetFaceFromNormal(n);
+                uint16_t tile = info.mAtlasTile[static_cast<int>(face)];
+
+                // Project positions onto face plane (un-centered coordinates)
+                glm::vec2 p0 = ProjectToFacePlane(v0.mPosition + centerOffset, n);
+                glm::vec2 p1 = ProjectToFacePlane(v1.mPosition + centerOffset, n);
+                glm::vec2 p2 = ProjectToFacePlane(v2.mPosition + centerOffset, n);
+
+                // Compute UV relative to triangle minimum.
+                // glm::fract fails for integers (fract(5.0)=0), so instead
+                // subtract the floor of the min to get UVs in [0,1] range.
+                glm::vec2 minP = glm::min(glm::min(p0, p1), p2);
+                glm::vec2 origin = glm::floor(minP);
+                glm::vec2 uv0 = p0 - origin;
+                glm::vec2 uv1 = p1 - origin;
+                glm::vec2 uv2 = p2 - origin;
+
+                // Convert to atlas coordinates
+                v0.mTexcoord0 = LocalToAtlasUV(uv0, tile, mAtlasTilesX, mAtlasTilesY);
+                v1.mTexcoord0 = LocalToAtlasUV(uv1, tile, mAtlasTilesX, mAtlasTilesY);
+                v2.mTexcoord0 = LocalToAtlasUV(uv2, tile, mAtlasTilesX, mAtlasTilesY);
+
+                // Apply tint color
+                uint32_t tintColor = ColorFloat4ToUint32(info.mTintColor);
+                v0.mColor = v1.mColor = v2.mColor = tintColor;
+            }
+        }
 
         IndexType base = static_cast<IndexType>(mVertices.size());
         mVertices.push_back(v0);
@@ -583,4 +724,67 @@ glm::vec4 Voxel3D::MaterialIdToColor(VoxelType materialId) const
             return glm::vec4(rgb + m, 1.0f);
         }
     }
+}
+
+// Atlas texturing API
+
+void Voxel3D::SetAtlasTexture(Texture* atlas, uint32_t tilesX, uint32_t tilesY)
+{
+    mAtlasTexture = atlas;
+    mAtlasTilesX = tilesX;
+    mAtlasTilesY = tilesY;
+
+    // Only set texture on material when we have a valid atlas.
+    // Setting nullptr would make the shader sample a black default texture,
+    // which with Modulate vertex color mode produces all-black output.
+    if (atlas != nullptr)
+    {
+        if (MaterialLite* mat = mDefaultMaterial.Get<MaterialLite>())
+        {
+            mat->SetTexture(0, atlas);
+        }
+    }
+
+    MarkDirty();
+}
+
+Texture* Voxel3D::GetAtlasTexture() const
+{
+    return mAtlasTexture.Get<Texture>();
+}
+
+void Voxel3D::SetAtlasEnabled(bool enabled)
+{
+    if (mEnableAtlasTexturing != enabled)
+    {
+        mEnableAtlasTexturing = enabled;
+        MarkDirty();
+    }
+}
+
+void Voxel3D::SetMaterialTexture(VoxelType id, uint16_t topTile, uint16_t bottomTile, uint16_t sideTile)
+{
+    VoxelMaterialInfo& info = mMaterialTable[id];
+    info.mAtlasTile[static_cast<int>(VoxelFace::Top)] = topTile;
+    info.mAtlasTile[static_cast<int>(VoxelFace::Bottom)] = bottomTile;
+    info.mAtlasTile[static_cast<int>(VoxelFace::Side)] = sideTile;
+    info.mUseTexture = true;
+    MarkDirty();
+}
+
+void Voxel3D::SetMaterialTexture(VoxelType id, uint16_t allFacesTile)
+{
+    SetMaterialTexture(id, allFacesTile, allFacesTile, allFacesTile);
+}
+
+void Voxel3D::SetMaterialTint(VoxelType id, const glm::vec4& tint)
+{
+    mMaterialTable[id].mTintColor = tint;
+    MarkDirty();
+}
+
+void Voxel3D::DisableMaterialTexture(VoxelType id)
+{
+    mMaterialTable[id].mUseTexture = false;
+    MarkDirty();
 }
