@@ -10547,7 +10547,7 @@ void EditorImguiDraw()
         {
             // Voxel sculpt panel
             ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()));
-            ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
+            ImGui::SetNextWindowSize(ImVec2(300.0f, 0.0f));
             ImGui::Begin("Voxel Sculpt", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
 
             VoxelSculptManager* mgr = GetEditorState()->mVoxelSculptManager;
@@ -10556,6 +10556,128 @@ void EditorImguiDraw()
             if (sel != nullptr && sel->GetType() == Voxel3D::GetStaticType())
             {
                 Voxel3D* voxel = static_cast<Voxel3D*>(sel);
+
+                // Get atlas ImTextureID for tile previews
+                static ImTextureID sAtlasTexId = 0;
+                static Texture* sLastAtlasTex = nullptr;
+                Texture* atlasTex = voxel->GetAtlasTexture();
+                if (atlasTex != sLastAtlasTex)
+                {
+                    if (sAtlasTexId != 0)
+                    {
+                        ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)sAtlasTexId);
+                        sAtlasTexId = 0;
+                    }
+                    if (atlasTex != nullptr)
+                    {
+                        TextureResource* res = atlasTex->GetResource();
+                        if (res != nullptr && res->mImage != nullptr)
+                        {
+                            sAtlasTexId = (ImTextureID)ImGui_ImplVulkan_AddTexture(
+                                res->mImage->GetSampler(),
+                                res->mImage->GetView(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                        }
+                    }
+                    sLastAtlasTex = atlasTex;
+                }
+
+                uint32_t atlasW = atlasTex ? atlasTex->GetWidth() : 0;
+                uint32_t atlasH = atlasTex ? atlasTex->GetHeight() : 0;
+                uint32_t tilesX = atlasW > 0 ? atlasW / 8 : 0;  // Use tile size from voxel settings
+                uint32_t tilesY = atlasH > 0 ? atlasH / 8 : 0;
+
+                // Lambda: draw a tile preview button, returns true if clicked
+                auto DrawTileButton = [&](const char* id, int32_t tileIdx, float size) -> bool
+                {
+                    bool clicked = false;
+                    if (sAtlasTexId != 0 && tilesX > 0 && tilesY > 0 && tileIdx >= 0)
+                    {
+                        int col = tileIdx % tilesX;
+                        int row = tileIdx / tilesX;
+                        float u0 = float(col) / float(tilesX);
+                        float v0 = float(row) / float(tilesY);
+                        float u1 = float(col + 1) / float(tilesX);
+                        float v1 = float(row + 1) / float(tilesY);
+
+                        ImGui::PushID(id);
+                        clicked = ImGui::ImageButton(id, sAtlasTexId, ImVec2(size, size), ImVec2(u0, v0), ImVec2(u1, v1));
+                        ImGui::PopID();
+
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("Tile %d (Row %d, Col %d)", tileIdx, row, col);
+                            ImGui::Image(sAtlasTexId, ImVec2(64, 64), ImVec2(u0, v0), ImVec2(u1, v1));
+                            ImGui::EndTooltip();
+                        }
+                    }
+                    else
+                    {
+                        ImGui::PushID(id);
+                        clicked = ImGui::Button("?", ImVec2(size + 8, size + 8));
+                        ImGui::PopID();
+                    }
+                    return clicked;
+                };
+
+                // Lambda: tile picker popup - shows atlas grid, returns selected tile
+                auto DrawTilePickerPopup = [&](const char* popupId, int32_t& tileIdx)
+                {
+                    if (ImGui::BeginPopup(popupId))
+                    {
+                        ImGui::Text("Click a tile:");
+                        if (sAtlasTexId != 0 && tilesX > 0 && tilesY > 0)
+                        {
+                            float tileDrawSize = 24.0f;
+                            float gridW = tilesX * tileDrawSize;
+                            float gridH = tilesY * tileDrawSize;
+                            float maxW = 400.0f;
+                            float maxH = 300.0f;
+
+                            ImGui::BeginChild("TileGrid", ImVec2(glm::min(gridW + 16.0f, maxW), glm::min(gridH + 16.0f, maxH)), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+                            ImVec2 origin = ImGui::GetCursorScreenPos();
+                            ImGui::Image(sAtlasTexId, ImVec2(gridW, gridH));
+
+                            // Grid overlay
+                            ImDrawList* dl = ImGui::GetWindowDrawList();
+                            for (uint32_t gx = 0; gx <= tilesX; ++gx)
+                                dl->AddLine(ImVec2(origin.x + gx * tileDrawSize, origin.y), ImVec2(origin.x + gx * tileDrawSize, origin.y + gridH), IM_COL32(255,255,255,30));
+                            for (uint32_t gy = 0; gy <= tilesY; ++gy)
+                                dl->AddLine(ImVec2(origin.x, origin.y + gy * tileDrawSize), ImVec2(origin.x + gridW, origin.y + gy * tileDrawSize), IM_COL32(255,255,255,30));
+
+                            // Highlight current
+                            if (tileIdx >= 0 && (uint32_t)tileIdx < tilesX * tilesY)
+                            {
+                                int sc = tileIdx % tilesX;
+                                int sr = tileIdx / tilesX;
+                                dl->AddRect(ImVec2(origin.x + sc * tileDrawSize, origin.y + sr * tileDrawSize),
+                                            ImVec2(origin.x + (sc+1) * tileDrawSize, origin.y + (sr+1) * tileDrawSize),
+                                            IM_COL32(0, 255, 0, 255), 0, 0, 2.0f);
+                            }
+
+                            // Click detection
+                            ImVec2 mp = ImGui::GetMousePos();
+                            if (mp.x >= origin.x && mp.x < origin.x + gridW &&
+                                mp.y >= origin.y && mp.y < origin.y + gridH &&
+                                ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                            {
+                                int clickCol = int((mp.x - origin.x) / tileDrawSize);
+                                int clickRow = int((mp.y - origin.y) / tileDrawSize);
+                                tileIdx = clickRow * tilesX + clickCol;
+                                ImGui::CloseCurrentPopup();
+                            }
+
+                            ImGui::EndChild();
+                        }
+                        else
+                        {
+                            ImGui::Text("No atlas texture set.");
+                        }
+                        ImGui::EndPopup();
+                    }
+                };
 
                 // Mode selector
                 int mode = (int)mgr->mOptions.mMode;
@@ -10567,12 +10689,31 @@ void EditorImguiDraw()
                 // Brush radius
                 ImGui::SliderInt("Radius", &mgr->mOptions.mBrushRadius, 1, 8);
 
-                // Material ID (for Add and Paint modes)
+                // Material ID with step buttons (for Add and Paint modes)
                 if (mgr->mOptions.mMode != VoxelSculptMode::Remove)
                 {
                     int matId = (int)mgr->mOptions.mMaterialId;
-                    ImGui::SliderInt("Material", &matId, 1, 255);
+
+                    ImGui::Text("Material:");
+                    ImGui::SameLine();
+                    if (ImGui::Button("<##MatPrev")) { matId--; if (matId < 1) matId = 255; }
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(50.0f);
+                    ImGui::InputInt("##MatId", &matId, 0, 0);
+                    ImGui::SameLine();
+                    if (ImGui::Button(">##MatNext")) { matId++; if (matId > 255) matId = 1; }
+
+                    if (matId < 1) matId = 1;
+                    if (matId > 255) matId = 255;
                     mgr->mOptions.mMaterialId = (uint8_t)matId;
+
+                    // Show current material's tile preview
+                    const VoxelMaterialInfo& curInfo = voxel->GetMaterialInfo(mgr->mOptions.mMaterialId);
+                    if (curInfo.mUseTexture && sAtlasTexId != 0)
+                    {
+                        ImGui::SameLine();
+                        DrawTileButton("##CurMatPreview", curInfo.mAtlasTile[2], 20.0f);
+                    }
                 }
 
                 // Hover info
@@ -10582,7 +10723,7 @@ void EditorImguiDraw()
                     ImGui::Text("Voxel: %d, %d, %d", mgr->mHoverVoxel.x, mgr->mHoverVoxel.y, mgr->mHoverVoxel.z);
                 }
 
-                // Material palette editor
+                // Buttons
                 ImGui::Separator();
                 if (ImGui::Button("Rebuild Mesh"))
                 {
@@ -10594,9 +10735,10 @@ void EditorImguiDraw()
                     voxel->Fill(0);
                     voxel->MarkDirty();
                 }
+
+                // Material palette editor
                 if (ImGui::CollapsingHeader("Material Palette", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    // Show how many materials are configured
                     int numConfigured = 0;
                     for (int i = 1; i < 256; ++i)
                     {
@@ -10605,7 +10747,6 @@ void EditorImguiDraw()
                     }
                     ImGui::Text("Configured: %d materials", numConfigured);
 
-                    // Material slot editors (show slots 1-16)
                     for (int i = 1; i <= 16; ++i)
                     {
                         ImGui::PushID(i);
@@ -10616,11 +10757,15 @@ void EditorImguiDraw()
 
                         bool isOpen = ImGui::TreeNode(label);
 
-                        // Show a quick summary on the same line
-                        if (info.mUseTexture)
+                        // Show tile thumbnails on the same line as the tree node
+                        if (info.mUseTexture && sAtlasTexId != 0)
                         {
                             ImGui::SameLine();
-                            ImGui::TextDisabled("T:%d B:%d S:%d", info.mAtlasTile[0], info.mAtlasTile[1], info.mAtlasTile[2]);
+                            DrawTileButton("##TopPrev", info.mAtlasTile[0], 16.0f);
+                            ImGui::SameLine();
+                            DrawTileButton("##BotPrev", info.mAtlasTile[1], 16.0f);
+                            ImGui::SameLine();
+                            DrawTileButton("##SidePrev", info.mAtlasTile[2], 16.0f);
                         }
 
                         if (isOpen)
@@ -10639,13 +10784,38 @@ void EditorImguiDraw()
                                 int top = info.mAtlasTile[0];
                                 int bottom = info.mAtlasTile[1];
                                 int side = info.mAtlasTile[2];
-                                bool changed = false;
 
-                                changed |= ImGui::InputInt("Top", &top);
-                                changed |= ImGui::InputInt("Bottom", &bottom);
-                                changed |= ImGui::InputInt("Side", &side);
+                                // Top tile
+                                ImGui::Text("Top:");
+                                ImGui::SameLine();
+                                if (DrawTileButton("##TopBtn", top, 28.0f))
+                                    ImGui::OpenPopup("##PickTop");
+                                ImGui::SameLine();
+                                ImGui::SetNextItemWidth(50.0f);
+                                ImGui::InputInt("##TopIdx", &top, 0, 0);
+                                DrawTilePickerPopup("##PickTop", top);
 
-                                if (changed)
+                                // Bottom tile
+                                ImGui::Text("Bot:");
+                                ImGui::SameLine();
+                                if (DrawTileButton("##BotBtn", bottom, 28.0f))
+                                    ImGui::OpenPopup("##PickBot");
+                                ImGui::SameLine();
+                                ImGui::SetNextItemWidth(50.0f);
+                                ImGui::InputInt("##BotIdx", &bottom, 0, 0);
+                                DrawTilePickerPopup("##PickBot", bottom);
+
+                                // Side tile
+                                ImGui::Text("Side:");
+                                ImGui::SameLine();
+                                if (DrawTileButton("##SideBtn", side, 28.0f))
+                                    ImGui::OpenPopup("##PickSide");
+                                ImGui::SameLine();
+                                ImGui::SetNextItemWidth(50.0f);
+                                ImGui::InputInt("##SideIdx", &side, 0, 0);
+                                DrawTilePickerPopup("##PickSide", side);
+
+                                if (top != info.mAtlasTile[0] || bottom != info.mAtlasTile[1] || side != info.mAtlasTile[2])
                                 {
                                     voxel->SetMaterialTexture(static_cast<VoxelType>(i), top, bottom, side);
                                 }
