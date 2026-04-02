@@ -189,6 +189,9 @@
     <Filter Include="Source Files\Editor\Preferences\Updates">
       <UniqueIdentifier>{b9c0d1e2-3f4a-5b6c-7d8e-f9a0b1c2d3e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\Preferences\Input">
+      <UniqueIdentifier>{c0d1e2f3-4a5b-6c7d-8e9f-a0b1c2d3e4f5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Editor\AutoUpdater">
       <UniqueIdentifier>{c0d1e2f3-4a5b-6c7d-8e9f-a0b1c2d3e4f5}</UniqueIdentifier>
     </Filter>
@@ -268,6 +271,9 @@
     </ClCompile>
     <ClCompile Include="Source\Engine\World.cpp">
       <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Input\InputMap.cpp">
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
     <ClCompile Include="Source\Input\InputUtils.cpp">
       <Filter>Source Files\Input</Filter>
@@ -1088,6 +1094,9 @@
     <ClCompile Include="Source\Editor\Preferences\Updates\UpdatesModule.cpp">
       <Filter>Source Files\Editor\Preferences\Updates</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Editor\Preferences\Input\InputMapModule.cpp">
+      <Filter>Source Files\Editor\Preferences\Input</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp">
       <Filter>Source Files\Editor\AutoUpdater</Filter>
     </ClCompile>
@@ -1128,6 +1137,9 @@
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\BuildDependencyWindow.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\InputMapWindow.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\Packaging\PackagingSettings.cpp">
@@ -1689,6 +1701,9 @@
     <ClInclude Include="Source\Input\InputTypes.h">
       <Filter>Source Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Input\InputMap.h">
+      <Filter>Source Files\Input</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Input\InputUtils.h">
       <Filter>Source Files\Input</Filter>
     </ClInclude>
@@ -2241,6 +2256,9 @@
     <ClInclude Include="Source\Editor\Preferences\Updates\UpdatesModule.h">
       <Filter>Source Files\Editor\Preferences\Updates</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Editor\Preferences\Input\InputMapModule.h">
+      <Filter>Source Files\Editor\Preferences\Input</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h">
       <Filter>Source Files\Editor\AutoUpdater</Filter>
     </ClInclude>
@@ -2281,6 +2299,9 @@
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\BuildDependencyWindow.h">
+      <Filter>Source Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\InputMapWindow.h">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\Packaging\PackagingSettings.h">

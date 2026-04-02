@@ -721,6 +721,7 @@
     <ClCompile Include="Source\Editor\ControllerServer\ControllerServerRoutes.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Network\NetworkModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Updates\UpdatesModule.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\Input\InputMapModule.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\HttpClient_Windows.cpp" />
@@ -734,6 +735,7 @@
     <ClCompile Include="Source\Editor\ScriptCreator\ScriptCreatorDialog.cpp" />
     <ClCompile Include="Source\Editor\ScriptEditor\ScriptEditorWindow.cpp" />
     <ClCompile Include="Source\Editor\BuildDependencyWindow.cpp" />
+    <ClCompile Include="Source\Editor\InputMapWindow.cpp" />
     <ClCompile Include="Source\Editor\Packaging\BuildProfile.cpp" />
     <ClCompile Include="Source\Editor\Packaging\PackagingSettings.cpp" />
     <ClCompile Include="Source\Editor\Packaging\PackagingWindow.cpp" />
@@ -938,6 +940,7 @@
     <ClCompile Include="Source\Input\Android\Input_Android.cpp" />
     <ClCompile Include="Source\Input\Dolphin\Input_Dolphin.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
+    <ClCompile Include="Source\Input\InputMap.cpp" />
     <ClCompile Include="Source\Input\InputUtils.cpp" />
     <ClCompile Include="Source\Input\Linux\Input_Linux.cpp" />
     <ClCompile Include="Source\Input\Windows\Input_Windows.cpp" />
@@ -1114,6 +1117,7 @@
     <ClInclude Include="Source\Editor\ControllerServer\ControllerServerTypes.h" />
     <ClInclude Include="Source\Editor\Preferences\Network\NetworkModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Updates\UpdatesModule.h" />
+    <ClInclude Include="Source\Editor\Preferences\Input\InputMapModule.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\HttpClient.h" />
@@ -1127,6 +1131,7 @@
     <ClInclude Include="Source\Editor\ScriptCreator\ScriptCreatorDialog.h" />
     <ClInclude Include="Source\Editor\ScriptEditor\ScriptEditorWindow.h" />
     <ClInclude Include="Source\Editor\BuildDependencyWindow.h" />
+    <ClInclude Include="Source\Editor\InputMapWindow.h" />
     <ClInclude Include="Source\Editor\Packaging\BuildProfile.h" />
     <ClInclude Include="Source\Editor\Packaging\PackagingSettings.h" />
     <ClInclude Include="Source\Editor\Packaging\PackagingWindow.h" />
@@ -1350,6 +1355,7 @@
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\Input\InputConstants.h" />
     <ClInclude Include="Source\Input\InputTypes.h" />
+    <ClInclude Include="Source\Input\InputMap.h" />
     <ClInclude Include="Source\Input\InputUtils.h" />
     <ClInclude Include="Source\LuaBindings\AssetManager_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Asset_Lua.h" />

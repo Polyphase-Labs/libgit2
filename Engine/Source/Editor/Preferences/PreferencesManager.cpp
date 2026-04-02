@@ -20,6 +20,7 @@
 #include "Packaging/DockerModule.h"
 #include "Network/NetworkModule.h"
 #include "Updates/UpdatesModule.h"
+#include "Input/InputMapModule.h"
 
 PreferencesManager* PreferencesManager::sInstance = nullptr;
 
@@ -54,6 +55,9 @@ void PreferencesManager::Create()
 
     // Updates module
     sInstance->RegisterModule(new UpdatesModule());
+
+    // Input mapping module
+    sInstance->RegisterModule(new InputMapModule());
 
     // Load all settings on startup
     sInstance->LoadAllSettings();

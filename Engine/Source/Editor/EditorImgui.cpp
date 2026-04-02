@@ -63,6 +63,7 @@
 #include "Addons/AddonsMenu.h"
 #include "EditorUIHookManager.h"
 #include "BuildDependencyWindow.h"
+#include "InputMapWindow.h"
 #include "DebugLog/DebugLogWindow.h"
 #include "ScriptEditor/ScriptEditorWindow.h"
 #include "ThemeEditor/ThemeEditorWindow.h"
@@ -8536,6 +8537,11 @@ static void DrawMainMenuBar()
                 GetEditorState()->mShowTextureAtlasViewer = !GetEditorState()->mShowTextureAtlasViewer;
             }
 
+            if (ImGui::MenuItem("Input Map Window"))
+            {
+                GetInputMapWindow()->Open();
+            }
+
             ImGui::Separator();
 
             // Draw plugin menu items for Developer menu
@@ -10854,6 +10860,7 @@ void EditorImguiDraw()
         GetPreferencesWindow()->Draw();
         GetPackagingWindow()->Draw();
         GetBuildDependencyWindow()->Draw();
+        GetInputMapWindow()->Draw();
         ActionManager::Get()->DrawBuildModal();
         GetProjectSelectWindow()->Draw();
         GetAddonsWindow()->Draw();
