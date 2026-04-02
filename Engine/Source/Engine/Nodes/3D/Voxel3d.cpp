@@ -459,6 +459,24 @@ VoxelType Voxel3D::GetVoxel(int32_t x, int32_t y, int32_t z) const
     return 0;
 }
 
+glm::vec3 Voxel3D::GetVoxelWorldPosition(int32_t x, int32_t y, int32_t z)
+{
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    // Voxel center in local space (inverse of the coord conversion)
+    float lx = (float(x) + 0.5f - dims.x * 0.5f);
+    float ly = (float(y) + 0.5f - dims.y * 0.5f);
+    float lz = (float(z) + 0.5f - dims.z * 0.5f);
+
+    return glm::vec3(
+        nodePos.x + lx * nodeScale.x,
+        nodePos.y + ly * nodeScale.y,
+        nodePos.z + lz * nodeScale.z
+    );
+}
+
 void Voxel3D::Fill(VoxelType value)
 {
     if (mVolume != nullptr)

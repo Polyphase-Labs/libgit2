@@ -33,6 +33,19 @@ int Voxel3D_Lua::GetVoxel(lua_State* L)
     return 1;
 }
 
+int Voxel3D_Lua::GetVoxelWorldPosition(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    int32_t x = CHECK_INTEGER(L, 2);
+    int32_t y = CHECK_INTEGER(L, 3);
+    int32_t z = CHECK_INTEGER(L, 4);
+
+    glm::vec3 pos = voxel->GetVoxelWorldPosition(x, y, z);
+
+    Vector_Lua::Create(L, glm::vec4(pos, 0.0f));
+    return 1;
+}
+
 int Voxel3D_Lua::Fill(lua_State* L)
 {
     Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
@@ -209,6 +222,7 @@ void Voxel3D_Lua::Bind()
 
     REGISTER_TABLE_FUNC(L, mtIndex, SetVoxel);
     REGISTER_TABLE_FUNC(L, mtIndex, GetVoxel);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelWorldPosition);
     REGISTER_TABLE_FUNC(L, mtIndex, Fill);
     REGISTER_TABLE_FUNC(L, mtIndex, FillRegion);
     REGISTER_TABLE_FUNC(L, mtIndex, MarkDirty);

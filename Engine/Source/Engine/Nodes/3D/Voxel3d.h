@@ -72,6 +72,9 @@ public:
     void RebuildMesh();
     bool IsDirty() const { return mMeshDirty; }
 
+    // Coordinates
+    glm::vec3 GetVoxelWorldPosition(int32_t x, int32_t y, int32_t z);
+
     // Dimensions
     glm::ivec3 GetDimensions() const { return mDimensions; }
     void SetDimensions(glm::ivec3 dims);
@@ -94,6 +97,8 @@ public:
     uint32_t GetNumIndices() const { return mNumIndices; }
     const std::vector<VertexColor>& GetVertices() const { return mVertices; }
     const std::vector<IndexType>& GetIndices() const { return mIndices; }
+    uint32_t mAtlasTilesX = 16;
+    uint32_t mAtlasTilesY = 16;
 
 protected:
 
@@ -142,8 +147,6 @@ protected:
 
     // Atlas texturing configuration
     TextureRef mAtlasTexture;
-    uint32_t mAtlasTilesX = 16;
-    uint32_t mAtlasTilesY = 16;
     bool mEnableAtlasTexturing = false;
     std::array<VoxelMaterialInfo, 256> mMaterialTable;
 };

@@ -10582,10 +10582,8 @@ void EditorImguiDraw()
                     sLastAtlasTex = atlasTex;
                 }
 
-                uint32_t atlasW = atlasTex ? atlasTex->GetWidth() : 0;
-                uint32_t atlasH = atlasTex ? atlasTex->GetHeight() : 0;
-                uint32_t tilesX = atlasW > 0 ? atlasW / 8 : 0;  // Use tile size from voxel settings
-                uint32_t tilesY = atlasH > 0 ? atlasH / 8 : 0;
+                uint32_t tilesX = voxel->mAtlasTilesX;
+                uint32_t tilesY = voxel->mAtlasTilesY;
 
                 // Lambda: draw a tile preview button, returns true if clicked
                 auto DrawTileButton = [&](const char* id, int32_t tileIdx, float size) -> bool
@@ -10639,6 +10637,7 @@ void EditorImguiDraw()
 
                             ImVec2 origin = ImGui::GetCursorScreenPos();
                             ImGui::Image(sAtlasTexId, ImVec2(gridW, gridH));
+                            bool imageHovered = ImGui::IsItemHovered();
 
                             // Grid overlay
                             ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -10659,9 +10658,7 @@ void EditorImguiDraw()
 
                             // Click detection
                             ImVec2 mp = ImGui::GetMousePos();
-                            if (mp.x >= origin.x && mp.x < origin.x + gridW &&
-                                mp.y >= origin.y && mp.y < origin.y + gridH &&
-                                ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                            if (imageHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                             {
                                 int clickCol = int((mp.x - origin.x) / tileDrawSize);
                                 int clickRow = int((mp.y - origin.y) / tileDrawSize);

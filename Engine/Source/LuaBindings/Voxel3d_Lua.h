@@ -20,6 +20,7 @@ struct Voxel3D_Lua
     // Voxel access
     static int SetVoxel(lua_State* L);
     static int GetVoxel(lua_State* L);
+    static int GetVoxelWorldPosition(lua_State* L);
 
     // Bulk operations
     static int Fill(lua_State* L);
