@@ -48,6 +48,7 @@
 #include "EditorImgui.h"
 #include "BuildDependencyWindow.h"
 #include "Input/InputMap.h"
+#include "Input/PlayerInputSystem.h"
 #include "Utilities.h"
 
 void OctPreInitialize(EngineConfig& config);
@@ -122,6 +123,7 @@ void EditorMain(int32_t argc, char** argv)
     BuildCache::Create();
     InputManager::Create();
     InputMap::Create();
+    PlayerInputSystem::Create();
     PreferencesManager::Create();
 
     // Auto-start controller server if enabled in preferences (must be after PreferencesManager::Create)
@@ -156,6 +158,11 @@ void EditorMain(int32_t argc, char** argv)
         GetEngineState()->mProjectDirectory = "";
 
         ActionManager::Get()->OpenProject(engineConfig->mProjectPath.c_str());
+
+        if (PlayerInputSystem::Get() != nullptr)
+        {
+            PlayerInputSystem::Get()->LoadProjectActions();
+        }
     }
 
     // Spawn starting scene if a default wasn't loaded
@@ -283,6 +290,7 @@ void EditorMain(int32_t argc, char** argv)
     TemplateManager::Destroy();
     BuildCache::Destroy();
     PreferencesManager::Destroy();
+    PlayerInputSystem::Destroy();
     InputMap::Destroy();
     GetEditorState()->Shutdown();
     Shutdown();

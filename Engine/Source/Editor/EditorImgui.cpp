@@ -64,6 +64,8 @@
 #include "EditorUIHookManager.h"
 #include "BuildDependencyWindow.h"
 #include "InputMapWindow.h"
+#include "PlayerInputEditor.h"
+#include "PlayerInputDebugger.h"
 #include "DebugLog/DebugLogWindow.h"
 #include "ScriptEditor/ScriptEditorWindow.h"
 #include "ThemeEditor/ThemeEditorWindow.h"
@@ -8542,6 +8544,16 @@ static void DrawMainMenuBar()
                 GetInputMapWindow()->Open();
             }
 
+            if (ImGui::MenuItem("Player Input Editor"))
+            {
+                GetPlayerInputEditor()->Open();
+            }
+
+            if (ImGui::MenuItem("Player Input Debugger"))
+            {
+                GetPlayerInputDebugger()->Open();
+            }
+
             ImGui::Separator();
 
             // Draw plugin menu items for Developer menu
@@ -10861,6 +10873,8 @@ void EditorImguiDraw()
         GetPackagingWindow()->Draw();
         GetBuildDependencyWindow()->Draw();
         GetInputMapWindow()->Draw();
+        GetPlayerInputEditor()->Draw();
+        GetPlayerInputDebugger()->Draw();
         ActionManager::Get()->DrawBuildModal();
         GetProjectSelectWindow()->Draw();
         GetAddonsWindow()->Draw();

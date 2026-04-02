@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "World.h"
 #include "InputDevices.h"
+#include "Input/PlayerInputSystem.h"
 #include "Engine.h"
 #include "Log.h"
 #include "Script.h"
@@ -663,6 +664,12 @@ bool Update()
     AudioManager::Update(sClock.DeltaTime());
 
     NetworkManager::Get()->PreTickUpdate(sClock.DeltaTime());
+
+    // Update PlayerInputSystem after raw input and clock
+    if (PlayerInputSystem::Get() != nullptr)
+    {
+        PlayerInputSystem::Get()->Update(sClock.DeltaTime());
+    }
 
     // Limit delta time in World::Update(). Prevent crazy issues.
     float realDeltaTime = sClock.DeltaTime();

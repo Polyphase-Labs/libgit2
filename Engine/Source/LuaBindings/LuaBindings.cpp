@@ -7,6 +7,7 @@
 #include "LuaBindings/Engine_Lua.h"
 #include "LuaBindings/Script_Lua.h"
 #include "LuaBindings/Input_Lua.h"
+#include "LuaBindings/PlayerInput_Lua.h"
 #include "LuaBindings/Audio_Lua.h"
 #include "LuaBindings/Gizmos_Lua.h"
 #include "LuaBindings/Maths_Lua.h"
@@ -92,6 +93,7 @@ void BindLuaInterface()
     Engine_Lua::Bind();
     Script_Lua::Bind();
     Input_Lua::Bind();
+    PlayerInput_Lua::Bind();
     Audio_Lua::Bind();
     Gizmos_Lua::Bind();
     Log_Lua::Bind();

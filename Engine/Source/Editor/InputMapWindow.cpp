@@ -470,14 +470,8 @@ void InputMapWindow::DrawCaptureOverlay()
 
     mCaptureTimer -= ImGui::GetIO().DeltaTime;
 
-    // Check for Escape to cancel
-    if (INP_IsKeyJustDown(POLYPHASE_KEY_ESCAPE))
-    {
-        mCapturing = false;
-        return;
-    }
-
-    // Timeout
+    // Timeout only — no escape cancel so Escape can be bound
+    //
     if (mCaptureTimer <= 0.0f)
     {
         mCapturing = false;
@@ -514,7 +508,7 @@ void InputMapWindow::DrawCaptureOverlay()
 
     // Display capture status at top of window
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
-    ImGui::Text("Listening for input... (%.0fs) Press Escape to cancel.", mCaptureTimer);
+    ImGui::Text("Listening for input... (%.0fs)", mCaptureTimer);
     ImGui::PopStyleColor();
     ImGui::Spacing();
 }

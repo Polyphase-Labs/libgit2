@@ -736,6 +736,8 @@
     <ClCompile Include="Source\Editor\ScriptEditor\ScriptEditorWindow.cpp" />
     <ClCompile Include="Source\Editor\BuildDependencyWindow.cpp" />
     <ClCompile Include="Source\Editor\InputMapWindow.cpp" />
+    <ClCompile Include="Source\Editor\PlayerInputEditor.cpp" />
+    <ClCompile Include="Source\Editor\PlayerInputDebugger.cpp" />
     <ClCompile Include="Source\Editor\Packaging\BuildProfile.cpp" />
     <ClCompile Include="Source\Editor\Packaging\PackagingSettings.cpp" />
     <ClCompile Include="Source\Editor\Packaging\PackagingWindow.cpp" />
@@ -941,6 +943,7 @@
     <ClCompile Include="Source\Input\Dolphin\Input_Dolphin.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
     <ClCompile Include="Source\Input\InputMap.cpp" />
+    <ClCompile Include="Source\Input\PlayerInputSystem.cpp" />
     <ClCompile Include="Source\Input\InputUtils.cpp" />
     <ClCompile Include="Source\Input\Linux\Input_Linux.cpp" />
     <ClCompile Include="Source\Input\Windows\Input_Windows.cpp" />
@@ -975,6 +978,7 @@
     <ClCompile Include="Source\LuaBindings\DirectionalLight3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Font_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Input_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\PlayerInput_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Light3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Log_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\LuaBindings.cpp" />
@@ -1132,6 +1136,8 @@
     <ClInclude Include="Source\Editor\ScriptEditor\ScriptEditorWindow.h" />
     <ClInclude Include="Source\Editor\BuildDependencyWindow.h" />
     <ClInclude Include="Source\Editor\InputMapWindow.h" />
+    <ClInclude Include="Source\Editor\PlayerInputEditor.h" />
+    <ClInclude Include="Source\Editor\PlayerInputDebugger.h" />
     <ClInclude Include="Source\Editor\Packaging\BuildProfile.h" />
     <ClInclude Include="Source\Editor\Packaging\PackagingSettings.h" />
     <ClInclude Include="Source\Editor\Packaging\PackagingWindow.h" />
@@ -1356,6 +1362,7 @@
     <ClInclude Include="Source\Input\InputConstants.h" />
     <ClInclude Include="Source\Input\InputTypes.h" />
     <ClInclude Include="Source\Input\InputMap.h" />
+    <ClInclude Include="Source\Input\PlayerInputSystem.h" />
     <ClInclude Include="Source\Input\InputUtils.h" />
     <ClInclude Include="Source\LuaBindings\AssetManager_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Asset_Lua.h" />
@@ -1390,6 +1397,7 @@
     <ClInclude Include="Source\LuaBindings\Engine_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Font_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Input_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\PlayerInput_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Light3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Log_Lua.h" />
     <ClInclude Include="Source\LuaBindings\LuaTypeCheck.h" />

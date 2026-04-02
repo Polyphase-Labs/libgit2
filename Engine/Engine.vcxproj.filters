@@ -275,6 +275,9 @@
     <ClCompile Include="Source\Input\InputMap.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Input\PlayerInputSystem.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Input\InputUtils.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
@@ -390,6 +393,9 @@
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
     <ClCompile Include="Source\LuaBindings\Input_Lua.cpp">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LuaBindings\PlayerInput_Lua.cpp">
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
     <ClCompile Include="Source\LuaBindings\Asset_Lua.cpp">
@@ -1142,6 +1148,12 @@
     <ClCompile Include="Source\Editor\InputMapWindow.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Editor\PlayerInputEditor.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\PlayerInputDebugger.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Editor\Packaging\PackagingSettings.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
@@ -1704,6 +1716,9 @@
     <ClInclude Include="Source\Input\InputMap.h">
       <Filter>Source Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Input\PlayerInputSystem.h">
+      <Filter>Source Files\Input</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Input\InputUtils.h">
       <Filter>Source Files\Input</Filter>
     </ClInclude>
@@ -1753,6 +1768,9 @@
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
     <ClInclude Include="Source\LuaBindings\Input_Lua.h">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LuaBindings\PlayerInput_Lua.h">
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
     <ClInclude Include="Source\LuaBindings\Log_Lua.h">
@@ -2302,6 +2320,12 @@
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\InputMapWindow.h">
+      <Filter>Source Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\PlayerInputEditor.h">
+      <Filter>Source Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\PlayerInputDebugger.h">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\Packaging\PackagingSettings.h">

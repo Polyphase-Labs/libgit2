@@ -32,6 +32,7 @@
 #include "AssetManager.h"
 #include "EditorState.h"
 #include "EditorUtils.h"
+#include "Input/PlayerInputSystem.h"
 #include "Assets/Scene.h"
 #include "Assets/Texture.h"
 #include "Assets/Timeline.h"
@@ -2572,6 +2573,12 @@ void ActionManager::OpenProject(const char* path)
         // Initialize PackagingSettings for the new project
         PackagingSettings::Create();
         PackagingSettings::Get()->LoadSettings();
+
+        // Load player input actions for the new project
+        if (PlayerInputSystem::Get() != nullptr)
+        {
+            PlayerInputSystem::Get()->LoadProjectActions();
+        }
 
         // Check if project needs upgrade to new UUID format
         CheckProjectNeedsUpgrade();
