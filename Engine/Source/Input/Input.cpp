@@ -257,6 +257,10 @@ bool INP_IsMouseButtonJustUp(int32_t button)
 
 int32_t INP_GetScrollWheelDelta()
 {
+    InputMap* inputMap = InputMap::Get();
+    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+        return 0;
+
     return GetEngineState()->mInput.mScrollWheelDelta;
 }
 
@@ -381,6 +385,14 @@ void INP_SetTouchPosition(int32_t touchX, int32_t touchY, int32_t touch)
 
 void INP_GetMousePosition(int32_t& mouseX, int32_t& mouseY)
 {
+    InputMap* inputMap = InputMap::Get();
+    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    {
+        mouseX = 0;
+        mouseY = 0;
+        return;
+    }
+
     // First pointer location is for mouse.
     InputState& input = GetEngineState()->mInput;
     mouseX = input.mPointerX[0];
@@ -420,6 +432,14 @@ void INP_GetTouchPositionNormalized(float& touchX, float& touchY, int32_t touch)
 
 void INP_GetPointerPosition(int32_t& pointerX, int32_t& pointerY, int32_t pointer)
 {
+    InputMap* inputMap = InputMap::Get();
+    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    {
+        pointerX = 0;
+        pointerY = 0;
+        return;
+    }
+
     INP_GetTouchPosition(pointerX,
         pointerY,
         pointer);
@@ -427,6 +447,14 @@ void INP_GetPointerPosition(int32_t& pointerX, int32_t& pointerY, int32_t pointe
 
 void INP_GetPointerPositionNormalized(float& pointerX, float& pointerY, int32_t  pointer)
 {
+    InputMap* inputMap = InputMap::Get();
+    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    {
+        pointerX = 0.0f;
+        pointerY = 0.0f;
+        return;
+    }
+
     INP_GetTouchPositionNormalized(pointerX,
         pointerY,
         pointer);
@@ -434,6 +462,14 @@ void INP_GetPointerPositionNormalized(float& pointerX, float& pointerY, int32_t 
 
 void INP_GetMouseDelta(int32_t& deltaX, int32_t& deltaY)
 {
+    InputMap* inputMap = InputMap::Get();
+    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    {
+        deltaX = 0;
+        deltaY = 0;
+        return;
+    }
+
     deltaX = GetEngineState()->mInput.mMouseDeltaX;
     deltaY = GetEngineState()->mInput.mMouseDeltaY;
 }

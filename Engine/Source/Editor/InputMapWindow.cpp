@@ -440,7 +440,7 @@ void InputMapWindow::DrawMousePointerSection()
             inputMap->SetMouseEnabled(mouseEnabled);
             MarkInputMapDirty();
         }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("When disabled, all mouse button queries return false. Useful for testing touch-only paths.");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("When disabled, all mouse queries (buttons, delta, position, scroll) return zero for game code.\nUse this during PIE to let gamepad right stick take over camera look.");
 
         bool pointerEnabled = inputMap->IsPointerEnabled();
         if (ImGui::Checkbox("Pointer Input Enabled", &pointerEnabled))
@@ -448,7 +448,7 @@ void InputMapWindow::DrawMousePointerSection()
             inputMap->SetPointerEnabled(pointerEnabled);
             MarkInputMapDirty();
         }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("When disabled, all pointer queries (IsPointerDown, etc.) return false.");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("When disabled, all pointer queries (IsPointerDown, position) return false/zero for game code.");
 
         ImGui::Spacing();
         ImGui::Separator();
