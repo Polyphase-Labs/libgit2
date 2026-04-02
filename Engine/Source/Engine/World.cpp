@@ -1730,6 +1730,14 @@ Node* World::SpawnScene(Scene* scene, glm::vec3 position)
     return newNode.Get();
 }
 
+void World::DespawnScene(Node* sceneRoot)
+{
+    if (sceneRoot != nullptr)
+    {
+        sceneRoot->DestroyDeferred();
+    }
+}
+
 Particle3D* World::SpawnParticle(ParticleSystem* sys, glm::vec3 position)
 {
     Particle3D* ret = nullptr;

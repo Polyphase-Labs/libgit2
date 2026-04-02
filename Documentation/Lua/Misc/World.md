@@ -43,6 +43,12 @@ Sig: `node = World:SpawnScene(scene, position=Vec(0,0,0))`
  - Arg: `Vector position` World position to place new node
  - Ret: `Node node` Newly spawned node (root of spawned scene)
 ---
+### DespawnScene
+Despawn a previously spawned scene by destroying its root node and all of its children. Uses deferred destruction so it is safe to call mid-frame.
+
+Sig: `World:DespawnScene(sceneRoot)`
+ - Arg: `Node sceneRoot` Root node returned by SpawnScene
+---
 ### GetRootNode
 Get the world's root node.
 

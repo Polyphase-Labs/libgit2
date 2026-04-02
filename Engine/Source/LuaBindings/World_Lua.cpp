@@ -110,6 +110,14 @@ int World_Lua::SpawnScene(lua_State* L)
     return 1;
 }
 
+int World_Lua::DespawnScene(lua_State* L)
+{
+    World* world = CHECK_WORLD(L, 1);
+    Node* sceneRoot = CHECK_NODE(L, 2);
+    world->DespawnScene(sceneRoot);
+    return 0;
+}
+
 int World_Lua::GetRootNode(lua_State* L)
 {
     World* world = CHECK_WORLD(L, 1);
@@ -603,6 +611,8 @@ void World_Lua::Bind()
     REGISTER_TABLE_FUNC(L, mtIndex, SpawnNode);
 
     REGISTER_TABLE_FUNC(L, mtIndex, SpawnScene);
+
+    REGISTER_TABLE_FUNC(L, mtIndex, DespawnScene);
 
     REGISTER_TABLE_FUNC(L, mtIndex, GetRootNode);
 
