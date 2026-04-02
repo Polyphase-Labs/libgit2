@@ -296,7 +296,7 @@ static bool sViewportDockActive = false;
 // A known dock label that must exist in a valid layout.
 // If imgui.ini has dock data but this label is missing, the layout is stale.
 // Update kDockLayoutVersion when dock panel names change to force a reset.
-static constexpr uint32_t kDockLayoutVersion = 9;
+static constexpr uint32_t kDockLayoutVersion = 10;
 
 static void ValidateDockLayoutIni()
 {
@@ -722,6 +722,7 @@ static void DrawDockspace()
             ImGui::DockTo("EditorDock", ICON_IX_VIDEO_CAMERA_FILLED "  Game Preview",ICON_CIB_NINTENDO_3DS "  3DS Preview",  ImGuiDockSlot_Tab);
             ImGui::DockTo("EditorDock", ICON_IC_BASELINE_SHARE "  Node Graph", ICON_ASSETS "  Assets", ImGuiDockSlot_Right, 0.5f);
             ImGui::DockTo("EditorDock", ICON_CURVEGRAPH "  Profiling", ICON_IC_BASELINE_SHARE "  Node Graph", ImGuiDockSlot_Tab);
+            ImGui::DockTo("EditorDock", "Texture Atlas Viewer", ICON_CURVEGRAPH "  Profiling", ImGuiDockSlot_Tab);
 
             // Defer activating the Viewport tab — docks call setActive() on their
             // first BeginDock frame, so we need to wait a couple frames for all

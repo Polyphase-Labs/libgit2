@@ -753,6 +753,7 @@
     <ClCompile Include="Source\Editor\NodeGraph\NodeGraphPanel.cpp" />
     <ClCompile Include="Source\Editor\Profiling\ProfilingWindow.cpp" />
     <ClCompile Include="Source\Editor\TextureAtlas\TextureAtlasViewer.cpp" />
+    <ClCompile Include="Source\Editor\TextureCrop\TextureCropEditor.cpp" />
     <ClCompile Include="Source\Editor\VoxelSculpt\VoxelSculptManager.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\ThemeEditorWindow.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\CssGenerator.cpp" />
@@ -1154,6 +1155,7 @@
     <ClInclude Include="Source\Editor\NodeGraph\NodeGraphPanel.h" />
     <ClInclude Include="Source\Editor\Profiling\ProfilingWindow.h" />
     <ClInclude Include="Source\Editor\TextureAtlas\TextureAtlasViewer.h" />
+    <ClInclude Include="Source\Editor\TextureCrop\TextureCropEditor.h" />
     <ClInclude Include="Source\Editor\VoxelSculpt\VoxelSculptManager.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\ThemeEditorWindow.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\CssGenerator.h" />

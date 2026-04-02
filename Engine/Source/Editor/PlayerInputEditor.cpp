@@ -164,6 +164,305 @@ void PlayerInputEditor::Draw()
     ImGui::End();
 }
 
+void PlayerInputEditor::DuplicateAction(int actionIndex, const std::string& toCategory, const std::string& newName)
+{
+    PlayerInputSystem* sys = PlayerInputSystem::Get();
+    const auto& actions = sys->GetActions();
+    if (actionIndex < 0 || actionIndex >= (int)actions.size()) return;
+
+    // Copy data BEFORE modifying the system (RegisterAction sorts the vector, invalidating references)
+    InputAction copy = actions[actionIndex];
+
+    sys->RegisterAction(toCategory, newName, copy.trigger.mode);
+    sys->SetTrigger(toCategory, newName, copy.trigger);
+    for (const auto& b : copy.bindings)
+        sys->AddBinding(toCategory, newName, b);
+}
+
+void PlayerInputEditor::PasteAction(const std::string& toCategory, bool overrideExisting)
+{
+    if (!mHasClipboard) return;
+    PlayerInputSystem* sys = PlayerInputSystem::Get();
+
+    std::string name = mClipboardAction.name;
+
+    if (overrideExisting)
+    {
+        // Remove existing action with same name in target category
+        sys->UnregisterAction(toCategory, name);
+    }
+    else
+    {
+        // If already exists, append a number
+        InputAction* existing = sys->FindAction(toCategory, name);
+        if (existing != nullptr)
+        {
+            for (int n = 2; n < 100; ++n)
+            {
+                std::string tryName = name + "_" + std::to_string(n);
+                if (sys->FindAction(toCategory, tryName) == nullptr)
+                {
+                    name = tryName;
+                    break;
+                }
+            }
+        }
+    }
+
+    sys->RegisterAction(toCategory, name, mClipboardAction.trigger.mode);
+    sys->SetTrigger(toCategory, name, mClipboardAction.trigger);
+    for (const auto& b : mClipboardAction.bindings)
+        sys->AddBinding(toCategory, name, b);
+}
+
+void PlayerInputEditor::DrawActionContextMenu(int actionIndex)
+{
+    PlayerInputSystem* sys = PlayerInputSystem::Get();
+    const auto& actions = sys->GetActions();
+    if (actionIndex < 0 || actionIndex >= (int)actions.size()) return;
+    const auto& action = actions[actionIndex];
+
+    if (ImGui::MenuItem("Rename"))
+    {
+        mPopupMode = PopupMode::Rename;
+        mPopupActionIndex = actionIndex;
+        snprintf(mPopupCategory, sizeof(mPopupCategory), "%s", action.category.c_str());
+        snprintf(mPopupName, sizeof(mPopupName), "%s", action.name.c_str());
+    }
+    if (ImGui::MenuItem("Duplicate"))
+    {
+        std::string dupName = action.name + "_Copy";
+        DuplicateAction(actionIndex, action.category, dupName);
+    }
+    if (ImGui::MenuItem("Duplicate To..."))
+    {
+        mPopupMode = PopupMode::DuplicateTo;
+        mPopupActionIndex = actionIndex;
+        snprintf(mPopupCategory, sizeof(mPopupCategory), "%s", action.category.c_str());
+        snprintf(mPopupName, sizeof(mPopupName), "%s", action.name.c_str());
+    }
+    if (ImGui::MenuItem("Move To..."))
+    {
+        mPopupMode = PopupMode::MoveTo;
+        mPopupActionIndex = actionIndex;
+        snprintf(mPopupCategory, sizeof(mPopupCategory), "%s", action.category.c_str());
+        snprintf(mPopupName, sizeof(mPopupName), "%s", action.name.c_str());
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Copy"))
+    {
+        mClipboardAction = action;
+        mHasClipboard = true;
+    }
+    if (ImGui::MenuItem("Paste Values", nullptr, false, mHasClipboard))
+    {
+        // Paste bindings and trigger from clipboard onto this action (keep name)
+        InputAction* target = sys->FindAction(action.category, action.name);
+        if (target != nullptr)
+        {
+            target->bindings = mClipboardAction.bindings;
+            target->trigger = mClipboardAction.trigger;
+        }
+    }
+    if (ImGui::MenuItem("Paste Values (Override)", nullptr, false, mHasClipboard))
+    {
+        // Replace this action entirely with clipboard data but keep current name/category
+        InputAction* target = sys->FindAction(action.category, action.name);
+        if (target != nullptr)
+        {
+            target->bindings = mClipboardAction.bindings;
+            target->trigger = mClipboardAction.trigger;
+        }
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Delete"))
+    {
+        sys->UnregisterAction(action.category, action.name);
+        if (mSelectedActionIndex == actionIndex)
+            mSelectedActionIndex = -1;
+        else if (mSelectedActionIndex > actionIndex)
+            --mSelectedActionIndex;
+    }
+}
+
+void PlayerInputEditor::DrawCategoryContextMenu(const std::string& category)
+{
+    PlayerInputSystem* sys = PlayerInputSystem::Get();
+
+    if (ImGui::MenuItem("Duplicate Category..."))
+    {
+        mPopupMode = PopupMode::DuplicateCategory;
+        mPopupSourceCategory = category;
+        snprintf(mPopupCategory, sizeof(mPopupCategory), "%s_Copy", category.c_str());
+    }
+    if (ImGui::MenuItem("Paste Action", nullptr, false, mHasClipboard))
+    {
+        PasteAction(category, false);
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Delete Category"))
+    {
+        // Collect all actions in this category and remove them
+        const auto& actions = sys->GetActions();
+        std::vector<std::string> toRemove;
+        for (const auto& a : actions)
+        {
+            if (a.category == category)
+                toRemove.push_back(a.name);
+        }
+        for (const auto& name : toRemove)
+            sys->UnregisterAction(category, name);
+        mSelectedActionIndex = -1;
+    }
+}
+
+void PlayerInputEditor::DrawPopupModal()
+{
+    PlayerInputSystem* sys = PlayerInputSystem::Get();
+
+    const char* popupTitle = nullptr;
+    switch (mPopupMode)
+    {
+    case PopupMode::Rename: popupTitle = "Rename Action"; break;
+    case PopupMode::DuplicateTo: popupTitle = "Duplicate To"; break;
+    case PopupMode::MoveTo: popupTitle = "Move To"; break;
+    case PopupMode::DuplicateCategory: popupTitle = "Duplicate Category"; break;
+    default: break;
+    }
+
+    if (mPopupMode != PopupMode::None && popupTitle != nullptr)
+    {
+        ImGui::OpenPopup(popupTitle);
+    }
+
+    // Shared modal for Rename / DuplicateTo / MoveTo
+    auto drawActionPopup = [&](const char* title) -> bool
+    {
+        bool acted = false;
+        if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::SetNextItemWidth(200.0f);
+            ImGui::InputText("Category", mPopupCategory, sizeof(mPopupCategory));
+            ImGui::SetNextItemWidth(200.0f);
+            ImGui::InputText("Name", mPopupName, sizeof(mPopupName));
+            ImGui::Spacing();
+
+            bool valid = mPopupName[0] != '\0' && mPopupCategory[0] != '\0';
+            if (!valid) ImGui::BeginDisabled();
+            if (ImGui::Button("OK", ImVec2(100, 0)))
+            {
+                acted = true;
+                ImGui::CloseCurrentPopup();
+            }
+            if (!valid) ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(100, 0)))
+            {
+                mPopupMode = PopupMode::None;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+        return acted;
+    };
+
+    if (mPopupMode == PopupMode::Rename)
+    {
+        if (drawActionPopup("Rename Action"))
+        {
+            const auto& actions = sys->GetActions();
+            if (mPopupActionIndex >= 0 && mPopupActionIndex < (int)actions.size())
+            {
+                const auto& src = actions[mPopupActionIndex];
+                std::vector<InputActionBinding> bindings = src.bindings;
+                InputActionTrigger trigger = src.trigger;
+                std::string oldCat = src.category;
+                std::string oldName = src.name;
+
+                sys->UnregisterAction(oldCat, oldName);
+                sys->RegisterAction(mPopupCategory, mPopupName, trigger.mode);
+                sys->SetTrigger(mPopupCategory, mPopupName, trigger);
+                for (const auto& b : bindings)
+                    sys->AddBinding(mPopupCategory, mPopupName, b);
+                mSelectedActionIndex = -1;
+            }
+            mPopupMode = PopupMode::None;
+        }
+    }
+    else if (mPopupMode == PopupMode::DuplicateTo)
+    {
+        if (drawActionPopup("Duplicate To"))
+        {
+            DuplicateAction(mPopupActionIndex, mPopupCategory, mPopupName);
+            mPopupMode = PopupMode::None;
+        }
+    }
+    else if (mPopupMode == PopupMode::MoveTo)
+    {
+        if (drawActionPopup("Move To"))
+        {
+            const auto& actions = sys->GetActions();
+            if (mPopupActionIndex >= 0 && mPopupActionIndex < (int)actions.size())
+            {
+                const auto& src = actions[mPopupActionIndex];
+                std::vector<InputActionBinding> bindings = src.bindings;
+                InputActionTrigger trigger = src.trigger;
+                std::string oldCat = src.category;
+                std::string oldName = src.name;
+
+                sys->UnregisterAction(oldCat, oldName);
+                sys->RegisterAction(mPopupCategory, mPopupName, trigger.mode);
+                sys->SetTrigger(mPopupCategory, mPopupName, trigger);
+                for (const auto& b : bindings)
+                    sys->AddBinding(mPopupCategory, mPopupName, b);
+                mSelectedActionIndex = -1;
+            }
+            mPopupMode = PopupMode::None;
+        }
+    }
+    else if (mPopupMode == PopupMode::DuplicateCategory)
+    {
+        // Just need category name
+        if (ImGui::BeginPopupModal("Duplicate Category", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::SetNextItemWidth(200.0f);
+            ImGui::InputText("New Category", mPopupCategory, sizeof(mPopupCategory));
+            ImGui::Spacing();
+
+            bool valid = mPopupCategory[0] != '\0';
+            if (!valid) ImGui::BeginDisabled();
+            if (ImGui::Button("OK", ImVec2(100, 0)))
+            {
+                // Duplicate all actions from source category to new category
+                const auto& actions = sys->GetActions();
+                std::vector<InputAction> toDuplicate;
+                for (const auto& a : actions)
+                {
+                    if (a.category == mPopupSourceCategory)
+                        toDuplicate.push_back(a);
+                }
+                for (const auto& a : toDuplicate)
+                {
+                    sys->RegisterAction(mPopupCategory, a.name, a.trigger.mode);
+                    sys->SetTrigger(mPopupCategory, a.name, a.trigger);
+                    for (const auto& b : a.bindings)
+                        sys->AddBinding(mPopupCategory, a.name, b);
+                }
+                mPopupMode = PopupMode::None;
+                ImGui::CloseCurrentPopup();
+            }
+            if (!valid) ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(100, 0)))
+            {
+                mPopupMode = PopupMode::None;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+}
+
 void PlayerInputEditor::DrawActionList()
 {
     PlayerInputSystem* sys = PlayerInputSystem::Get();
@@ -181,16 +480,21 @@ void PlayerInputEditor::DrawActionList()
 
         if (action.category != lastCategory)
         {
-            // Close previous category tree node
             if (!lastCategory.empty() && lastCategoryOpen)
                 ImGui::TreePop();
 
             lastCategoryOpen = ImGui::TreeNodeEx(action.category.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
             lastCategory = action.category;
 
+            // Category right-click
+            if (ImGui::BeginPopupContextItem())
+            {
+                DrawCategoryContextMenu(lastCategory);
+                ImGui::EndPopup();
+            }
+
             if (!lastCategoryOpen)
             {
-                // Skip actions in this closed category
                 while (i + 1 < (int)actions.size() && actions[i + 1].category == lastCategory)
                     ++i;
                 continue;
@@ -205,9 +509,19 @@ void PlayerInputEditor::DrawActionList()
         {
             mSelectedActionIndex = i;
         }
+
+        // Action right-click
+        if (ImGui::BeginPopupContextItem())
+        {
+            DrawActionContextMenu(i);
+            ImGui::EndPopup();
+        }
     }
     if (!lastCategory.empty() && lastCategoryOpen)
         ImGui::TreePop();
+
+    // Draw popup modals (outside tree loop)
+    DrawPopupModal();
 
     ImGui::Spacing();
     ImGui::Separator();

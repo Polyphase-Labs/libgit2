@@ -134,6 +134,7 @@ private:
     void EvaluateTrigger(InputAction& action, float deltaTime);
 
     std::string MakeKey(const std::string& category, const std::string& name) const;
+    void RebuildLookup();
 
     std::vector<InputAction> mActions;
     std::unordered_map<std::string, size_t> mActionLookup;

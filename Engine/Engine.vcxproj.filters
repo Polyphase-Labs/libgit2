@@ -165,6 +165,9 @@
     <Filter Include="Source Files\Editor\TextureAtlas">
       <UniqueIdentifier>{d7bc1bd9-a00d-4896-cf67-gc1f687f6353}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\TextureCrop">
+      <UniqueIdentifier>{e8cd2ce0-b11e-5907-dg78-hd2g798g7464}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Editor\VoxelSculpt">
       <UniqueIdentifier>{e8cd2ce0-b11e-5907-dg78-hd2g798g7464}</UniqueIdentifier>
     </Filter>
@@ -1219,6 +1222,9 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\TextureAtlas\TextureAtlasViewer.cpp">
       <Filter>Source Files\Editor\TextureAtlas</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\TextureCrop\TextureCropEditor.cpp">
+      <Filter>Source Files\Editor\TextureCrop</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\VoxelSculpt\VoxelSculptManager.cpp">
       <Filter>Source Files\Editor\VoxelSculpt</Filter>
@@ -2393,6 +2399,9 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\TextureAtlas\TextureAtlasViewer.h">
       <Filter>Source Files\Editor\TextureAtlas</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\TextureCrop\TextureCropEditor.h">
+      <Filter>Source Files\Editor\TextureCrop</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\VoxelSculpt\VoxelSculptManager.h">
       <Filter>Source Files\Editor\VoxelSculpt</Filter>

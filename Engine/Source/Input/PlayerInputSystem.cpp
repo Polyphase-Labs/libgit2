@@ -117,12 +117,13 @@ float PlayerInputSystem::PollBindingValue(const InputActionBinding& binding, int
     case InputSourceType::GamepadAxis:
     {
         float val = INP_GetGamepadAxisValue(binding.code, gpIdx);
+        // Apply deadzone threshold — return 0 if below threshold
         if (binding.axisDirection == AxisDirection::Positive)
-            return val > 0.0f ? val : 0.0f;
+            return val >= binding.axisThreshold ? val : 0.0f;
         else if (binding.axisDirection == AxisDirection::Negative)
-            return val < 0.0f ? -val : 0.0f;
+            return val <= -binding.axisThreshold ? -val : 0.0f;
         else
-            return val;
+            return std::abs(val) >= binding.axisThreshold ? val : 0.0f;
     }
     }
 
@@ -260,6 +261,10 @@ void PlayerInputSystem::Update(float deltaTime)
         // Evaluate trigger
         EvaluateTrigger(action, deltaTime);
 
+        // Zero value when not active to prevent drift
+        if (!s.isActive)
+            s.value = 0.0f;
+
         // Set transition flags
         s.wasJustActivated = (s.isActive && !wasActive);
         s.wasJustDeactivated = (!s.isActive && wasActive);
@@ -271,6 +276,22 @@ void PlayerInputSystem::Update(float deltaTime)
 std::string PlayerInputSystem::MakeKey(const std::string& category, const std::string& name) const
 {
     return category + "/" + name;
+}
+
+void PlayerInputSystem::RebuildLookup()
+{
+    // Sort by category then name so same-category actions stay grouped
+    std::sort(mActions.begin(), mActions.end(), [](const InputAction& a, const InputAction& b)
+    {
+        if (a.category != b.category) return a.category < b.category;
+        return a.name < b.name;
+    });
+
+    mActionLookup.clear();
+    for (size_t i = 0; i < mActions.size(); ++i)
+    {
+        mActionLookup[MakeKey(mActions[i].category, mActions[i].name)] = i;
+    }
 }
 
 void PlayerInputSystem::RegisterAction(const std::string& category, const std::string& name, TriggerMode mode)
@@ -285,7 +306,7 @@ void PlayerInputSystem::RegisterAction(const std::string& category, const std::s
     action.trigger.mode = mode;
 
     mActions.push_back(action);
-    mActionLookup[key] = mActions.size() - 1;
+    RebuildLookup();
 }
 
 void PlayerInputSystem::UnregisterAction(const std::string& category, const std::string& name)
@@ -296,16 +317,8 @@ void PlayerInputSystem::UnregisterAction(const std::string& category, const std:
         return;
 
     size_t idx = it->second;
-    mActionLookup.erase(it);
-
-    // Swap-remove from vector and fix up lookup
-    if (idx < mActions.size() - 1)
-    {
-        mActions[idx] = mActions.back();
-        std::string movedKey = MakeKey(mActions[idx].category, mActions[idx].name);
-        mActionLookup[movedKey] = idx;
-    }
-    mActions.pop_back();
+    mActions.erase(mActions.begin() + idx);
+    RebuildLookup();
 }
 
 void PlayerInputSystem::AddBinding(const std::string& category, const std::string& name,
