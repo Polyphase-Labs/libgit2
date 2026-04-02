@@ -6,6 +6,19 @@
 
 #include "Assertion.h"
 
+// Mouse/pointer disable only takes effect during PIE so it doesn't break editor interaction
+static bool IsMouseDisabledForGame()
+{
+    InputMap* inputMap = InputMap::Get();
+    return inputMap != nullptr && !inputMap->IsMouseEnabled() && IsPlaying();
+}
+
+static bool IsPointerDisabledForGame()
+{
+    InputMap* inputMap = InputMap::Get();
+    return inputMap != nullptr && !inputMap->IsPointerEnabled() && IsPlaying();
+}
+
 // Platform Agnostic
 void INP_SetKey(int32_t key)
 {
@@ -213,8 +226,7 @@ void INP_SetScrollWheelDelta(int32_t delta)
 
 bool INP_IsMouseButtonDown(int32_t button)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    if (IsMouseDisabledForGame())
         return false;
 
     if (button >= 0 && button < MOUSE_BUTTON_COUNT)
@@ -227,8 +239,7 @@ bool INP_IsMouseButtonDown(int32_t button)
 
 bool INP_IsMouseButtonJustDown(int32_t button)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    if (IsMouseDisabledForGame())
         return false;
 
     if (button >= 0 && button < MOUSE_BUTTON_COUNT)
@@ -242,8 +253,7 @@ bool INP_IsMouseButtonJustDown(int32_t button)
 
 bool INP_IsMouseButtonJustUp(int32_t button)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    if (IsMouseDisabledForGame())
         return false;
 
     if (button >= 0 && button < MOUSE_BUTTON_COUNT)
@@ -257,8 +267,7 @@ bool INP_IsMouseButtonJustUp(int32_t button)
 
 int32_t INP_GetScrollWheelDelta()
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    if (IsMouseDisabledForGame())
         return 0;
 
     return GetEngineState()->mInput.mScrollWheelDelta;
@@ -322,8 +331,7 @@ bool INP_IsTouchDown(int32_t touch)
 
 bool INP_IsPointerDown(int32_t pointer)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    if (IsPointerDisabledForGame())
         return false;
 
     if (pointer >= 0 && pointer < INPUT_MAX_TOUCHES)
@@ -337,8 +345,7 @@ bool INP_IsPointerDown(int32_t pointer)
 
 bool INP_IsPointerJustUp(int32_t pointer)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    if (IsPointerDisabledForGame())
         return false;
 
     if (pointer >= 0 && pointer < INPUT_MAX_TOUCHES)
@@ -352,8 +359,7 @@ bool INP_IsPointerJustUp(int32_t pointer)
 
 bool INP_IsPointerJustDown(int32_t pointer)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    if (IsPointerDisabledForGame())
         return false;
 
     if (pointer >= 0 && pointer < INPUT_MAX_TOUCHES)
@@ -385,8 +391,7 @@ void INP_SetTouchPosition(int32_t touchX, int32_t touchY, int32_t touch)
 
 void INP_GetMousePosition(int32_t& mouseX, int32_t& mouseY)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    if (IsMouseDisabledForGame())
     {
         mouseX = 0;
         mouseY = 0;
@@ -432,8 +437,7 @@ void INP_GetTouchPositionNormalized(float& touchX, float& touchY, int32_t touch)
 
 void INP_GetPointerPosition(int32_t& pointerX, int32_t& pointerY, int32_t pointer)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    if (IsPointerDisabledForGame())
     {
         pointerX = 0;
         pointerY = 0;
@@ -447,8 +451,7 @@ void INP_GetPointerPosition(int32_t& pointerX, int32_t& pointerY, int32_t pointe
 
 void INP_GetPointerPositionNormalized(float& pointerX, float& pointerY, int32_t  pointer)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsPointerEnabled())
+    if (IsPointerDisabledForGame())
     {
         pointerX = 0.0f;
         pointerY = 0.0f;
@@ -462,8 +465,7 @@ void INP_GetPointerPositionNormalized(float& pointerX, float& pointerY, int32_t 
 
 void INP_GetMouseDelta(int32_t& deltaX, int32_t& deltaY)
 {
-    InputMap* inputMap = InputMap::Get();
-    if (inputMap != nullptr && !inputMap->IsMouseEnabled())
+    if (IsMouseDisabledForGame())
     {
         deltaX = 0;
         deltaY = 0;

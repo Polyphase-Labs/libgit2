@@ -27,6 +27,7 @@ function FirstPersonController:Create()
     self.enableJump = true
     self.enableTankControls = false
     self.mouseSensitivity = 0.05
+    self.enableWiiLook = false
     self.wiiLookSensitivity = 3.0
 
     -- State
@@ -59,6 +60,7 @@ function FirstPersonController:GatherProperties()
         { name = "enableControl", type = DatumType.Bool },
         { name = "enableJump", type = DatumType.Bool },
         { name = "enableTankControls", type = DatumType.Bool },
+        { name = "enableWiiLook", type = DatumType.Bool },
         { name = "mouseSensitivity", type = DatumType.Float },
         { name = "wiiLookSensitivity", type = DatumType.Float },
     }
@@ -82,7 +84,7 @@ function FirstPersonController:Start()
     end
 
     -- Lock X and Z rotation so the physics body stays upright
-    self.collider:SetAngularFactor(Vec(0, 1, 0))
+    self.collider:SetAngularFactor(Vec(0, 0, 0))
 
 end
 
@@ -152,7 +154,7 @@ function FirstPersonController:UpdateInput(deltaTime)
         self.lookVec.x, self.lookVec.y = Input.GetMouseDelta()
         self.lookVec = self.lookVec * self.mouseSensitivity
 
-        if isWiimote then
+        if isWiimote and self.enableWiiLook then
             -- Use IR pointer delta for look. GetPointerPositionNormalized returns
             -- x,y in [0,1]. We track the previous position and use the frame delta
             -- so moving the pointer right/up = look right/up.
