@@ -106,8 +106,9 @@ function World:IsInternalEdgeSmoothingEnabled() end
 
 ---@param particleSys ParticleSystem
 ---@param pos Vector
+---@param velocity? Vector
 ---@return Node
-function World:SpawnParticle(particleSys, pos) end
+function World:SpawnParticle(particleSys, pos, velocity) end
 
 ---@param start Vector
 ---@param end Vector

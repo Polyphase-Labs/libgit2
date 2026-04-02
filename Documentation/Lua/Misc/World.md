@@ -251,10 +251,11 @@ Sig: `enable = World:IsInternalEdgeSmoothingEnabled()`
  - Ret: `boolean enable` Internal edge smoothing enabled
 ---
 ### SpawnParticle
-Spawn a particle system at a specific location and set it to automatically destroy itself after it finishes.
+Spawn a particle system at a specific location and set it to automatically destroy itself after it finishes. An optional velocity can be provided to give all spawned particles an additional base velocity.
 
-Sig: `particle = World:SpawnParticle(system, position)`
+Sig: `particle = World:SpawnParticle(system, position, velocity=nil)`
  - Arg: `ParticleSystem system` Particle system asset to instantiate
  - Arg: `Vector position` World position to place particle
+ - Arg: `Vector velocity` (optional) Base velocity added to all spawned particles
  - Ret: `Particle3D particle` The newly created particle
 ---

@@ -45,6 +45,7 @@ public:
     Node* SpawnScene(const char* sceneName, glm::vec3 position = {});
     Node* SpawnScene(Scene* scene, glm::vec3 position = {});
     Particle3D* SpawnParticle(ParticleSystem* sys, glm::vec3 position);
+    Particle3D* SpawnParticle(ParticleSystem* sys, glm::vec3 position, glm::vec3 velocity);
 
     template<class NodeClass>
     NodeClass* SpawnNode(glm::vec3 position = {})

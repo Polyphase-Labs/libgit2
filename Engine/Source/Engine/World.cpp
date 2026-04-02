@@ -1746,6 +1746,18 @@ Particle3D* World::SpawnParticle(ParticleSystem* sys, glm::vec3 position)
     return ret;
 }
 
+Particle3D* World::SpawnParticle(ParticleSystem* sys, glm::vec3 position, glm::vec3 velocity)
+{
+    Particle3D* ret = SpawnParticle(sys, position);
+
+    if (ret != nullptr)
+    {
+        ret->SetBaseVelocity(velocity);
+    }
+
+    return ret;
+}
+
 void World::LoadScene(const char* name, bool instant)
 {
     if (instant)

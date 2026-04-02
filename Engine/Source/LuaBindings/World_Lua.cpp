@@ -489,7 +489,17 @@ int World_Lua::SpawnParticle(lua_State* L)
     ParticleSystem* particleSys = CHECK_PARTICLE_SYSTEM(L, 2);
     glm::vec3 pos = CHECK_VECTOR(L, 3);
 
-    Particle3D* ret = world->SpawnParticle(particleSys, pos);
+    Particle3D* ret = nullptr;
+
+    if (!lua_isnone(L, 4))
+    {
+        glm::vec3 velocity = CHECK_VECTOR(L, 4);
+        ret = world->SpawnParticle(particleSys, pos, velocity);
+    }
+    else
+    {
+        ret = world->SpawnParticle(particleSys, pos);
+    }
 
     Node_Lua::Create(L, ret);
     return 1;
