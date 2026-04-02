@@ -28,6 +28,16 @@ InputMapWindow* GetInputMapWindow()
 void InputMapWindow::Open()
 {
     mIsOpen = true;
+    RefreshPresetList();
+}
+
+void InputMapWindow::RefreshPresetList()
+{
+    InputMap* inputMap = InputMap::Get();
+    if (inputMap != nullptr)
+    {
+        mPresetNames = inputMap->GetPresetNames();
+    }
 }
 
 bool InputMapWindow::IsOpen() const
@@ -85,6 +95,9 @@ void InputMapWindow::Draw()
         ImGui::Separator();
         ImGui::Spacing();
 
+        DrawPresets();
+        ImGui::Spacing();
+
         // Handle capture mode
         if (mCapturing)
         {
@@ -110,6 +123,74 @@ void InputMapWindow::Draw()
         }
     }
     ImGui::End();
+}
+
+void InputMapWindow::DrawPresets()
+{
+    InputMap* inputMap = InputMap::Get();
+
+    if (ImGui::CollapsingHeader("Presets", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // Preset selector
+        if (mPresetNames.empty())
+        {
+            ImGui::TextDisabled("No saved presets.");
+        }
+        else
+        {
+            ImGui::SetNextItemWidth(200.0f);
+            if (ImGui::BeginCombo("##preset_select", mSelectedPreset >= 0 && mSelectedPreset < (int)mPresetNames.size()
+                ? mPresetNames[mSelectedPreset].c_str() : "Select preset..."))
+            {
+                for (int i = 0; i < (int)mPresetNames.size(); ++i)
+                {
+                    bool selected = (mSelectedPreset == i);
+                    if (ImGui::Selectable(mPresetNames[i].c_str(), selected))
+                    {
+                        mSelectedPreset = i;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::SameLine();
+            bool hasSelection = mSelectedPreset >= 0 && mSelectedPreset < (int)mPresetNames.size();
+
+            if (hasSelection)
+            {
+                if (ImGui::Button("Load"))
+                {
+                    inputMap->LoadPreset(mPresetNames[mSelectedPreset]);
+                    MarkInputMapDirty();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Delete"))
+                {
+                    inputMap->DeletePreset(mPresetNames[mSelectedPreset]);
+                    mSelectedPreset = -1;
+                    RefreshPresetList();
+                }
+            }
+        }
+
+        // Save new preset
+        ImGui::Spacing();
+        ImGui::SetNextItemWidth(200.0f);
+        ImGui::InputText("##preset_name", mNewPresetName, sizeof(mNewPresetName));
+        ImGui::SameLine();
+        bool validName = mNewPresetName[0] != '\0';
+        if (!validName) ImGui::BeginDisabled();
+        if (ImGui::Button("Save Preset"))
+        {
+            inputMap->SavePreset(mNewPresetName);
+            mNewPresetName[0] = '\0';
+            RefreshPresetList();
+        }
+        if (!validName) ImGui::EndDisabled();
+
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && !validName)
+            ImGui::SetTooltip("Enter a name for the preset.");
+    }
 }
 
 void InputMapWindow::DrawGamepadButtons()

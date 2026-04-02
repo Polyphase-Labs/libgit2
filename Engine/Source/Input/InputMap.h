@@ -3,6 +3,8 @@
 #include "InputTypes.h"
 
 #include <stdint.h>
+#include <string>
+#include <vector>
 
 class InputMap
 {
@@ -41,6 +43,13 @@ public:
 
     // Query: get axis value from mapped keyboard keys and/or mouse
     float GetAxisValueFromMapping(GamepadAxisCode axis) const;
+
+    // Presets (saved globally to user's AppData)
+    bool SavePreset(const std::string& name) const;
+    bool LoadPreset(const std::string& name);
+    bool DeletePreset(const std::string& name);
+    std::vector<std::string> GetPresetNames() const;
+    static std::string GetPresetsDirectory();
 
     // Display string helpers
     static const char* GetKeyCodeName(int32_t keyCode);

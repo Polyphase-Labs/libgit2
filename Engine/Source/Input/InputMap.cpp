@@ -1,8 +1,35 @@
 #include "InputMap.h"
 #include "Input.h"
+#include "Stream.h"
+#include "Utilities.h"
+#include "System/System.h"
+#include "Log.h"
+
+#include "document.h"
+#include "prettywriter.h"
+#include "stringbuffer.h"
+
+#include <cstdlib>
 
 
 InputMap* InputMap::sInstance = nullptr;
+
+static const char* sButtonKeys[GAMEPAD_BUTTON_COUNT] = {
+    "A", "B", "C", "X", "Y", "Z",
+    "L1", "R1", "L2", "R2",
+    "ThumbL", "ThumbR",
+    "Start", "Select",
+    "Left", "Right", "Up", "Down",
+    "LsLeft", "LsRight", "LsUp", "LsDown",
+    "RsLeft", "RsRight", "RsUp", "RsDown",
+    "Home"
+};
+
+static const char* sAxisKeys[GAMEPAD_AXIS_COUNT] = {
+    "LTrigger", "RTrigger",
+    "LThumbX", "LThumbY",
+    "RThumbX", "RThumbY"
+};
 
 void InputMap::Create()
 {
@@ -398,4 +425,220 @@ const char* InputMap::GetGamepadAxisName(GamepadAxisCode axis)
     case GAMEPAD_AXIS_RTHUMB_Y: return "Right Stick Y";
     default: return "Unknown";
     }
+}
+
+// --- Presets ---
+
+std::string InputMap::GetPresetsDirectory()
+{
+    std::string dir;
+
+#if PLATFORM_WINDOWS
+    const char* appData = getenv("APPDATA");
+    if (appData != nullptr)
+    {
+        dir = std::string(appData) + "/OctaveEditor/InputPresets";
+    }
+#elif PLATFORM_LINUX
+    const char* home = getenv("HOME");
+    if (home != nullptr)
+    {
+        dir = std::string(home) + "/.config/OctaveEditor/InputPresets";
+    }
+#endif
+
+    if (dir.empty())
+    {
+        dir = "Engine/Saves/InputPresets";
+    }
+
+    return dir;
+}
+
+static void EnsurePresetsDirectory()
+{
+    std::string dir = InputMap::GetPresetsDirectory();
+
+#if PLATFORM_WINDOWS
+    const char* appData = getenv("APPDATA");
+    if (appData != nullptr)
+    {
+        std::string parentDir = std::string(appData) + "/OctaveEditor";
+        if (!DoesDirExist(parentDir.c_str()))
+        {
+            SYS_CreateDirectory(parentDir.c_str());
+        }
+    }
+#elif PLATFORM_LINUX
+    const char* home = getenv("HOME");
+    if (home != nullptr)
+    {
+        std::string configDir = std::string(home) + "/.config";
+        if (!DoesDirExist(configDir.c_str()))
+            SYS_CreateDirectory(configDir.c_str());
+        std::string parentDir = configDir + "/OctaveEditor";
+        if (!DoesDirExist(parentDir.c_str()))
+            SYS_CreateDirectory(parentDir.c_str());
+    }
+#endif
+
+    if (!DoesDirExist(dir.c_str()))
+    {
+        SYS_CreateDirectory(dir.c_str());
+    }
+}
+
+bool InputMap::SavePreset(const std::string& name) const
+{
+    EnsurePresetsDirectory();
+
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
+
+    doc.AddMember("version", 1, alloc);
+
+    // Buttons
+    rapidjson::Value buttons(rapidjson::kObjectType);
+    for (int32_t i = 0; i < GAMEPAD_BUTTON_COUNT; ++i)
+    {
+        rapidjson::Value key(sButtonKeys[i], alloc);
+        buttons.AddMember(key, mButtonMappings[i], alloc);
+    }
+    doc.AddMember("buttons", buttons, alloc);
+
+    // Axes
+    rapidjson::Value axes(rapidjson::kObjectType);
+    for (int32_t i = 0; i < GAMEPAD_AXIS_COUNT; ++i)
+    {
+        rapidjson::Value axisObj(rapidjson::kObjectType);
+        axisObj.AddMember("positive", mAxisPositiveKeys[i], alloc);
+        axisObj.AddMember("negative", mAxisNegativeKeys[i], alloc);
+        axisObj.AddMember("mouseX", mAxisUseMouseX[i], alloc);
+        axisObj.AddMember("mouseY", mAxisUseMouseY[i], alloc);
+        axisObj.AddMember("sensitivity", mAxisMouseSensitivity[i], alloc);
+
+        rapidjson::Value key(sAxisKeys[i], alloc);
+        axes.AddMember(key, axisObj, alloc);
+    }
+    doc.AddMember("axes", axes, alloc);
+
+    doc.AddMember("mouseEnabled", mMouseEnabled, alloc);
+    doc.AddMember("pointerEnabled", mPointerEnabled, alloc);
+
+    // Write to file
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    std::string filePath = GetPresetsDirectory() + "/" + name + ".json";
+    Stream stream(buffer.GetString(), (uint32_t)buffer.GetSize());
+    bool success = stream.WriteFile(filePath.c_str());
+
+    if (success)
+        LogDebug("Input preset saved: %s", name.c_str());
+    else
+        LogError("Failed to save input preset: %s", name.c_str());
+
+    return success;
+}
+
+bool InputMap::LoadPreset(const std::string& name)
+{
+    std::string filePath = GetPresetsDirectory() + "/" + name + ".json";
+
+    Stream stream;
+    if (!stream.ReadFile(filePath.c_str(), false))
+    {
+        LogError("Failed to load input preset: %s", name.c_str());
+        return false;
+    }
+
+    std::string jsonStr(stream.GetData(), stream.GetSize());
+    rapidjson::Document doc;
+    doc.Parse(jsonStr.c_str());
+
+    if (doc.HasParseError())
+    {
+        LogError("Failed to parse input preset: %s", name.c_str());
+        return false;
+    }
+
+    // Buttons
+    if (doc.HasMember("buttons") && doc["buttons"].IsObject())
+    {
+        const rapidjson::Value& buttons = doc["buttons"];
+        for (int32_t i = 0; i < GAMEPAD_BUTTON_COUNT; ++i)
+        {
+            if (buttons.HasMember(sButtonKeys[i]) && buttons[sButtonKeys[i]].IsInt())
+                mButtonMappings[i] = buttons[sButtonKeys[i]].GetInt();
+        }
+    }
+
+    // Axes
+    if (doc.HasMember("axes") && doc["axes"].IsObject())
+    {
+        const rapidjson::Value& axes = doc["axes"];
+        for (int32_t i = 0; i < GAMEPAD_AXIS_COUNT; ++i)
+        {
+            if (axes.HasMember(sAxisKeys[i]) && axes[sAxisKeys[i]].IsObject())
+            {
+                const rapidjson::Value& axisObj = axes[sAxisKeys[i]];
+                if (axisObj.HasMember("positive") && axisObj["positive"].IsInt())
+                    mAxisPositiveKeys[i] = axisObj["positive"].GetInt();
+                if (axisObj.HasMember("negative") && axisObj["negative"].IsInt())
+                    mAxisNegativeKeys[i] = axisObj["negative"].GetInt();
+                if (axisObj.HasMember("mouseX") && axisObj["mouseX"].IsBool())
+                    mAxisUseMouseX[i] = axisObj["mouseX"].GetBool();
+                if (axisObj.HasMember("mouseY") && axisObj["mouseY"].IsBool())
+                    mAxisUseMouseY[i] = axisObj["mouseY"].GetBool();
+                if (axisObj.HasMember("sensitivity") && axisObj["sensitivity"].IsNumber())
+                    mAxisMouseSensitivity[i] = axisObj["sensitivity"].GetFloat();
+            }
+        }
+    }
+
+    if (doc.HasMember("mouseEnabled") && doc["mouseEnabled"].IsBool())
+        mMouseEnabled = doc["mouseEnabled"].GetBool();
+    if (doc.HasMember("pointerEnabled") && doc["pointerEnabled"].IsBool())
+        mPointerEnabled = doc["pointerEnabled"].GetBool();
+
+    LogDebug("Input preset loaded: %s", name.c_str());
+    return true;
+}
+
+bool InputMap::DeletePreset(const std::string& name)
+{
+    std::string filePath = GetPresetsDirectory() + "/" + name + ".json";
+    return (remove(filePath.c_str()) == 0);
+}
+
+std::vector<std::string> InputMap::GetPresetNames() const
+{
+    std::vector<std::string> names;
+    std::string dir = GetPresetsDirectory();
+
+    if (!DoesDirExist(dir.c_str()))
+        return names;
+
+    DirEntry entry;
+    SYS_OpenDirectory(dir + "/", entry);
+
+    while (entry.mValid)
+    {
+        if (!entry.mDirectory)
+        {
+            std::string filename = entry.mFilename;
+            // Only include .json files
+            size_t extPos = filename.rfind(".json");
+            if (extPos != std::string::npos && extPos == filename.size() - 5)
+            {
+                names.push_back(filename.substr(0, extPos));
+            }
+        }
+        SYS_IterateDirectory(entry);
+    }
+
+    SYS_CloseDirectory(entry);
+    return names;
 }
