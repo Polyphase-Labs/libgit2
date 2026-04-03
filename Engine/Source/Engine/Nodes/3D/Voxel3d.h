@@ -11,6 +11,7 @@ namespace PolyVox { template<typename VoxelType> class RawVolume; }
 class btTriangleIndexVertexArray;
 class btBvhTriangleMeshShape;
 struct btTriangleInfoMap;
+class Camera3D;
 
 // Voxel type: 0 = air (empty), 1-255 = solid material IDs
 using VoxelType = uint8_t;
@@ -30,6 +31,30 @@ struct VoxelMaterialInfo
     int32_t mAtlasTile[3] = {0, 0, 0};  // [Top, Bottom, Side] tile indices
     glm::vec4 mTintColor = glm::vec4(1.0f);  // Optional color multiplier
     bool mUseTexture = false;  // false = use vertex color (backward compat)
+};
+
+struct VoxelRayResult
+{
+    bool mHit = false;
+    glm::ivec3 mVoxel = { 0, 0, 0 };
+    glm::ivec3 mPrevVoxel = { -1, -1, -1 };
+    glm::vec3 mHitPosition = { 0.0f, 0.0f, 0.0f };
+    VoxelType mValue = 0;
+};
+
+struct VoxelPointResult
+{
+    bool mValid = false;
+    glm::ivec3 mVoxel = { 0, 0, 0 };
+    glm::vec3 mWorldPosition = { 0.0f, 0.0f, 0.0f };
+    VoxelType mValue = 0;
+};
+
+struct VoxelInfo
+{
+    glm::ivec3 mCoord = { 0, 0, 0 };
+    glm::vec3 mWorldPosition = { 0.0f, 0.0f, 0.0f };
+    VoxelType mValue = 0;
 };
 
 class POLYPHASE_API Voxel3D : public Mesh3D
@@ -66,6 +91,14 @@ public:
     void Fill(VoxelType value);
     void FillRegion(int32_t x0, int32_t y0, int32_t z0,
                     int32_t x1, int32_t y1, int32_t z1, VoxelType value);
+    void FillSphere(const glm::vec3& worldCenter, float radius, VoxelType value);
+    void FillCylinder(const glm::vec3& worldCenter, float radius, float height, int32_t axis, VoxelType value);
+
+    // Shape queries (return voxels within geometry)
+    std::vector<VoxelInfo> GetVoxelsInSphere(const glm::vec3& worldCenter, float radius);
+    std::vector<VoxelInfo> GetVoxelsInBox(const glm::vec3& worldMin, const glm::vec3& worldMax);
+    std::vector<VoxelInfo> GetVoxelsInCylinder(const glm::vec3& worldCenter, float radius, float height, int32_t axis);
+    std::vector<VoxelInfo> GetVoxelNeighbors(int32_t x, int32_t y, int32_t z);
 
     // Mesh control
     void MarkDirty();
@@ -74,6 +107,14 @@ public:
 
     // Coordinates
     glm::vec3 GetVoxelWorldPosition(int32_t x, int32_t y, int32_t z);
+
+    // Ray testing (3D DDA traversal)
+    VoxelRayResult RayTest(const glm::vec3& rayOrigin, const glm::vec3& rayDir, float maxDistance = 100.0f);
+    VoxelRayResult RayTestScreen(Camera3D* camera, int32_t screenX, int32_t screenY, float maxDistance = 100.0f);
+    VoxelRayResult RayTestCenterCamera(Camera3D* camera, float maxDistance = 100.0f);
+
+    // Point query (no ray, just coordinate lookup)
+    VoxelPointResult GetVoxelAtWorldPosition(const glm::vec3& worldPos);
 
     // Dimensions
     glm::ivec3 GetDimensions() const { return mDimensions; }

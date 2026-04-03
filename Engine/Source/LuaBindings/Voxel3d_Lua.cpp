@@ -1,5 +1,6 @@
 #include "LuaBindings/Voxel3d_Lua.h"
 #include "LuaBindings/Mesh3d_Lua.h"
+#include "LuaBindings/Camera3d_Lua.h"
 #include "LuaBindings/Vector_Lua.h"
 #include "LuaBindings/Asset_Lua.h"
 #include "LuaBindings/Texture_Lua.h"
@@ -46,6 +47,85 @@ int Voxel3D_Lua::GetVoxelWorldPosition(lua_State* L)
     return 1;
 }
 
+int Voxel3D_Lua::RayTest(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 rayOrigin = CHECK_VECTOR(L, 2);
+    glm::vec3 rayDir = CHECK_VECTOR(L, 3);
+    float maxDist = 100.0f;
+    if (!lua_isnone(L, 4)) { maxDist = CHECK_NUMBER(L, 4); }
+
+    VoxelRayResult res = voxel->RayTest(rayOrigin, rayDir, maxDist);
+
+    // Return: hit, vx, vy, vz, hitPos, prevX, prevY, prevZ, value
+    lua_pushboolean(L, res.mHit);
+    lua_pushinteger(L, res.mVoxel.x);
+    lua_pushinteger(L, res.mVoxel.y);
+    lua_pushinteger(L, res.mVoxel.z);
+    Vector_Lua::Create(L, glm::vec4(res.mHitPosition, 0.0f));
+    lua_pushinteger(L, res.mPrevVoxel.x);
+    lua_pushinteger(L, res.mPrevVoxel.y);
+    lua_pushinteger(L, res.mPrevVoxel.z);
+    lua_pushinteger(L, res.mValue);
+    return 9;
+}
+
+// Helper to push VoxelRayResult as 9 return values
+static int PushRayResult(lua_State* L, const VoxelRayResult& res)
+{
+    lua_pushboolean(L, res.mHit);
+    lua_pushinteger(L, res.mVoxel.x);
+    lua_pushinteger(L, res.mVoxel.y);
+    lua_pushinteger(L, res.mVoxel.z);
+    Vector_Lua::Create(L, glm::vec4(res.mHitPosition, 0.0f));
+    lua_pushinteger(L, res.mPrevVoxel.x);
+    lua_pushinteger(L, res.mPrevVoxel.y);
+    lua_pushinteger(L, res.mPrevVoxel.z);
+    lua_pushinteger(L, res.mValue);
+    return 9;
+}
+
+int Voxel3D_Lua::RayTestScreen(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    Camera3D* camera = CHECK_CAMERA_3D(L, 2);
+    int32_t screenX = CHECK_INTEGER(L, 3);
+    int32_t screenY = CHECK_INTEGER(L, 4);
+    float maxDist = 100.0f;
+    if (!lua_isnone(L, 5)) { maxDist = CHECK_NUMBER(L, 5); }
+
+    VoxelRayResult res = voxel->RayTestScreen(camera, screenX, screenY, maxDist);
+    return PushRayResult(L, res);
+}
+
+int Voxel3D_Lua::RayTestCenterCamera(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    Camera3D* camera = CHECK_CAMERA_3D(L, 2);
+    float maxDist = 100.0f;
+    if (!lua_isnone(L, 3)) { maxDist = CHECK_NUMBER(L, 3); }
+
+    VoxelRayResult res = voxel->RayTestCenterCamera(camera, maxDist);
+    return PushRayResult(L, res);
+}
+
+int Voxel3D_Lua::GetVoxelAtWorldPosition(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 worldPos = CHECK_VECTOR(L, 2);
+
+    VoxelPointResult res = voxel->GetVoxelAtWorldPosition(worldPos);
+
+    // Return: valid, vx, vy, vz, worldPos, value
+    lua_pushboolean(L, res.mValid);
+    lua_pushinteger(L, res.mVoxel.x);
+    lua_pushinteger(L, res.mVoxel.y);
+    lua_pushinteger(L, res.mVoxel.z);
+    Vector_Lua::Create(L, glm::vec4(res.mWorldPosition, 0.0f));
+    lua_pushinteger(L, res.mValue);
+    return 6;
+}
+
 int Voxel3D_Lua::Fill(lua_State* L)
 {
     Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
@@ -70,6 +150,99 @@ int Voxel3D_Lua::FillRegion(lua_State* L)
     voxel->FillRegion(x0, y0, z0, x1, y1, z1, static_cast<VoxelType>(value));
 
     return 0;
+}
+
+// Helper: push a VoxelInfo as a Lua table {x, y, z, position, value}
+static void PushVoxelInfo(lua_State* L, const VoxelInfo& info)
+{
+    lua_newtable(L);
+    lua_pushinteger(L, info.mCoord.x); lua_setfield(L, -2, "x");
+    lua_pushinteger(L, info.mCoord.y); lua_setfield(L, -2, "y");
+    lua_pushinteger(L, info.mCoord.z); lua_setfield(L, -2, "z");
+    Vector_Lua::Create(L, glm::vec4(info.mWorldPosition, 0.0f));
+    lua_setfield(L, -2, "position");
+    lua_pushinteger(L, info.mValue); lua_setfield(L, -2, "value");
+}
+
+// Helper: push a vector of VoxelInfo as a Lua array table
+static int PushVoxelInfoArray(lua_State* L, const std::vector<VoxelInfo>& infos)
+{
+    lua_newtable(L);
+    int tableIdx = lua_gettop(L);
+    for (size_t i = 0; i < infos.size(); ++i)
+    {
+        lua_pushinteger(L, (int)i + 1);
+        PushVoxelInfo(L, infos[i]);
+        lua_settable(L, tableIdx);
+    }
+    return 1;
+}
+
+int Voxel3D_Lua::FillSphere(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 center = CHECK_VECTOR(L, 2);
+    float radius = CHECK_NUMBER(L, 3);
+    int32_t value = CHECK_INTEGER(L, 4);
+
+    voxel->FillSphere(center, radius, static_cast<VoxelType>(value));
+    return 0;
+}
+
+int Voxel3D_Lua::FillCylinder(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 center = CHECK_VECTOR(L, 2);
+    float radius = CHECK_NUMBER(L, 3);
+    float height = CHECK_NUMBER(L, 4);
+    int32_t axis = CHECK_INTEGER(L, 5);
+    int32_t value = CHECK_INTEGER(L, 6);
+
+    voxel->FillCylinder(center, radius, height, axis, static_cast<VoxelType>(value));
+    return 0;
+}
+
+int Voxel3D_Lua::GetVoxelsInSphere(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 center = CHECK_VECTOR(L, 2);
+    float radius = CHECK_NUMBER(L, 3);
+
+    auto results = voxel->GetVoxelsInSphere(center, radius);
+    return PushVoxelInfoArray(L, results);
+}
+
+int Voxel3D_Lua::GetVoxelsInBox(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 worldMin = CHECK_VECTOR(L, 2);
+    glm::vec3 worldMax = CHECK_VECTOR(L, 3);
+
+    auto results = voxel->GetVoxelsInBox(worldMin, worldMax);
+    return PushVoxelInfoArray(L, results);
+}
+
+int Voxel3D_Lua::GetVoxelsInCylinder(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    glm::vec3 center = CHECK_VECTOR(L, 2);
+    float radius = CHECK_NUMBER(L, 3);
+    float height = CHECK_NUMBER(L, 4);
+    int32_t axis = CHECK_INTEGER(L, 5);
+
+    auto results = voxel->GetVoxelsInCylinder(center, radius, height, axis);
+    return PushVoxelInfoArray(L, results);
+}
+
+int Voxel3D_Lua::GetVoxelNeighbors(lua_State* L)
+{
+    Voxel3D* voxel = CHECK_VOXEL_3D(L, 1);
+    int32_t x = CHECK_INTEGER(L, 2);
+    int32_t y = CHECK_INTEGER(L, 3);
+    int32_t z = CHECK_INTEGER(L, 4);
+
+    auto results = voxel->GetVoxelNeighbors(x, y, z);
+    return PushVoxelInfoArray(L, results);
 }
 
 int Voxel3D_Lua::MarkDirty(lua_State* L)
@@ -223,8 +396,18 @@ void Voxel3D_Lua::Bind()
     REGISTER_TABLE_FUNC(L, mtIndex, SetVoxel);
     REGISTER_TABLE_FUNC(L, mtIndex, GetVoxel);
     REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelWorldPosition);
+    REGISTER_TABLE_FUNC(L, mtIndex, RayTest);
+    REGISTER_TABLE_FUNC(L, mtIndex, RayTestScreen);
+    REGISTER_TABLE_FUNC(L, mtIndex, RayTestCenterCamera);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelAtWorldPosition);
     REGISTER_TABLE_FUNC(L, mtIndex, Fill);
     REGISTER_TABLE_FUNC(L, mtIndex, FillRegion);
+    REGISTER_TABLE_FUNC(L, mtIndex, FillSphere);
+    REGISTER_TABLE_FUNC(L, mtIndex, FillCylinder);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelsInSphere);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelsInBox);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelsInCylinder);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetVoxelNeighbors);
     REGISTER_TABLE_FUNC(L, mtIndex, MarkDirty);
     REGISTER_TABLE_FUNC(L, mtIndex, RebuildMesh);
     REGISTER_TABLE_FUNC(L, mtIndex, IsDirty);

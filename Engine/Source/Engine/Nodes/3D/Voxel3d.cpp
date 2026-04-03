@@ -6,6 +6,8 @@
 
 #include "Assets/MaterialLite.h"
 #include "Assets/Texture.h"
+#include "Nodes/3D/Camera3d.h"
+#include "Maths.h"
 
 #include "Graphics/Graphics.h"
 
@@ -292,9 +294,6 @@ void Voxel3D::SaveStream(Stream& stream, Platform platform)
             stream.WriteBytes(compressed.data(), static_cast<uint32_t>(compressed.size()));
         }
 
-        LogDebug("Voxel3D::SaveStream - dims(%d,%d,%d) compressedSize=%u",
-            mDimensions.x, mDimensions.y, mDimensions.z,
-            static_cast<uint32_t>(compressed.size()));
     }
     else
     {
@@ -348,8 +347,6 @@ void Voxel3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
         stream.ReadBytes(mCompressedData.data(), compressedSize);
     }
 
-    LogDebug("Voxel3D::LoadStream - dims(%d,%d,%d) compressedSize=%u version=%u",
-        mDimensions.x, mDimensions.y, mDimensions.z, compressedSize, version);
 
     // When instantiated from a scene, Create() is called before LoadStream(), so the
     // volume already exists but was filled with default data. Recreate it with the
@@ -481,6 +478,186 @@ glm::vec3 Voxel3D::GetVoxelWorldPosition(int32_t x, int32_t y, int32_t z)
     );
 }
 
+VoxelRayResult Voxel3D::RayTest(const glm::vec3& rayOrigin, const glm::vec3& rayDir, float maxDistance)
+{
+    VoxelRayResult result;
+
+    if (mVolume == nullptr)
+        return result;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+    glm::vec3 invScale = 1.0f / nodeScale;
+
+    // Transform ray into voxel-local space.
+    // The +0.5 accounts for PolyVox's decode offset: voxel x's mesh is
+    // centered at integer x, spanning [x-0.5, x+0.5]. Adding 0.5 aligns
+    // DDA cell boundaries with mesh boundaries so floor() maps correctly.
+    glm::vec3 localO = (rayOrigin - nodePos) * invScale + halfDims + 0.5f;
+    glm::vec3 localD = rayDir * invScale;
+
+    // Intersect ray with voxel grid AABB [0, dims) in local space
+    float tMin = 0.0f;
+    float tMax = 1e30f;
+
+    for (int axis = 0; axis < 3; ++axis)
+    {
+        if (glm::abs(localD[axis]) > 1e-8f)
+        {
+            float t1 = (0.0f - localO[axis]) / localD[axis];
+            float t2 = (dims[axis] - localO[axis]) / localD[axis];
+            if (t1 > t2) std::swap(t1, t2);
+            if (t1 > tMin) tMin = t1;
+            if (t2 < tMax) tMax = t2;
+        }
+        else if (localO[axis] < 0.0f || localO[axis] >= dims[axis])
+        {
+            return result;
+        }
+    }
+
+    if (tMin > tMax || tMax < 0.0f)
+        return result;
+    if (tMin < 0.0f) tMin = 0.0f;
+
+    // Clamp to max ray distance (convert to local-space t)
+    float localLen = glm::length(localD);
+    float maxLocalT = maxDistance * localLen;
+    if (tMin > maxLocalT) return result;
+    if (tMax > maxLocalT) tMax = maxLocalT;
+
+    // Entry point in local voxel space
+    glm::vec3 start = localO + localD * tMin;
+
+    // Current voxel cell (clamp to valid range)
+    glm::ivec3 v = glm::clamp(glm::ivec3(glm::floor(start)), glm::ivec3(0), mDimensions - 1);
+
+    // DDA step direction
+    glm::ivec3 step;
+    step.x = localD.x >= 0.0f ? 1 : -1;
+    step.y = localD.y >= 0.0f ? 1 : -1;
+    step.z = localD.z >= 0.0f ? 1 : -1;
+
+    // tDelta: how far along t to cross one full voxel in each axis
+    glm::vec3 tDelta;
+    tDelta.x = glm::abs(localD.x) > 1e-8f ? glm::abs(1.0f / localD.x) : 1e30f;
+    tDelta.y = glm::abs(localD.y) > 1e-8f ? glm::abs(1.0f / localD.y) : 1e30f;
+    tDelta.z = glm::abs(localD.z) > 1e-8f ? glm::abs(1.0f / localD.z) : 1e30f;
+
+    // tMax per axis: t value at the next voxel boundary
+    glm::ivec3 nextBound;
+    nextBound.x = step.x > 0 ? v.x + 1 : v.x;
+    nextBound.y = step.y > 0 ? v.y + 1 : v.y;
+    nextBound.z = step.z > 0 ? v.z + 1 : v.z;
+
+    glm::vec3 tMaxAxis;
+    tMaxAxis.x = glm::abs(localD.x) > 1e-8f ? (float(nextBound.x) - localO.x) / localD.x : 1e30f;
+    tMaxAxis.y = glm::abs(localD.y) > 1e-8f ? (float(nextBound.y) - localO.y) / localD.y : 1e30f;
+    tMaxAxis.z = glm::abs(localD.z) > 1e-8f ? (float(nextBound.z) - localO.z) / localD.z : 1e30f;
+
+    glm::ivec3 prevVoxel(-1, -1, -1);
+    int maxIter = mDimensions.x + mDimensions.y + mDimensions.z + 1;
+
+    for (int i = 0; i < maxIter; ++i)
+    {
+        if (v.x < 0 || v.x >= mDimensions.x ||
+            v.y < 0 || v.y >= mDimensions.y ||
+            v.z < 0 || v.z >= mDimensions.z)
+            break;
+
+        // Distance check
+        float currentT = glm::min(tMaxAxis.x, glm::min(tMaxAxis.y, tMaxAxis.z));
+        if (currentT > maxLocalT)
+            break;
+
+        VoxelType val = mVolume->getVoxel(v.x, v.y, v.z);
+
+        if (val > 0)
+        {
+            // Compute world-space hit position
+            float entryT = currentT - glm::min(tDelta.x, glm::min(tDelta.y, tDelta.z));
+            if (entryT < tMin) entryT = tMin;
+            float worldT = entryT / localLen;
+            glm::vec3 hitPos = rayOrigin + rayDir * worldT;
+
+            result.mHit = true;
+            result.mVoxel = v;
+            result.mPrevVoxel = prevVoxel;
+            result.mHitPosition = hitPos;
+            result.mValue = val;
+            return result;
+        }
+
+        prevVoxel = v;
+
+        // Step to next voxel
+        if (tMaxAxis.x < tMaxAxis.y)
+        {
+            if (tMaxAxis.x < tMaxAxis.z) { v.x += step.x; tMaxAxis.x += tDelta.x; }
+            else { v.z += step.z; tMaxAxis.z += tDelta.z; }
+        }
+        else
+        {
+            if (tMaxAxis.y < tMaxAxis.z) { v.y += step.y; tMaxAxis.y += tDelta.y; }
+            else { v.z += step.z; tMaxAxis.z += tDelta.z; }
+        }
+    }
+
+    return result;
+}
+
+VoxelRayResult Voxel3D::RayTestScreen(Camera3D* camera, int32_t screenX, int32_t screenY, float maxDistance)
+{
+    if (camera == nullptr)
+        return {};
+
+    glm::vec3 origin = camera->GetWorldPosition();
+    glm::vec3 target = camera->ScreenToWorldPosition(screenX, screenY);
+    glm::vec3 dir = Maths::SafeNormalize(target - origin);
+    return RayTest(origin, dir, maxDistance);
+}
+
+VoxelRayResult Voxel3D::RayTestCenterCamera(Camera3D* camera, float maxDistance)
+{
+    if (camera == nullptr)
+        return {};
+
+    glm::vec3 origin = camera->GetWorldPosition();
+    glm::vec3 dir = camera->GetForwardVector();
+    return RayTest(origin, dir, maxDistance);
+}
+
+VoxelPointResult Voxel3D::GetVoxelAtWorldPosition(const glm::vec3& worldPos)
+{
+    VoxelPointResult result;
+
+    if (mVolume == nullptr)
+        return result;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    // Convert world position to voxel coordinates.
+    // Uses the same +0.5 PolyVox alignment as RayTest.
+    glm::vec3 localPos = (worldPos - nodePos) / nodeScale + halfDims + 0.5f;
+    glm::ivec3 v = glm::ivec3(glm::floor(localPos));
+
+    if (v.x < 0 || v.x >= mDimensions.x ||
+        v.y < 0 || v.y >= mDimensions.y ||
+        v.z < 0 || v.z >= mDimensions.z)
+        return result;
+
+    result.mValid = true;
+    result.mVoxel = v;
+    result.mValue = mVolume->getVoxel(v.x, v.y, v.z);
+    result.mWorldPosition = GetVoxelWorldPosition(v.x, v.y, v.z);
+    return result;
+}
+
 void Voxel3D::Fill(VoxelType value)
 {
     if (mVolume != nullptr)
@@ -527,6 +704,209 @@ void Voxel3D::FillRegion(int32_t x0, int32_t y0, int32_t z0,
         }
         MarkDirty();
     }
+}
+
+// Helper: convert world position to voxel-local coords (with +0.5 PolyVox alignment)
+static glm::vec3 WorldToVoxelLocal(const glm::vec3& worldPos, const glm::vec3& nodePos,
+                                    const glm::vec3& nodeScale, const glm::vec3& halfDims)
+{
+    return (worldPos - nodePos) / nodeScale + halfDims + 0.5f;
+}
+
+void Voxel3D::FillSphere(const glm::vec3& worldCenter, float radius, VoxelType value)
+{
+    if (mVolume == nullptr) return;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    glm::vec3 localCenter = WorldToVoxelLocal(worldCenter, nodePos, nodeScale, halfDims);
+    glm::vec3 radiusInVoxels = radius / nodeScale;
+
+    glm::ivec3 lo = glm::max(glm::ivec3(glm::floor(localCenter - radiusInVoxels)), glm::ivec3(0));
+    glm::ivec3 hi = glm::min(glm::ivec3(glm::floor(localCenter + radiusInVoxels)), mDimensions - 1);
+    float r2 = radius * radius;
+
+    for (int32_t z = lo.z; z <= hi.z; ++z)
+        for (int32_t y = lo.y; y <= hi.y; ++y)
+            for (int32_t x = lo.x; x <= hi.x; ++x)
+            {
+                glm::vec3 voxWorld = GetVoxelWorldPosition(x, y, z);
+                if (glm::dot(voxWorld - worldCenter, voxWorld - worldCenter) <= r2)
+                    mVolume->setVoxel(x, y, z, value);
+            }
+    MarkDirty();
+}
+
+void Voxel3D::FillCylinder(const glm::vec3& worldCenter, float radius, float height, int32_t axis, VoxelType value)
+{
+    if (mVolume == nullptr || axis < 0 || axis > 2) return;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    glm::vec3 localCenter = WorldToVoxelLocal(worldCenter, nodePos, nodeScale, halfDims);
+    glm::vec3 extent = radius / nodeScale;
+    extent[axis] = (height * 0.5f) / nodeScale[axis];
+
+    glm::ivec3 lo = glm::max(glm::ivec3(glm::floor(localCenter - extent)), glm::ivec3(0));
+    glm::ivec3 hi = glm::min(glm::ivec3(glm::floor(localCenter + extent)), mDimensions - 1);
+    float r2 = radius * radius;
+    float halfH = height * 0.5f;
+
+    for (int32_t z = lo.z; z <= hi.z; ++z)
+        for (int32_t y = lo.y; y <= hi.y; ++y)
+            for (int32_t x = lo.x; x <= hi.x; ++x)
+            {
+                glm::vec3 voxWorld = GetVoxelWorldPosition(x, y, z);
+                glm::vec3 diff = voxWorld - worldCenter;
+                if (glm::abs(diff[axis]) > halfH) continue;
+                float perpDist2 = 0.0f;
+                for (int a = 0; a < 3; ++a)
+                    if (a != axis) perpDist2 += diff[a] * diff[a];
+                if (perpDist2 <= r2)
+                    mVolume->setVoxel(x, y, z, value);
+            }
+    MarkDirty();
+}
+
+std::vector<VoxelInfo> Voxel3D::GetVoxelsInSphere(const glm::vec3& worldCenter, float radius)
+{
+    std::vector<VoxelInfo> results;
+    if (mVolume == nullptr) return results;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    glm::vec3 localCenter = WorldToVoxelLocal(worldCenter, nodePos, nodeScale, halfDims);
+    glm::vec3 radiusInVoxels = radius / nodeScale;
+
+    glm::ivec3 lo = glm::max(glm::ivec3(glm::floor(localCenter - radiusInVoxels)), glm::ivec3(0));
+    glm::ivec3 hi = glm::min(glm::ivec3(glm::floor(localCenter + radiusInVoxels)), mDimensions - 1);
+    float r2 = radius * radius;
+
+    for (int32_t z = lo.z; z <= hi.z; ++z)
+        for (int32_t y = lo.y; y <= hi.y; ++y)
+            for (int32_t x = lo.x; x <= hi.x; ++x)
+            {
+                glm::vec3 voxWorld = GetVoxelWorldPosition(x, y, z);
+                if (glm::dot(voxWorld - worldCenter, voxWorld - worldCenter) <= r2)
+                {
+                    VoxelInfo info;
+                    info.mCoord = { x, y, z };
+                    info.mWorldPosition = voxWorld;
+                    info.mValue = mVolume->getVoxel(x, y, z);
+                    results.push_back(info);
+                }
+            }
+    return results;
+}
+
+std::vector<VoxelInfo> Voxel3D::GetVoxelsInBox(const glm::vec3& worldMin, const glm::vec3& worldMax)
+{
+    std::vector<VoxelInfo> results;
+    if (mVolume == nullptr) return results;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    glm::vec3 localMin = WorldToVoxelLocal(worldMin, nodePos, nodeScale, halfDims);
+    glm::vec3 localMax = WorldToVoxelLocal(worldMax, nodePos, nodeScale, halfDims);
+
+    glm::ivec3 lo = glm::max(glm::ivec3(glm::floor(glm::min(localMin, localMax))), glm::ivec3(0));
+    glm::ivec3 hi = glm::min(glm::ivec3(glm::floor(glm::max(localMin, localMax))), mDimensions - 1);
+
+    for (int32_t z = lo.z; z <= hi.z; ++z)
+        for (int32_t y = lo.y; y <= hi.y; ++y)
+            for (int32_t x = lo.x; x <= hi.x; ++x)
+            {
+                VoxelInfo info;
+                info.mCoord = { x, y, z };
+                info.mWorldPosition = GetVoxelWorldPosition(x, y, z);
+                info.mValue = mVolume->getVoxel(x, y, z);
+                results.push_back(info);
+            }
+    return results;
+}
+
+std::vector<VoxelInfo> Voxel3D::GetVoxelsInCylinder(const glm::vec3& worldCenter, float radius, float height, int32_t axis)
+{
+    std::vector<VoxelInfo> results;
+    if (mVolume == nullptr || axis < 0 || axis > 2) return results;
+
+    glm::vec3 dims = glm::vec3(mDimensions);
+    glm::vec3 halfDims = dims * 0.5f;
+    glm::vec3 nodePos = GetWorldPosition();
+    glm::vec3 nodeScale = GetWorldScale();
+
+    glm::vec3 localCenter = WorldToVoxelLocal(worldCenter, nodePos, nodeScale, halfDims);
+    glm::vec3 extent = radius / nodeScale;
+    extent[axis] = (height * 0.5f) / nodeScale[axis];
+
+    glm::ivec3 lo = glm::max(glm::ivec3(glm::floor(localCenter - extent)), glm::ivec3(0));
+    glm::ivec3 hi = glm::min(glm::ivec3(glm::floor(localCenter + extent)), mDimensions - 1);
+    float r2 = radius * radius;
+    float halfH = height * 0.5f;
+
+    for (int32_t z = lo.z; z <= hi.z; ++z)
+        for (int32_t y = lo.y; y <= hi.y; ++y)
+            for (int32_t x = lo.x; x <= hi.x; ++x)
+            {
+                glm::vec3 voxWorld = GetVoxelWorldPosition(x, y, z);
+                glm::vec3 diff = voxWorld - worldCenter;
+                if (glm::abs(diff[axis]) > halfH) continue;
+                float perpDist2 = 0.0f;
+                for (int a = 0; a < 3; ++a)
+                    if (a != axis) perpDist2 += diff[a] * diff[a];
+                if (perpDist2 <= r2)
+                {
+                    VoxelInfo info;
+                    info.mCoord = { x, y, z };
+                    info.mWorldPosition = voxWorld;
+                    info.mValue = mVolume->getVoxel(x, y, z);
+                    results.push_back(info);
+                }
+            }
+    return results;
+}
+
+std::vector<VoxelInfo> Voxel3D::GetVoxelNeighbors(int32_t x, int32_t y, int32_t z)
+{
+    static const glm::ivec3 offsets[6] = {
+        { 1, 0, 0}, {-1, 0, 0},
+        { 0, 1, 0}, { 0,-1, 0},
+        { 0, 0, 1}, { 0, 0,-1}
+    };
+
+    std::vector<VoxelInfo> results;
+    results.reserve(6);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        glm::ivec3 n = glm::ivec3(x, y, z) + offsets[i];
+        VoxelInfo info;
+        info.mCoord = n;
+        info.mWorldPosition = GetVoxelWorldPosition(n.x, n.y, n.z);
+
+        if (n.x >= 0 && n.x < mDimensions.x &&
+            n.y >= 0 && n.y < mDimensions.y &&
+            n.z >= 0 && n.z < mDimensions.z &&
+            mVolume != nullptr)
+        {
+            info.mValue = mVolume->getVoxel(n.x, n.y, n.z);
+        }
+
+        results.push_back(info);
+    }
+    return results;
 }
 
 void Voxel3D::MarkDirty()

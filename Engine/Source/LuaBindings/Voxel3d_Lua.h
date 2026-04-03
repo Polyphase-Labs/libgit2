@@ -21,10 +21,22 @@ struct Voxel3D_Lua
     static int SetVoxel(lua_State* L);
     static int GetVoxel(lua_State* L);
     static int GetVoxelWorldPosition(lua_State* L);
+    static int RayTest(lua_State* L);
+    static int RayTestScreen(lua_State* L);
+    static int RayTestCenterCamera(lua_State* L);
+    static int GetVoxelAtWorldPosition(lua_State* L);
 
     // Bulk operations
     static int Fill(lua_State* L);
     static int FillRegion(lua_State* L);
+    static int FillSphere(lua_State* L);
+    static int FillCylinder(lua_State* L);
+
+    // Shape queries
+    static int GetVoxelsInSphere(lua_State* L);
+    static int GetVoxelsInBox(lua_State* L);
+    static int GetVoxelsInCylinder(lua_State* L);
+    static int GetVoxelNeighbors(lua_State* L);
 
     // Mesh control
     static int MarkDirty(lua_State* L);

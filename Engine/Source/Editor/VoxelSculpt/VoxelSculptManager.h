@@ -55,10 +55,6 @@ private:
     void DrawCursor();
     void ApplyBrush(Voxel3D* voxel, glm::ivec3 center);
 
-    bool RayMarchVoxel(Voxel3D* voxel,
-                       const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                       glm::ivec3& outHitVoxel, glm::ivec3& outPrevVoxel);
-
     // Key helper to avoid duplicate changes in one stroke
     static uint64_t VoxelKey(int32_t x, int32_t y, int32_t z);
 

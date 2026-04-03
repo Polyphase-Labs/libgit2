@@ -7252,6 +7252,18 @@ static void DrawPropertiesPanel()
                     ImGui::Text("Bits Per Sample: %d", soundWave->GetBitsPerSample());
                     ImGui::Text("Sample Rate: %d", soundWave->GetSampleRate());
                 }
+                else if (obj->As<Voxel3D>())
+                {
+                    if (GetEditorState()->mPaintMode != PaintMode::Voxel)
+                    {
+                        ImGui::NewLine();
+                        if (ImGui::Button("Open In Voxel Sculpt"))
+                        {
+                            GetEditorState()->SetEditorMode(EditorMode::Scene3D);
+                            GetEditorState()->SetPaintMode(PaintMode::Voxel);
+                        }
+                    }
+                }
             }
 
             ImGui::EndTabItem();

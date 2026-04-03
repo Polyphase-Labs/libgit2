@@ -87,103 +87,13 @@ void VoxelSculptManager::UpdateHover()
     glm::vec3 rayTarget = camera->ScreenToWorldPosition(mouseX, mouseY);
     glm::vec3 rayDir = glm::normalize(rayTarget - rayOrigin);
 
-    glm::ivec3 hitVoxel, prevVoxel;
-    if (RayMarchVoxel(voxel, rayOrigin, rayDir, hitVoxel, prevVoxel))
+    VoxelRayResult rayResult = voxel->RayTest(rayOrigin, rayDir, 200.0f);
+    if (rayResult.mHit)
     {
         mHoverValid = true;
-        mHoverVoxel = hitVoxel;
-        mHoverPlaceVoxel = prevVoxel;
+        mHoverVoxel = rayResult.mVoxel;
+        mHoverPlaceVoxel = rayResult.mPrevVoxel;
     }
-}
-
-bool VoxelSculptManager::RayMarchVoxel(Voxel3D* voxel,
-                                        const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                                        glm::ivec3& outHitVoxel, glm::ivec3& outPrevVoxel)
-{
-    glm::ivec3 dims = voxel->GetDimensions();
-    glm::vec3 halfDims = glm::vec3(dims) * 0.5f;
-
-    glm::vec3 nodePos = voxel->GetWorldPosition();
-    glm::vec3 nodeScale = voxel->GetWorldScale();
-
-    // AABB in world space
-    glm::vec3 boundsMin = nodePos - halfDims * nodeScale;
-    glm::vec3 boundsMax = nodePos + halfDims * nodeScale;
-
-    // Ray-AABB intersection (slab method)
-    float tMin = -1e30f;
-    float tMax = 1e30f;
-
-    for (int axis = 0; axis < 3; ++axis)
-    {
-        float d = rayDir[axis];
-        float o = rayOrigin[axis];
-        float bMin = boundsMin[axis];
-        float bMax = boundsMax[axis];
-
-        if (glm::abs(d) > 0.0001f)
-        {
-            float t1 = (bMin - o) / d;
-            float t2 = (bMax - o) / d;
-            if (t1 > t2) std::swap(t1, t2);
-            if (t1 > tMin) tMin = t1;
-            if (t2 < tMax) tMax = t2;
-        }
-        else if (o < bMin || o > bMax)
-        {
-            return false;
-        }
-    }
-
-    if (tMin > tMax)
-        return false;
-
-    float maxDist = 200.0f;
-    if (tMin > maxDist)
-        return false;
-
-    float startT = glm::max(0.0f, tMin);
-    float endT = glm::min(tMax, maxDist);
-    float step = 0.5f;
-    int maxIter = 500;
-
-    glm::ivec3 prevVoxelCoord(-1, -1, -1);
-    bool hasPrev = false;
-
-    for (int iter = 0; iter < maxIter; ++iter)
-    {
-        float t = startT + iter * step;
-        if (t > endT) break;
-
-        glm::vec3 worldPos = rayOrigin + rayDir * t;
-
-        // Convert to voxel coordinates
-        glm::vec3 localPos = (worldPos - nodePos) / nodeScale;
-        glm::ivec3 voxelCoord = glm::ivec3(glm::floor(localPos + halfDims));
-
-        // Bounds check
-        if (voxelCoord.x >= 0 && voxelCoord.x < dims.x &&
-            voxelCoord.y >= 0 && voxelCoord.y < dims.y &&
-            voxelCoord.z >= 0 && voxelCoord.z < dims.z)
-        {
-            uint8_t val = voxel->GetVoxel(voxelCoord.x, voxelCoord.y, voxelCoord.z);
-
-            if (val > 0)
-            {
-                outHitVoxel = voxelCoord;
-                outPrevVoxel = hasPrev ? prevVoxelCoord : voxelCoord;
-                return true;
-            }
-
-            if (!hasPrev || prevVoxelCoord != voxelCoord)
-            {
-                prevVoxelCoord = voxelCoord;
-                hasPrev = true;
-            }
-        }
-    }
-
-    return false;
 }
 
 void VoxelSculptManager::DrawCursor()
@@ -196,9 +106,6 @@ void VoxelSculptManager::DrawCursor()
         return;
 
     Voxel3D* voxel = static_cast<Voxel3D*>(selected);
-    glm::ivec3 dims = voxel->GetDimensions();
-    glm::vec3 halfDims = glm::vec3(dims) * 0.5f;
-    glm::vec3 nodePos = voxel->GetWorldPosition();
     glm::vec3 nodeScale = voxel->GetWorldScale();
 
     // Choose which voxel to highlight based on mode
@@ -214,10 +121,8 @@ void VoxelSculptManager::DrawCursor()
         default: color = glm::vec4(1.0f); break;
     }
 
-    // Convert voxel coord to world position (center of voxel mesh)
-    glm::vec3 worldPos = nodePos + (glm::vec3(target) - halfDims) * nodeScale;
+    glm::vec3 worldPos = voxel->GetVoxelWorldPosition(target.x, target.y, target.z);
 
-    // Use DebugDraw with SM_Cube
     float brushScale = static_cast<float>(mOptions.mBrushRadius);
     glm::vec3 scale = nodeScale * brushScale;
 
