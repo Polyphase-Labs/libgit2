@@ -466,6 +466,10 @@ bool Initialize()
             SCOPED_STAT("AUD_Initialize");
             AUD_Initialize();
         }
+
+#if !EDITOR
+        PlayerInputSystem::Create();
+#endif
     }
 
     {
@@ -807,6 +811,10 @@ void Shutdown()
     Renderer::Destroy();
     AssetManager::Destroy();
 
+#if !EDITOR
+    PlayerInputSystem::Destroy();
+#endif
+
     NET_Shutdown();
     if (!IsHeadless())
     {
@@ -957,6 +965,13 @@ void LoadProject(const std::string& path, bool discoverAssets)
         // If the engine is already initialized, then run the new startup script.
         // Otherwise, it will get run on Initialize().
         ScriptUtils::RunScript("Startup.lua");
+    }
+#endif
+
+#if !EDITOR
+    if (PlayerInputSystem::Get() != nullptr)
+    {
+        PlayerInputSystem::Get()->LoadProjectActions();
     }
 #endif
 

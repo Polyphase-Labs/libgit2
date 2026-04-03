@@ -1,4 +1,5 @@
 #include "PlayerInputSystem.h"
+#include "Input/InputActionsAsset.h"
 #include "Input.h"
 #include "Engine.h"
 #include "Log.h"
@@ -505,63 +506,72 @@ static AxisDirection StringToAxisDir(const char* str)
     return AxisDirection::Positive;
 }
 
-bool PlayerInputSystem::SaveToFile(const std::string& filePath) const
+void PlayerInputSystem::SaveProjectActions()
 {
-    rapidjson::Document doc;
-    doc.SetObject();
-    auto& alloc = doc.GetAllocator();
-
-    doc.AddMember("version", 1, alloc);
-
-    rapidjson::Value actionsArr(rapidjson::kArrayType);
-    for (const auto& action : mActions)
+    const std::string& projectDir = GetEngineState()->mProjectDirectory;
+    if (projectDir.empty())
     {
-        rapidjson::Value actionObj(rapidjson::kObjectType);
-        actionObj.AddMember("category", rapidjson::Value(action.category.c_str(), alloc), alloc);
-        actionObj.AddMember("name", rapidjson::Value(action.name.c_str(), alloc), alloc);
-
-        // Trigger
-        rapidjson::Value triggerObj(rapidjson::kObjectType);
-        triggerObj.AddMember("mode", rapidjson::Value(TriggerModeToString(action.trigger.mode), alloc), alloc);
-        triggerObj.AddMember("holdDuration", action.trigger.holdDuration, alloc);
-        triggerObj.AddMember("multiPressCount", action.trigger.multiPressCount, alloc);
-        triggerObj.AddMember("multiPressWindow", action.trigger.multiPressWindow, alloc);
-        actionObj.AddMember("trigger", triggerObj, alloc);
-
-        // Bindings
-        rapidjson::Value bindingsArr(rapidjson::kArrayType);
-        for (const auto& b : action.bindings)
-        {
-            rapidjson::Value bObj(rapidjson::kObjectType);
-            bObj.AddMember("sourceType", rapidjson::Value(SourceTypeToString(b.sourceType), alloc), alloc);
-            bObj.AddMember("code", b.code, alloc);
-            bObj.AddMember("axisDirection", rapidjson::Value(AxisDirToString(b.axisDirection), alloc), alloc);
-            bObj.AddMember("axisThreshold", b.axisThreshold, alloc);
-            bObj.AddMember("gamepadIndex", b.gamepadIndex, alloc);
-            bObj.AddMember("ctrl", b.requireCtrl, alloc);
-            bObj.AddMember("shift", b.requireShift, alloc);
-            bObj.AddMember("alt", b.requireAlt, alloc);
-            bindingsArr.PushBack(bObj, alloc);
-        }
-        actionObj.AddMember("bindings", bindingsArr, alloc);
-
-        actionsArr.PushBack(actionObj, alloc);
+        LogWarning("PlayerInput: Cannot save — no project directory set");
+        return;
     }
-    doc.AddMember("actions", actionsArr, alloc);
 
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
+    std::string path = projectDir + "Assets/InputActions.oct";
 
-    Stream stream(buffer.GetString(), (uint32_t)buffer.GetSize());
-    return stream.WriteFile(filePath.c_str());
+    InputActionsAsset asset;
+    asset.SetName("InputActions");
+    asset.mActions = mActions;
+    asset.SaveFile(path.c_str(), GetPlatform());
+
+    LogDebug("PlayerInput: Saved %d actions to %s", (int)mActions.size(), path.c_str());
 }
 
-bool PlayerInputSystem::LoadFromFile(const std::string& filePath)
+void PlayerInputSystem::LoadProjectActions()
+{
+    const std::string& projectDir = GetEngineState()->mProjectDirectory;
+    if (projectDir.empty())
+    {
+        LogWarning("PlayerInput: Project directory is empty, cannot load actions");
+        return;
+    }
+
+    LogDebug("PlayerInput: Loading actions from project dir: %s", projectDir.c_str());
+
+    std::string octPath = projectDir + "Assets/InputActions.oct";
+
+    // Try loading the .oct asset (non-embedded first, then embedded for romfs/3DS)
+    Stream stream;
+    if (stream.ReadFile(octPath.c_str(), false) || stream.ReadFile(octPath.c_str(), true))
+    {
+        InputActionsAsset asset;
+        asset.LoadStream(stream, GetPlatform());
+        mActions = asset.mActions;
+        RebuildLookup();
+        LogDebug("PlayerInput: Loaded %d actions from %s", (int)mActions.size(), octPath.c_str());
+        return;
+    }
+
+    LogWarning("PlayerInput: Could not find %s", octPath.c_str());
+
+    // Fallback: import from legacy InputActions.json if it exists
+    std::string jsonPath = projectDir + "InputActions.json";
+    if (LoadFromJsonFile(jsonPath))
+    {
+        LogDebug("PlayerInput: Migrated %d actions from JSON to .oct", (int)mActions.size());
+        SaveProjectActions();
+        return;
+    }
+
+    LogWarning("PlayerInput: No InputActions found (tried .oct and .json in %s)", projectDir.c_str());
+}
+
+bool PlayerInputSystem::LoadFromJsonFile(const std::string& filePath)
 {
     Stream stream;
     if (!stream.ReadFile(filePath.c_str(), false))
-        return false;
+    {
+        if (!stream.ReadFile(filePath.c_str(), true))
+            return false;
+    }
 
     std::string jsonStr(stream.GetData(), stream.GetSize());
     rapidjson::Document doc;
@@ -569,7 +579,7 @@ bool PlayerInputSystem::LoadFromFile(const std::string& filePath)
 
     if (doc.HasParseError())
     {
-        LogError("Failed to parse PlayerInput actions: %s", filePath.c_str());
+        LogError("Failed to parse PlayerInput JSON: %s", filePath.c_str());
         return false;
     }
 
@@ -642,36 +652,7 @@ bool PlayerInputSystem::LoadFromFile(const std::string& filePath)
         }
     }
 
-    LogDebug("Loaded %d input actions from %s", (int)mActions.size(), filePath.c_str());
+    RebuildLookup();
+    LogDebug("Loaded %d input actions from JSON %s", (int)mActions.size(), filePath.c_str());
     return true;
-}
-
-void PlayerInputSystem::SaveProjectActions()
-{
-    const std::string& projectDir = GetEngineState()->mProjectDirectory;
-    if (projectDir.empty())
-    {
-        LogWarning("PlayerInput: Cannot save — no project directory set");
-        return;
-    }
-
-    std::string path = projectDir + "InputActions.json";
-    if (SaveToFile(path))
-    {
-        LogDebug("PlayerInput: Saved %d actions to %s", (int)mActions.size(), path.c_str());
-    }
-    else
-    {
-        LogError("PlayerInput: Failed to save to %s", path.c_str());
-    }
-}
-
-void PlayerInputSystem::LoadProjectActions()
-{
-    const std::string& projectDir = GetEngineState()->mProjectDirectory;
-    if (projectDir.empty())
-        return;
-
-    std::string path = projectDir + "InputActions.json";
-    LoadFromFile(path);
 }

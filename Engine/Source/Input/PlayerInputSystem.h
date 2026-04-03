@@ -111,8 +111,6 @@ public:
     const InputAction* FindAction(const std::string& category, const std::string& name) const;
 
     // Serialization
-    bool SaveToFile(const std::string& filePath) const;
-    bool LoadFromFile(const std::string& filePath);
     void SaveProjectActions();
     void LoadProjectActions();
 
@@ -134,6 +132,7 @@ private:
     void EvaluateTrigger(InputAction& action, float deltaTime);
 
     std::string MakeKey(const std::string& category, const std::string& name) const;
+    bool LoadFromJsonFile(const std::string& filePath);
     void RebuildLookup();
 
     std::vector<InputAction> mActions;

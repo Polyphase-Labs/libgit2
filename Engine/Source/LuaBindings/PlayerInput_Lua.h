@@ -19,6 +19,7 @@ struct PlayerInput_Lua
 
     static int SetEnabled(lua_State* L);
     static int IsEnabled(lua_State* L);
+    static int LoadActions(lua_State* L);
 
     static void Bind();
 };

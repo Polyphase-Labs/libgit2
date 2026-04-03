@@ -944,6 +944,7 @@
     <ClCompile Include="Source\Input\Dolphin\Input_Dolphin.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
     <ClCompile Include="Source\Input\InputMap.cpp" />
+    <ClCompile Include="Source\Input\InputActionsAsset.cpp" />
     <ClCompile Include="Source\Input\PlayerInputSystem.cpp" />
     <ClCompile Include="Source\Input\InputUtils.cpp" />
     <ClCompile Include="Source\Input\Linux\Input_Linux.cpp" />
@@ -1364,6 +1365,7 @@
     <ClInclude Include="Source\Input\InputConstants.h" />
     <ClInclude Include="Source\Input\InputTypes.h" />
     <ClInclude Include="Source\Input\InputMap.h" />
+    <ClInclude Include="Source\Input\InputActionsAsset.h" />
     <ClInclude Include="Source\Input\PlayerInputSystem.h" />
     <ClInclude Include="Source\Input\InputUtils.h" />
     <ClInclude Include="Source\LuaBindings\AssetManager_Lua.h" />

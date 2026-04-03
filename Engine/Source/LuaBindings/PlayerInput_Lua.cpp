@@ -1,5 +1,9 @@
 #include "LuaBindings/PlayerInput_Lua.h"
+#include "LuaBindings/Asset_Lua.h"
+#include "LuaBindings/LuaTypeCheck.h"
 #include "Input/PlayerInputSystem.h"
+#include "Input/InputActionsAsset.h"
+#include "AssetManager.h"
 
 #include "LuaBindings/LuaUtils.h"
 #include "Assertion.h"
@@ -231,6 +235,48 @@ int PlayerInput_Lua::IsEnabled(lua_State* L)
     return 1;
 }
 
+int PlayerInput_Lua::LoadActions(lua_State* L)
+{
+    PlayerInputSystem* sys = PlayerInputSystem::Get();
+    if (sys == nullptr)
+    {
+        luaL_error(L, "PlayerInputSystem not initialized");
+        return 0;
+    }
+
+    // Accept either a string name or an asset reference
+    Asset* asset = CHECK_ASSET(L, 1);
+    if (asset == nullptr)
+    {
+        LogWarning("PlayerInput.LoadActions: Asset not found");
+        lua_pushboolean(L, false);
+        return 1;
+    }
+
+    InputActionsAsset* actionsAsset = dynamic_cast<InputActionsAsset*>(asset);
+    if (actionsAsset == nullptr)
+    {
+        LogWarning("PlayerInput.LoadActions: Asset '%s' is not an InputActionsAsset", asset->GetName().c_str());
+        lua_pushboolean(L, false);
+        return 1;
+    }
+
+    std::vector<InputAction>& actions = actionsAsset->mActions;
+    for (const InputAction& action : actions)
+    {
+        sys->RegisterAction(action.category, action.name, action.trigger.mode);
+        sys->SetTrigger(action.category, action.name, action.trigger);
+        for (const InputActionBinding& binding : action.bindings)
+        {
+            sys->AddBinding(action.category, action.name, binding);
+        }
+    }
+
+    LogDebug("PlayerInput.LoadActions: Loaded %d actions from '%s'", (int)actions.size(), asset->GetName().c_str());
+    lua_pushboolean(L, true);
+    return 1;
+}
+
 void PlayerInput_Lua::Bind()
 {
     lua_State* L = GetLua();
@@ -248,6 +294,7 @@ void PlayerInput_Lua::Bind()
     REGISTER_TABLE_FUNC(L, tableIdx, GetPlayersConnected);
     REGISTER_TABLE_FUNC(L, tableIdx, SetEnabled);
     REGISTER_TABLE_FUNC(L, tableIdx, IsEnabled);
+    REGISTER_TABLE_FUNC(L, tableIdx, LoadActions);
 
     lua_setglobal(L, PLAYER_INPUT_LUA_NAME);
     OCT_ASSERT(lua_gettop(L) == 0);

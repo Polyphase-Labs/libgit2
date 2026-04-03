@@ -278,6 +278,9 @@
     <ClCompile Include="Source\Input\InputMap.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Input\InputActionsAsset.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Input\PlayerInputSystem.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
@@ -1720,6 +1723,9 @@
       <Filter>Source Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="Source\Input\InputMap.h">
+      <Filter>Source Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Input\InputActionsAsset.h">
       <Filter>Source Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="Source\Input\PlayerInputSystem.h">

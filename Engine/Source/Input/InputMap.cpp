@@ -500,7 +500,7 @@ bool InputMap::SavePreset(const std::string& name) const
     for (int32_t i = 0; i < GAMEPAD_BUTTON_COUNT; ++i)
     {
         rapidjson::Value key(sButtonKeys[i], alloc);
-        buttons.AddMember(key, mButtonMappings[i], alloc);
+        buttons.AddMember(key, (int)mButtonMappings[i], alloc);
     }
     doc.AddMember("buttons", buttons, alloc);
 
@@ -509,8 +509,8 @@ bool InputMap::SavePreset(const std::string& name) const
     for (int32_t i = 0; i < GAMEPAD_AXIS_COUNT; ++i)
     {
         rapidjson::Value axisObj(rapidjson::kObjectType);
-        axisObj.AddMember("positive", mAxisPositiveKeys[i], alloc);
-        axisObj.AddMember("negative", mAxisNegativeKeys[i], alloc);
+        axisObj.AddMember("positive", (int)mAxisPositiveKeys[i], alloc);
+        axisObj.AddMember("negative", (int)mAxisNegativeKeys[i], alloc);
         axisObj.AddMember("mouseX", mAxisUseMouseX[i], alloc);
         axisObj.AddMember("mouseY", mAxisUseMouseY[i], alloc);
         axisObj.AddMember("sensitivity", mAxisMouseSensitivity[i], alloc);
