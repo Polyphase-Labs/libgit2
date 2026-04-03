@@ -253,7 +253,8 @@ int PlayerInput_Lua::LoadActions(lua_State* L)
         return 1;
     }
 
-    InputActionsAsset* actionsAsset = dynamic_cast<InputActionsAsset*>(asset);
+    InputActionsAsset* actionsAsset = (asset->GetType() == InputActionsAsset::GetStaticType())
+        ? static_cast<InputActionsAsset*>(asset) : nullptr;
     if (actionsAsset == nullptr)
     {
         LogWarning("PlayerInput.LoadActions: Asset '%s' is not an InputActionsAsset", asset->GetName().c_str());
