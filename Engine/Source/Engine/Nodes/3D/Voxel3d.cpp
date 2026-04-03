@@ -465,10 +465,14 @@ glm::vec3 Voxel3D::GetVoxelWorldPosition(int32_t x, int32_t y, int32_t z)
     glm::vec3 nodePos = GetWorldPosition();
     glm::vec3 nodeScale = GetWorldScale();
 
-    // Voxel center in local space (inverse of the coord conversion)
-    float lx = (float(x) + 0.5f - dims.x * 0.5f);
-    float ly = (float(y) + 0.5f - dims.y * 0.5f);
-    float lz = (float(z) + 0.5f - dims.z * 0.5f);
+    // Voxel center in local space.
+    // PolyVox's decodeMesh subtracts 0.5 from vertex positions, so a voxel
+    // at grid index (x,y,z) has its mesh centered at (x,y,z) in decoded space.
+    // After RebuildMeshInternal subtracts centerOffset (halfDims), the mesh
+    // center in local space is (x - halfDims).
+    float lx = (float(x) - dims.x * 0.5f);
+    float ly = (float(y) - dims.y * 0.5f);
+    float lz = (float(z) - dims.z * 0.5f);
 
     return glm::vec3(
         nodePos.x + lx * nodeScale.x,

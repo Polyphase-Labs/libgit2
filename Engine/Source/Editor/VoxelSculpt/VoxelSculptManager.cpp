@@ -214,8 +214,8 @@ void VoxelSculptManager::DrawCursor()
         default: color = glm::vec4(1.0f); break;
     }
 
-    // Convert voxel coord to world position (center of voxel)
-    glm::vec3 worldPos = nodePos + (glm::vec3(target) - halfDims + 0.5f) * nodeScale;
+    // Convert voxel coord to world position (center of voxel mesh)
+    glm::vec3 worldPos = nodePos + (glm::vec3(target) - halfDims) * nodeScale;
 
     // Use DebugDraw with SM_Cube
     float brushScale = static_cast<float>(mOptions.mBrushRadius);

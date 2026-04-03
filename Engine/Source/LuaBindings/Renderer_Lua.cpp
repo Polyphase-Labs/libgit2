@@ -112,6 +112,19 @@ int Renderer_Lua::GetActiveScreenResolution(lua_State* L)
     return 1;
 }
 
+int Renderer_Lua::GetViewportRect(lua_State* L)
+{
+    int32_t screenIndex = -1;
+    if (!lua_isnone(L, 1)) { screenIndex = CHECK_INDEX(L, 1); }
+
+    Renderer* renderer = Renderer::Get();
+    lua_pushinteger(L, renderer->GetViewportX(screenIndex));
+    lua_pushinteger(L, renderer->GetViewportY(screenIndex));
+    lua_pushinteger(L, renderer->GetViewportWidth(screenIndex));
+    lua_pushinteger(L, renderer->GetViewportHeight(screenIndex));
+    return 4;
+}
+
 int Renderer_Lua::GetGlobalUiScale(lua_State* L)
 {
     float uiScale = Renderer::Get()->GetGlobalUiScale();
@@ -370,6 +383,8 @@ void Renderer_Lua::Bind()
     REGISTER_TABLE_FUNC(L, tableIdx, GetScreenResolution);
 
     REGISTER_TABLE_FUNC(L, tableIdx, GetActiveScreenResolution);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, GetViewportRect);
 
     REGISTER_TABLE_FUNC(L, tableIdx, GetGlobalUiScale);
 

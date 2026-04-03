@@ -10968,10 +10968,29 @@ bool EditorImguiIsViewportHovered()
         return false;
 
     ImVec2 mp = ImGui::GetIO().MousePos;
-    return (mp.x >= sViewportDockPos.x &&
-            mp.x <  sViewportDockPos.x + sViewportDockSize.x &&
-            mp.y >= sViewportDockPos.y &&
-            mp.y <  sViewportDockPos.y + sViewportDockSize.y);
+    bool inRect = (mp.x >= sViewportDockPos.x &&
+                   mp.x <  sViewportDockPos.x + sViewportDockSize.x &&
+                   mp.y >= sViewportDockPos.y &&
+                   mp.y <  sViewportDockPos.y + sViewportDockSize.y);
+
+    if (!inRect)
+        return false;
+
+    // If a floating ImGui window (e.g. Texture Crop Editor) is hovered over
+    // the viewport area, the viewport should not consume input.
+    // Docked panels have names like "Label##EditorDock" (appended by BeginDock).
+    // Standalone windows created with ImGui::Begin() do not have this suffix.
+    ImGuiContext* ctx = ImGui::GetCurrentContext();
+    if (ctx != nullptr && ctx->HoveredWindow != nullptr)
+    {
+        const char* name = ctx->HoveredWindow->Name;
+        if (name != nullptr && strstr(name, "##EditorDock") == nullptr)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool EditorIsInterfaceVisible()
