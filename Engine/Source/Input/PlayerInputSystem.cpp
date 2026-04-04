@@ -281,12 +281,42 @@ std::string PlayerInputSystem::MakeKey(const std::string& category, const std::s
 
 void PlayerInputSystem::RebuildLookup()
 {
+    // Remove phantom entries (empty names or duplicate keys)
+    for (auto it = mActions.begin(); it != mActions.end(); )
+    {
+        if (it->name.empty())
+        {
+            it = mActions.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     // Sort by category then name so same-category actions stay grouped
     std::sort(mActions.begin(), mActions.end(), [](const InputAction& a, const InputAction& b)
     {
         if (a.category != b.category) return a.category < b.category;
         return a.name < b.name;
     });
+
+    // Remove duplicates (same category+name) that survive after sort
+    for (size_t i = 1; i < mActions.size(); )
+    {
+        if (mActions[i].category == mActions[i - 1].category &&
+            mActions[i].name == mActions[i - 1].name)
+        {
+            // Keep the first, merge bindings from the duplicate, then erase
+            for (const auto& b : mActions[i].bindings)
+                mActions[i - 1].bindings.push_back(b);
+            mActions.erase(mActions.begin() + i);
+        }
+        else
+        {
+            ++i;
+        }
+    }
 
     mActionLookup.clear();
     for (size_t i = 0; i < mActions.size(); ++i)
@@ -297,6 +327,9 @@ void PlayerInputSystem::RebuildLookup()
 
 void PlayerInputSystem::RegisterAction(const std::string& category, const std::string& name, TriggerMode mode)
 {
+    if (name.empty())
+        return;
+
     std::string key = MakeKey(category, name);
     if (mActionLookup.find(key) != mActionLookup.end())
         return; // already registered
@@ -537,6 +570,10 @@ void PlayerInputSystem::LoadProjectActions()
     LogDebug("PlayerInput: Loading actions from project dir: %s", projectDir.c_str());
 
     std::string octPath = projectDir + "Assets/InputActions.oct";
+
+    // Clear existing actions before loading to prevent duplicates on reload
+    mActions.clear();
+    mActionLookup.clear();
 
     // Try loading the .oct asset (non-embedded first, then embedded for romfs/3DS)
     Stream stream;

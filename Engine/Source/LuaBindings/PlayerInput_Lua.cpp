@@ -262,6 +262,13 @@ int PlayerInput_Lua::LoadActions(lua_State* L)
         return 1;
     }
 
+    // Clear existing actions first to prevent duplicate bindings on repeated loads
+    const std::vector<InputAction>& existing = sys->GetActions();
+    while (!existing.empty())
+    {
+        sys->UnregisterAction(existing[0].category, existing[0].name);
+    }
+
     std::vector<InputAction>& actions = actionsAsset->mActions;
     for (const InputAction& action : actions)
     {
