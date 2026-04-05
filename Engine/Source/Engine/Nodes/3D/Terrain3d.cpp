@@ -80,6 +80,7 @@ void Terrain3D::GatherProperties(std::vector<Property>& outProps)
         outProps.push_back(Property(DatumType::Float, "World Depth", this, &mWorldDepth, 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Float, "Height Scale", this, &mHeightScale, 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Float, "Snap Grid", this, &mSnapGridSize, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Bool, "Use Material Slots", this, &mUseMaterialSlots, 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Asset, "Heightmap Texture", this, &mHeightmapTexture, 1, HandlePropChange, int32_t(Texture::GetStaticType())));
     }
 }
@@ -152,6 +153,7 @@ void Terrain3D::Copy(Node* srcNode, bool recurse)
     mSnapGridSize = src->mSnapGridSize;
     mHeightmap = src->mHeightmap;
     mSplatmap = src->mSplatmap;
+    mUseMaterialSlots = src->mUseMaterialSlots;
     mHeightmapTexture = src->mHeightmapTexture;
 
     for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
@@ -200,23 +202,22 @@ void Terrain3D::SaveStream(Stream& stream, Platform platform)
     stream.WriteFloat(mWorldDepth);
     stream.WriteFloat(mHeightScale);
     stream.WriteFloat(mSnapGridSize);
+    stream.WriteBool(mUseMaterialSlots);
 
-    // Write heightmap data
+    // Write heightmap data (per-float for endian safety on GCN/Wii)
     uint32_t heightmapSize = static_cast<uint32_t>(mHeightmap.size());
     stream.WriteUint32(heightmapSize);
-    if (heightmapSize > 0)
+    for (uint32_t i = 0; i < heightmapSize; ++i)
     {
-        stream.WriteBytes(reinterpret_cast<const uint8_t*>(mHeightmap.data()),
-                          static_cast<uint32_t>(heightmapSize * sizeof(float)));
+        stream.WriteFloat(mHeightmap[i]);
     }
 
-    // Write splatmap data
+    // Write splatmap data (per-uint32 for endian safety on GCN/Wii)
     uint32_t splatmapSize = static_cast<uint32_t>(mSplatmap.size());
     stream.WriteUint32(splatmapSize);
-    if (splatmapSize > 0)
+    for (uint32_t i = 0; i < splatmapSize; ++i)
     {
-        stream.WriteBytes(reinterpret_cast<const uint8_t*>(mSplatmap.data()),
-                          static_cast<uint32_t>(splatmapSize * sizeof(uint32_t)));
+        stream.WriteUint32(mSplatmap[i]);
     }
 
     // Write material slot references
@@ -242,22 +243,25 @@ void Terrain3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
         mHeightScale = stream.ReadFloat();
         mSnapGridSize = stream.ReadFloat();
 
-        // Read heightmap data
-        uint32_t heightmapSize = stream.ReadUint32();
-        mHeightmap.resize(heightmapSize);
-        if (heightmapSize > 0)
+        if (version >= ASSET_VERSION_TERRAIN3D_MATSLOTS)
         {
-            stream.ReadBytes(reinterpret_cast<uint8_t*>(mHeightmap.data()),
-                             static_cast<uint32_t>(heightmapSize * sizeof(float)));
+            mUseMaterialSlots = stream.ReadBool();
         }
 
-        // Read splatmap data
+        // Read heightmap data (per-float for endian safety on GCN/Wii)
+        uint32_t heightmapSize = stream.ReadUint32();
+        mHeightmap.resize(heightmapSize);
+        for (uint32_t i = 0; i < heightmapSize; ++i)
+        {
+            mHeightmap[i] = stream.ReadFloat();
+        }
+
+        // Read splatmap data (per-uint32 for endian safety on GCN/Wii)
         uint32_t splatmapSize = stream.ReadUint32();
         mSplatmap.resize(splatmapSize);
-        if (splatmapSize > 0)
+        for (uint32_t i = 0; i < splatmapSize; ++i)
         {
-            stream.ReadBytes(reinterpret_cast<uint8_t*>(mSplatmap.data()),
-                             static_cast<uint32_t>(splatmapSize * sizeof(uint32_t)));
+            mSplatmap[i] = stream.ReadUint32();
         }
 
         // Read material slot references
@@ -544,8 +548,11 @@ void Terrain3D::RebuildMeshInternal()
             );
             v.mTexcoord1 = glm::vec2(0.0f);
 
-            // Color from splatmap (material weights)
-            v.mColor = (idx < mSplatmap.size()) ? mSplatmap[idx] : 0x000000FF;
+            // Color from splatmap (material weights) or white if material slots disabled
+            if (mUseMaterialSlots)
+                v.mColor = (idx < mSplatmap.size()) ? mSplatmap[idx] : 0x000000FF;
+            else
+                v.mColor = 0xFFFFFFFF; // White — no tinting
 
             mVertices.push_back(v);
         }

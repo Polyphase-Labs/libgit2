@@ -22,7 +22,7 @@ public:
     int32_t mResolutionZ = 128;       // vertices along Z axis
     float mWorldWidth = 128.0f;       // world-space extent X
     float mWorldDepth = 128.0f;       // world-space extent Z
-    float mHeightScale = 1.0f;        // multiplier for height values
+    float mHeightScale = 10.0f;        // multiplier for height values
 
     // Heightmap data (row-major, resX * resZ floats)
     std::vector<float> mHeightmap;
@@ -33,6 +33,7 @@ public:
     // Material slots (up to 4, MaterialLite only for Wii/3DS compat)
     static constexpr int32_t MAX_MATERIAL_SLOTS = 4;
     MaterialRef mMaterialSlots[MAX_MATERIAL_SLOTS];
+    bool mUseMaterialSlots = false;  // When false, vertex color is white (no splatmap tinting)
 
     // Snapping
     float mSnapGridSize = 0.0f;  // 0 = no snapping

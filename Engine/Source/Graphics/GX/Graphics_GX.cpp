@@ -1145,8 +1145,17 @@ void GFX_UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexCol
 
     Terrain3DResource* resource = terrain->GetResource();
 
+    // Free old display list
+    if (resource->mDisplayList != nullptr)
+    {
+        free(resource->mDisplayList);
+        resource->mDisplayList = nullptr;
+        resource->mDisplayListSize = 0;
+    }
+
     // Copy vertex data
-    uint32_t vertexDataSize = (uint32_t)(vertices.size() * sizeof(VertexColor));
+    uint32_t numVertices = (uint32_t)vertices.size();
+    uint32_t vertexDataSize = numVertices * sizeof(VertexColor);
     if (resource->mVertexData == nullptr || resource->mVertexDataSize < vertexDataSize)
     {
         if (resource->mVertexData != nullptr)
@@ -1157,30 +1166,48 @@ void GFX_UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexCol
     memcpy(resource->mVertexData, vertices.data(), vertexDataSize);
     DCFlushRange(resource->mVertexData, vertexDataSize);
 
-    // Build display list
+    // Build display list with batching for GX_Begin's uint16 vertex count limit.
+    // GX_Begin takes a uint16_t count, so max 65535 vertices per batch.
+    // We batch in multiples of 3 (triangles) to avoid splitting a triangle.
     uint32_t numIndices = (uint32_t)indices.size();
-    uint32_t dlEstimate = 32 + numIndices * 4;
-    void* dlBuffer = memalign(32, dlEstimate);
+    uint32_t numTriangles = numIndices / 3;
+    const uint32_t kMaxIndicesPerBatch = 65535 - (65535 % 3); // 65535 rounded down to multiple of 3
 
-    GX_BeginDispList(dlBuffer, dlEstimate);
-    GX_Begin(GX_TRIANGLES, GX_VTXFMT0, (uint16_t)numIndices);
-    for (uint32_t i = 0; i < numIndices; ++i)
+    // Estimate: 3 bytes per GX_Begin + 10 bytes per index entry + padding per batch
+    uint32_t numBatches = (numIndices + kMaxIndicesPerBatch - 1) / kMaxIndicesPerBatch;
+    uint32_t gxBeginSize = 3;
+    uint32_t elemSize = 2 + 2 + 2 + 2 + 2; // pos + nrm + clr + tex0 + tex1 = 10 bytes
+    uint32_t allocSize = numBatches * gxBeginSize + (elemSize * numIndices);
+    allocSize = (allocSize + 0x1f) & (~0x1f);
+    allocSize += 64; // pipe flush padding
+
+    resource->mDisplayList = memalign(32, allocSize);
+    DCInvalidateRange(resource->mDisplayList, allocSize);
+
+    GX_BeginDispList(resource->mDisplayList, allocSize);
+
+    uint32_t offset = 0;
+    while (offset < numIndices)
     {
-        uint16_t idx = (uint16_t)indices[i];
-        GX_Position1x16(idx);
-        GX_Normal1x16(idx);
-        GX_Color1x16(idx);
-        GX_TexCoord1x16(idx);
-        GX_TexCoord1x16(idx);
+        uint32_t batchCount = numIndices - offset;
+        if (batchCount > kMaxIndicesPerBatch)
+            batchCount = kMaxIndicesPerBatch;
+
+        GX_Begin(GX_TRIANGLES, GX_VTXFMT0, (uint16_t)batchCount);
+        for (uint32_t i = 0; i < batchCount; ++i)
+        {
+            uint16_t idx = (uint16_t)indices[offset + i];
+            GX_Position1x16(idx);
+            GX_Normal1x16(idx);
+            GX_Color1x16(idx);
+            GX_TexCoord1x16(idx);
+            GX_TexCoord1x16(idx);
+        }
+        GX_End();
+        offset += batchCount;
     }
-    GX_End();
-    uint32_t dlSize = GX_EndDispList();
 
-    if (resource->mDisplayList != nullptr)
-        free(resource->mDisplayList);
-
-    resource->mDisplayList = dlBuffer;
-    resource->mDisplayListSize = dlSize;
+    resource->mDisplayListSize = GX_EndDispList();
     OCT_ASSERT(resource->mDisplayListSize != 0);
 }
 
