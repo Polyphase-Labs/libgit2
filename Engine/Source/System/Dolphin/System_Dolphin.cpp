@@ -476,6 +476,34 @@ float SYS_GetCPUUsage()
     return 0.0f;
 }
 
+float SYS_GetTotalRAM()
+{
+#if PLATFORM_WII
+    return 88.0f; // 24MB MEM1 + 64MB MEM2
+#else
+    return 40.0f; // 24MB main + 16MB aux
+#endif
+}
+
+float SYS_GetTotalVRAM()
+{
+    return 3.0f; // Embedded GPU memory
+}
+
+float SYS_GetTotalRAM1()
+{
+    return 24.0f; // MEM1 / 1T-SRAM
+}
+
+float SYS_GetTotalRAM2()
+{
+#if PLATFORM_WII
+    return 64.0f; // MEM2 / GDDR3
+#else
+    return 16.0f; // Aux DRAM
+#endif
+}
+
 static bool IsMemoryCardMounted()
 {
     return GetEngineState()->mSystem.mMemoryCardMounted;

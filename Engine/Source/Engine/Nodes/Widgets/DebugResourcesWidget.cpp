@@ -145,11 +145,16 @@ void DebugResourcesWidget::Tick(float deltaTime)
         float ram2 = SYS_GetRAM2Usage();
         float cpu = SYS_GetCPUUsage();
 
-        // Use reasonable max values for the progress bars
-        float ramMax = (ram > 0.0f) ? ram * 2.0f : 512.0f;
-        float vramMax = (vram > 0.0f) ? vram * 2.0f : 256.0f;
-        float ram1Max = (ram1 > 0.0f) ? ram1 * 2.0f : 256.0f;
-        float ram2Max = (ram2 > 0.0f) ? ram2 * 2.0f : 128.0f;
+        float ramMax = SYS_GetTotalRAM();
+        float vramMax = SYS_GetTotalVRAM();
+        float ram1Max = SYS_GetTotalRAM1();
+        float ram2Max = SYS_GetTotalRAM2();
+
+        // Fallback if total is unknown or zero
+        if (ramMax <= 0.0f) ramMax = 512.0f;
+        if (vramMax <= 0.0f) vramMax = 256.0f;
+        if (ram1Max <= 0.0f) ram1Max = 256.0f;
+        if (ram2Max <= 0.0f) ram2Max = 128.0f;
 
         UpdateRow(mRAMRow, ram, ramMax, "MB");
         UpdateRow(mVRAMRow, vram, vramMax, "MB");

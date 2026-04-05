@@ -485,6 +485,26 @@ float SYS_GetCPUUsage()
     return 0.0f;
 }
 
+float SYS_GetTotalRAM()
+{
+    return 128.0f; // New 3DS FCRAM
+}
+
+float SYS_GetTotalVRAM()
+{
+    return 6.0f; // 3DS dedicated VRAM
+}
+
+float SYS_GetTotalRAM1()
+{
+    return 128.0f; // FCRAM
+}
+
+float SYS_GetTotalRAM2()
+{
+    return 6.0f; // VRAM
+}
+
 bool SYS_ReadSave(const char* saveName, Stream& outStream)
 {
     bool success = false;

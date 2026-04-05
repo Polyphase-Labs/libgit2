@@ -1086,6 +1086,34 @@ float SYS_GetCPUUsage()
     return sCpuUsage;
 }
 
+float SYS_GetTotalRAM()
+{
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long pageSize = sysconf(_SC_PAGE_SIZE);
+    if (pages > 0 && pageSize > 0)
+        return (float)((double)pages * pageSize / (1024.0 * 1024.0));
+    return 0.0f;
+}
+
+float SYS_GetTotalVRAM()
+{
+#if API_VULKAN
+    return (float)(VramAllocator::GetNumAllocatedBytes() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetTotalRAM1()
+{
+    return 0.0f;
+}
+
+float SYS_GetTotalRAM2()
+{
+    return 0.0f;
+}
+
 // Save Game
 bool SYS_ReadSave(const char* saveName, Stream& outStream)
 {

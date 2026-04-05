@@ -880,6 +880,47 @@ float SYS_GetCPUUsage()
     return 0.0f;
 }
 
+float SYS_GetTotalRAM()
+{
+    float ramMB = 0.0f;
+    FILE* file = fopen("/proc/meminfo", "r");
+    if (file != nullptr)
+    {
+        char line[256];
+        while (fgets(line, sizeof(line), file))
+        {
+            if (strncmp(line, "MemTotal:", 9) == 0)
+            {
+                long totalKB = 0;
+                sscanf(line + 9, "%ld", &totalKB);
+                ramMB = (float)(totalKB / 1024.0);
+                break;
+            }
+        }
+        fclose(file);
+    }
+    return ramMB;
+}
+
+float SYS_GetTotalVRAM()
+{
+#if API_VULKAN
+    return (float)(VramAllocator::GetNumAllocatedBytes() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetTotalRAM1()
+{
+    return 0.0f;
+}
+
+float SYS_GetTotalRAM2()
+{
+    return 0.0f;
+}
+
 // Save Game
 bool SYS_ReadSave(const char* saveName, Stream& outStream)
 {

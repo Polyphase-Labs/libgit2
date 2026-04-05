@@ -1044,6 +1044,34 @@ float SYS_GetCPUUsage()
     return sCpuUsage;
 }
 
+float SYS_GetTotalRAM()
+{
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    return (float)(memInfo.ullTotalPhys / (1024.0 * 1024.0));
+}
+
+float SYS_GetTotalVRAM()
+{
+#if API_VULKAN
+    // Report allocated as best estimate; no total query without DXGI
+    return (float)(VramAllocator::GetNumAllocatedBytes() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetTotalRAM1()
+{
+    return 0.0f;
+}
+
+float SYS_GetTotalRAM2()
+{
+    return 0.0f;
+}
+
 // Save Game
 bool SYS_ReadSave(const char* saveName, Stream& outStream)
 {

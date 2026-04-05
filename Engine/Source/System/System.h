@@ -81,6 +81,10 @@ float SYS_GetVRAMUsage();
 float SYS_GetRAM1Usage();
 float SYS_GetRAM2Usage();
 float SYS_GetCPUUsage();
+float SYS_GetTotalRAM();
+float SYS_GetTotalVRAM();
+float SYS_GetTotalRAM1();
+float SYS_GetTotalRAM2();
 
 // Save / Memcard
 bool SYS_ReadSave(const char* saveName, Stream& outStream);
