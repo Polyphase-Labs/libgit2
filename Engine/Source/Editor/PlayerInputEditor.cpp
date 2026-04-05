@@ -164,7 +164,7 @@ void PlayerInputEditor::Draw()
     ImGui::End();
 }
 
-void PlayerInputEditor::DuplicateAction(int actionIndex, const std::string& toCategory, const std::string& newName)
+void PlayerInputEditor::DuplicateAction(int actionIndex, std::string toCategory, std::string newName)
 {
     PlayerInputSystem* sys = PlayerInputSystem::Get();
     const auto& actions = sys->GetActions();

@@ -45,7 +45,7 @@ private:
     void DrawActionContextMenu(int actionIndex);
     void DrawCategoryContextMenu(const std::string& category);
     void DrawPopupModal();
-    void DuplicateAction(int actionIndex, const std::string& toCategory, const std::string& newName);
+    void DuplicateAction(int actionIndex, std::string toCategory, std::string newName);
     void PasteAction(const std::string& toCategory, bool overrideExisting);
 };
 

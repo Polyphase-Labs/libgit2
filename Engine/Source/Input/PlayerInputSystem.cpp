@@ -1,5 +1,6 @@
 #include "PlayerInputSystem.h"
 #include "Input/InputActionsAsset.h"
+#include "Input/InputMap.h"
 #include "Input.h"
 #include "Engine.h"
 #include "AssetManager.h"
@@ -77,11 +78,23 @@ bool PlayerInputSystem::PollBindingDown(const InputActionBinding& binding, int32
         return INP_IsPointerDown(ptrIdx);
 
     case InputSourceType::GamepadButton:
-        return INP_IsGamepadButtonDown(binding.code, gpIdx);
+    {
+        // Read raw physical state — bypass InputMap keyboard fallback
+        InputState& input = GetEngineState()->mInput;
+        if (gpIdx >= 0 && gpIdx < INPUT_MAX_GAMEPADS &&
+            binding.code >= 0 && binding.code < GAMEPAD_BUTTON_COUNT)
+            return input.mGamepads[gpIdx].mButtons[binding.code];
+        return false;
+    }
 
     case InputSourceType::GamepadAxis:
     {
-        float val = INP_GetGamepadAxisValue(binding.code, gpIdx);
+        // Read raw physical state — bypass InputMap keyboard fallback
+        float val = 0.0f;
+        InputState& input = GetEngineState()->mInput;
+        if (gpIdx >= 0 && gpIdx < INPUT_MAX_GAMEPADS &&
+            binding.code >= 0 && binding.code < GAMEPAD_AXIS_COUNT)
+            val = input.mGamepads[gpIdx].mAxes[binding.code];
         if (binding.axisDirection == AxisDirection::Positive)
             return val >= binding.axisThreshold;
         else if (binding.axisDirection == AxisDirection::Negative)
@@ -114,11 +127,23 @@ float PlayerInputSystem::PollBindingValue(const InputActionBinding& binding, int
         return INP_IsPointerDown(ptrIdx) ? 1.0f : 0.0f;
 
     case InputSourceType::GamepadButton:
-        return INP_IsGamepadButtonDown(binding.code, gpIdx) ? 1.0f : 0.0f;
+    {
+        // Read raw physical state — bypass InputMap keyboard fallback
+        InputState& input = GetEngineState()->mInput;
+        if (gpIdx >= 0 && gpIdx < INPUT_MAX_GAMEPADS &&
+            binding.code >= 0 && binding.code < GAMEPAD_BUTTON_COUNT)
+            return input.mGamepads[gpIdx].mButtons[binding.code] ? 1.0f : 0.0f;
+        return 0.0f;
+    }
 
     case InputSourceType::GamepadAxis:
     {
-        float val = INP_GetGamepadAxisValue(binding.code, gpIdx);
+        // Read raw physical state — bypass InputMap keyboard fallback
+        float val = 0.0f;
+        InputState& input = GetEngineState()->mInput;
+        if (gpIdx >= 0 && gpIdx < INPUT_MAX_GAMEPADS &&
+            binding.code >= 0 && binding.code < GAMEPAD_AXIS_COUNT)
+            val = input.mGamepads[gpIdx].mAxes[binding.code];
         // Apply deadzone threshold — return 0 if below threshold
         if (binding.axisDirection == AxisDirection::Positive)
             return val >= binding.axisThreshold ? val : 0.0f;
@@ -540,6 +565,66 @@ static AxisDirection StringToAxisDir(const char* str)
     return AxisDirection::Positive;
 }
 
+static const char* GetBindingCodeName(InputSourceType type, int32_t code)
+{
+    switch (type)
+    {
+    case InputSourceType::Keyboard:
+        return InputMap::GetKeyCodeName(code);
+    case InputSourceType::GamepadButton:
+        if (code >= 0 && code < GAMEPAD_BUTTON_COUNT)
+            return InputMap::GetGamepadButtonName((GamepadButtonCode)code);
+        return "?";
+    case InputSourceType::GamepadAxis:
+        if (code >= 0 && code < GAMEPAD_AXIS_COUNT)
+            return InputMap::GetGamepadAxisName((GamepadAxisCode)code);
+        return "?";
+    default:
+        return "";
+    }
+}
+
+static void DumpLoadedActions(const std::vector<InputAction>& actions)
+{
+    LogDebug("PlayerInput: ========== ACTION DUMP (%d actions) ==========", (int)actions.size());
+
+    for (size_t i = 0; i < actions.size(); ++i)
+    {
+        const InputAction& action = actions[i];
+        LogDebug("PlayerInput: [%d] Category=\"%s\" Name=\"%s\" Trigger=%s (hold=%.2fs, multiCount=%d, multiWindow=%.2fs)",
+            (int)i,
+            action.category.c_str(),
+            action.name.c_str(),
+            TriggerModeToString(action.trigger.mode),
+            action.trigger.holdDuration,
+            action.trigger.multiPressCount,
+            action.trigger.multiPressWindow);
+
+        if (action.bindings.empty())
+        {
+            LogDebug("PlayerInput:   (no bindings)");
+        }
+
+        for (size_t b = 0; b < action.bindings.size(); ++b)
+        {
+            const InputActionBinding& binding = action.bindings[b];
+            LogDebug("PlayerInput:   Binding[%d]: %s code=%d(%s) dir=%s thresh=%.2f pad=%d%s%s%s",
+                (int)b,
+                SourceTypeToString(binding.sourceType),
+                binding.code,
+                GetBindingCodeName(binding.sourceType, binding.code),
+                AxisDirToString(binding.axisDirection),
+                binding.axisThreshold,
+                binding.gamepadIndex,
+                binding.requireCtrl ? " +Ctrl" : "",
+                binding.requireShift ? " +Shift" : "",
+                binding.requireAlt ? " +Alt" : "");
+        }
+    }
+
+    LogDebug("PlayerInput: ========== END ACTION DUMP ==========");
+}
+
 void PlayerInputSystem::SaveProjectActions()
 {
     const std::string& projectDir = GetEngineState()->mProjectDirectory;
@@ -592,6 +677,7 @@ void PlayerInputSystem::LoadProjectActions()
         mActions = asset.mActions;
         RebuildLookup();
         LogDebug("PlayerInput: Loaded %d actions from %s", (int)mActions.size(), octPath.c_str());
+        DumpLoadedActions(mActions);
         return;
     }
 
@@ -602,6 +688,7 @@ void PlayerInputSystem::LoadProjectActions()
     if (LoadFromJsonFile(jsonPath))
     {
         LogDebug("PlayerInput: Migrated %d actions from JSON to .oct", (int)mActions.size());
+        DumpLoadedActions(mActions);
         SaveProjectActions();
         return;
     }
