@@ -343,8 +343,8 @@ float Terrain3D::GetHeightAtWorldPos(float worldX, float worldZ) const
     float tz = fz - iz;
 
     // Clamp to valid interpolation range
-    ix = std::max(0, std::min(ix, mResolutionX - 2));
-    iz = std::max(0, std::min(iz, mResolutionZ - 2));
+    ix = std::max(0, std::min(ix, (int)(mResolutionX - 2)));
+    iz = std::max(0, std::min(iz, (int)(mResolutionZ - 2)));
 
     // Bilinear interpolation
     float h00 = GetHeight(ix, iz);
@@ -410,8 +410,8 @@ void Terrain3D::FlattenAll(float height)
 
 void Terrain3D::Resize(int32_t resX, int32_t resZ, float worldW, float worldD)
 {
-    mResolutionX = std::max(resX, 2);
-    mResolutionZ = std::max(resZ, 2);
+    mResolutionX = std::max(resX, (int32_t)2);
+    mResolutionZ = std::max(resZ, (int32_t)2);
     mWorldWidth = worldW;
     mWorldDepth = worldD;
 
