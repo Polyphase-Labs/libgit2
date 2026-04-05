@@ -17,7 +17,7 @@ public:
     virtual void EditorTick(float deltaTime) override;
 
     void SetShowMultipleRAM(bool show);
-    void SetShowCPU(bool show);
+    void SetShowFPS(bool show);
     void SetShowVRAM(bool show);
 
 private:
@@ -36,13 +36,15 @@ private:
     ResourceRow mVRAMRow;
     ResourceRow mRAM1Row;
     ResourceRow mRAM2Row;
-    ResourceRow mCPURow;
+    ResourceRow mFPSRow;
 
     bool mShowMultipleRAM = true;
-    bool mShowCPU = true;
+    bool mShowFPS = true;
     bool mShowVRAM = true;
     bool mLayoutDirty = true;
     float mUpdateTimer = 0.0f;
+    float mFpsAccum = 0.0f;
+    uint32_t mFpsSamples = 0;
     static constexpr float sUpdateInterval = 0.5f;
 
     float mRowHeight = 22.0f;

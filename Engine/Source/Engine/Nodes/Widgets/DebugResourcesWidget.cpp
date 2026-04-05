@@ -64,16 +64,16 @@ void DebugResourcesWidget::Create()
     createRow(mVRAMRow, "VRAM");
     createRow(mRAM1Row, "RAM1");
     createRow(mRAM2Row, "RAM2");
-    createRow(mCPURow, "CPU");
+    createRow(mFPSRow, "FPS");
 
     mRAMRow.mLabel->SetText("RAM");
     mVRAMRow.mLabel->SetText("VRAM");
     mRAM1Row.mLabel->SetText("RAM1");
     mRAM2Row.mLabel->SetText("RAM2");
-    mCPURow.mLabel->SetText("CPU");
+    mFPSRow.mLabel->SetText("FPS");
 
-    // CPU bar has a different color
-    mCPURow.mBar->SetFillColor(glm::vec4(0.9f, 0.5f, 0.2f, 1.0f));
+    // FPS bar has a different color
+    mFPSRow.mBar->SetFillColor(glm::vec4(0.9f, 0.5f, 0.2f, 1.0f));
 
     SetDimensions(300.0f, 140.0f);
     mLayoutDirty = true;
@@ -110,7 +110,7 @@ void DebugResourcesWidget::RebuildLayout()
     layoutRow(mVRAMRow, mShowVRAM);
     layoutRow(mRAM1Row, mShowMultipleRAM);
     layoutRow(mRAM2Row, mShowMultipleRAM);
-    layoutRow(mCPURow, mShowCPU);
+    layoutRow(mFPSRow, mShowFPS);
 
     SetHeight(y);
     mLayoutDirty = false;
@@ -134,6 +134,13 @@ void DebugResourcesWidget::Tick(float deltaTime)
     if (mLayoutDirty)
         RebuildLayout();
 
+    // Accumulate FPS samples every frame
+    if (deltaTime > 0.0f)
+    {
+        mFpsAccum += 1.0f / deltaTime;
+        mFpsSamples++;
+    }
+
     mUpdateTimer += deltaTime;
     if (mUpdateTimer >= sUpdateInterval)
     {
@@ -143,7 +150,9 @@ void DebugResourcesWidget::Tick(float deltaTime)
         float vram = SYS_GetVRAMUsage();
         float ram1 = SYS_GetRAM1Usage();
         float ram2 = SYS_GetRAM2Usage();
-        float cpu = SYS_GetCPUUsage();
+        float fps = (mFpsSamples > 0) ? (mFpsAccum / mFpsSamples) : 0.0f;
+        mFpsAccum = 0.0f;
+        mFpsSamples = 0;
 
         float ramMax = SYS_GetTotalRAM();
         float vramMax = SYS_GetTotalVRAM();
@@ -160,7 +169,7 @@ void DebugResourcesWidget::Tick(float deltaTime)
         UpdateRow(mVRAMRow, vram, vramMax, "MB");
         UpdateRow(mRAM1Row, ram1, ram1Max, "MB");
         UpdateRow(mRAM2Row, ram2, ram2Max, "MB");
-        UpdateRow(mCPURow, cpu, 100.0f, "%");
+        UpdateRow(mFPSRow, fps, 60.0f, "FPS");
     }
 
     Canvas::Tick(deltaTime);
@@ -180,11 +189,11 @@ void DebugResourcesWidget::SetShowMultipleRAM(bool show)
     }
 }
 
-void DebugResourcesWidget::SetShowCPU(bool show)
+void DebugResourcesWidget::SetShowFPS(bool show)
 {
-    if (mShowCPU != show)
+    if (mShowFPS != show)
     {
-        mShowCPU = show;
+        mShowFPS = show;
         mLayoutDirty = true;
     }
 }

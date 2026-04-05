@@ -473,7 +473,21 @@ float SYS_GetRAM2Usage()
 
 float SYS_GetCPUUsage()
 {
-    return 0.0f;
+    // No per-process CPU query on GC/Wii; estimate from frame time vs 60fps budget
+    static uint64_t sPrevUs = 0;
+    static float sCpuUsage = 0.0f;
+
+    uint64_t curUs = SYS_GetTimeMicroseconds();
+    if (sPrevUs != 0)
+    {
+        double frameMs = (double)(curUs - sPrevUs) / 1000.0;
+        // 16.67ms = 100% of a 60fps frame budget
+        sCpuUsage = (float)(frameMs / 16.667 * 100.0);
+        if (sCpuUsage > 200.0f) sCpuUsage = 200.0f;
+    }
+    sPrevUs = curUs;
+
+    return sCpuUsage;
 }
 
 float SYS_GetTotalRAM()

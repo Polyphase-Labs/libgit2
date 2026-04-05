@@ -138,7 +138,7 @@ function Renderer.GetCPUUsage() end
 ---Creates a DebugResourcesWidget showing resource usage with progress bars
 ---@param parent Node Parent widget to attach to
 ---@param showMultipleRAM? boolean Show RAM1/RAM2 rows (default true)
----@param showCPU? boolean Show CPU row (default true)
+---@param showFPS? boolean Show FPS row (default true)
 ---@param showVRAM? boolean Show VRAM row (default true)
 ---@return DebugResourcesWidget
 function Renderer.AddDebugResourcesWidget(parent, showMultipleRAM, showCPU, showVRAM) end

@@ -1006,40 +1006,37 @@ float SYS_GetRAM2Usage()
 
 float SYS_GetCPUUsage()
 {
-    static ULARGE_INTEGER sPrevKernel = {};
-    static ULARGE_INTEGER sPrevUser = {};
-    static ULARGE_INTEGER sPrevTime = {};
+    static ULONGLONG sPrevCpuTime = 0;
+    static uint64_t sPrevWallUs = 0;
     static float sCpuUsage = 0.0f;
 
     FILETIME ftCreation, ftExit, ftKernel, ftUser;
-    FILETIME ftNow;
+    if (!GetProcessTimes(GetCurrentProcess(), &ftCreation, &ftExit, &ftKernel, &ftUser))
+        return sCpuUsage;
 
-    GetProcessTimes(GetCurrentProcess(), &ftCreation, &ftExit, &ftKernel, &ftUser);
-    GetSystemTimeAsFileTime(&ftNow);
+    ULARGE_INTEGER kernel, user;
+    kernel.LowPart = ftKernel.dwLowDateTime;
+    kernel.HighPart = ftKernel.dwHighDateTime;
+    user.LowPart = ftUser.dwLowDateTime;
+    user.HighPart = ftUser.dwHighDateTime;
 
-    ULARGE_INTEGER curKernel, curUser, curTime;
-    curKernel.LowPart = ftKernel.dwLowDateTime;
-    curKernel.HighPart = ftKernel.dwHighDateTime;
-    curUser.LowPart = ftUser.dwLowDateTime;
-    curUser.HighPart = ftUser.dwHighDateTime;
-    curTime.LowPart = ftNow.dwLowDateTime;
-    curTime.HighPart = ftNow.dwHighDateTime;
+    // Combined CPU time in 100ns intervals
+    ULONGLONG curCpuTime = kernel.QuadPart + user.QuadPart;
+    uint64_t curWallUs = SYS_GetTimeMicroseconds();
 
-    if (sPrevTime.QuadPart != 0)
+    if (sPrevWallUs != 0)
     {
-        ULONGLONG cpuDelta = (curKernel.QuadPart - sPrevKernel.QuadPart)
-                           + (curUser.QuadPart - sPrevUser.QuadPart);
-        ULONGLONG timeDelta = curTime.QuadPart - sPrevTime.QuadPart;
+        double cpuSeconds = (double)(curCpuTime - sPrevCpuTime) / 10000000.0;
+        double wallSeconds = (double)(curWallUs - sPrevWallUs) / 1000000.0;
 
-        if (timeDelta > 0)
+        if (wallSeconds > 0.001)
         {
-            sCpuUsage = (float)(100.0 * cpuDelta / timeDelta);
+            sCpuUsage = (float)(cpuSeconds / wallSeconds * 100.0);
         }
     }
 
-    sPrevKernel = curKernel;
-    sPrevUser = curUser;
-    sPrevTime = curTime;
+    sPrevCpuTime = curCpuTime;
+    sPrevWallUs = curWallUs;
 
     return sCpuUsage;
 }

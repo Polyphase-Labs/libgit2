@@ -396,11 +396,11 @@ int Renderer_Lua::GetCPUUsage(lua_State* L)
 
 int Renderer_Lua::AddDebugResourcesWidget(lua_State* L)
 {
-    // Args: parent (Widget), showMultipleRAM (bool), showCPU (bool), showVRAM (bool)
+    // Args: parent (Widget), showMultipleRAM (bool), showFPS (bool), showVRAM (bool)
     Node* parent = CHECK_NODE(L, 1);
 
     bool showMultipleRAM = lua_isnoneornil(L, 2) ? true : lua_toboolean(L, 2);
-    bool showCPU = lua_isnoneornil(L, 3) ? true : lua_toboolean(L, 3);
+    bool showFPS = lua_isnoneornil(L, 3) ? true : lua_toboolean(L, 3);
     bool showVRAM = lua_isnoneornil(L, 4) ? true : lua_toboolean(L, 4);
 
     DebugResourcesWidget* widget = parent->CreateChild<DebugResourcesWidget>();
@@ -408,7 +408,7 @@ int Renderer_Lua::AddDebugResourcesWidget(lua_State* L)
     if (widget != nullptr)
     {
         widget->SetShowMultipleRAM(showMultipleRAM);
-        widget->SetShowCPU(showCPU);
+        widget->SetShowFPS(showFPS);
         widget->SetShowVRAM(showVRAM);
     }
 
