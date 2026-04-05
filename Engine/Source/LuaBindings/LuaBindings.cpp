@@ -15,6 +15,8 @@
 #include "LuaBindings/Renderer_Lua.h"
 #include "LuaBindings/System_Lua.h"
 #include "LuaBindings/Log_Lua.h"
+#include "LuaBindings/Tween_Lua.h"
+#include "LuaBindings/Easing_Lua.h"
 #include "LuaBindings/World_Lua.h"
 #include "LuaBindings/Node_Lua.h"
 #include "LuaBindings/Node3d_Lua.h"
@@ -106,6 +108,8 @@ void BindLuaInterface()
     Stream_Lua::Bind();
     Signal_Lua::Bind();
     TimerManager_Lua::Bind();
+    Easing_Lua::Bind();
+    Tween_Lua::Bind();
     Property_Lua::Bind();
 
     // Components need to be bound in hierarchy order.

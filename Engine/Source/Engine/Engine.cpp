@@ -13,6 +13,7 @@
 #include "Assets/TinyLLMAsset.h"
 #include "Assets/TinyLLMTokenizerAsset.h"
 #include "TinyLLMManager.h"
+#include "TweenManager.h"
 #include "Timeline/TimelineTrack.h"
 #include "Timeline/TimelineClip.h"
 #include "Timeline/Tracks/TransformTrack.h"
@@ -369,6 +370,7 @@ bool Initialize()
     NetworkManager::Create();
     WindowManager::Create();
     ToolTipManager::Create();
+    TweenManager::Create();
     TinyLLMManager::Create();
 
 #if EDITOR
@@ -711,6 +713,7 @@ bool Update()
     Button::StaticUpdate();
 
     GetTimerManager()->Update(gameDeltaTime);
+    GetTweenManager()->Update(gameDeltaTime);
 
 #if EDITOR
     GetGamePreview()->BeginInputRemap();
@@ -805,6 +808,7 @@ void Shutdown()
 #endif
 
     TinyLLMManager::Destroy();
+    TweenManager::Destroy();
     ToolTipManager::Destroy();
     WindowManager::Destroy();
     NetworkManager::Destroy();

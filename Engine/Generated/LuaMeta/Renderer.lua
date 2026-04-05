@@ -27,6 +27,10 @@ function Renderer.GetScreenResolution(screenIndex) end
 ---@return Vector
 function Renderer.GetActiveScreenResolution() end
 
+---@param screenIndex? integer
+---@return integer, integer, integer, integer
+function Renderer.GetViewportRect(screenIndex) end
+
 ---@return number
 function Renderer.GetGlobalUiScale() end
 

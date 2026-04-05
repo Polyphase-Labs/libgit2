@@ -2,6 +2,7 @@
 #include "Input/InputActionsAsset.h"
 #include "Input.h"
 #include "Engine.h"
+#include "AssetManager.h"
 #include "Log.h"
 #include "Stream.h"
 
@@ -550,10 +551,17 @@ void PlayerInputSystem::SaveProjectActions()
 
     std::string path = projectDir + "Assets/InputActions.oct";
 
-    InputActionsAsset asset;
-    asset.SetName("InputActions");
-    asset.mActions = mActions;
-    asset.SaveFile(path.c_str(), GetPlatform());
+    InputActionsAsset tempAsset;
+    tempAsset.SetName("InputActions");
+    tempAsset.mActions = mActions;
+    tempAsset.SaveFile(path.c_str(), GetPlatform());
+
+    // Update the cached asset so PIE picks up changes without editor restart
+    Asset* cached = LoadAsset("InputActions");
+    if (cached != nullptr && cached->GetType() == InputActionsAsset::GetStaticType())
+    {
+        static_cast<InputActionsAsset*>(cached)->mActions = mActions;
+    }
 
     LogDebug("PlayerInput: Saved %d actions to %s", (int)mActions.size(), path.c_str());
 }

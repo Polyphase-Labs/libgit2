@@ -908,6 +908,8 @@
     <ClCompile Include="Source\Engine\Stream.cpp" />
     <ClCompile Include="Source\Engine\TableDatum.cpp" />
     <ClCompile Include="Source\Engine\TimerManager.cpp" />
+    <ClCompile Include="Source\Engine\TweenManager.cpp" />
+    <ClCompile Include="Source\Engine\Easing.cpp" />
     <ClCompile Include="Source\Engine\Utilities.cpp" />
     <ClCompile Include="Source\Engine\World.cpp" />
     <ClCompile Include="Source\Graphics\C3D\C3dUtils.cpp" />
@@ -1025,6 +1027,8 @@
     <ClCompile Include="Source\LuaBindings\Texture_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Text_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TimerManager_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\Tween_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\Easing_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Node3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Vector_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Widget_Lua.cpp" />
@@ -1326,6 +1330,8 @@
     <ClInclude Include="Source\Engine\Stream.h" />
     <ClInclude Include="Source\Engine\TableDatum.h" />
     <ClInclude Include="Source\Engine\TimerManager.h" />
+    <ClInclude Include="Source\Engine\TweenManager.h" />
+    <ClInclude Include="Source\Engine\Easing.h" />
     <ClInclude Include="Source\Engine\Utilities.h" />
     <ClInclude Include="Source\Engine\Vertex.h" />
     <ClInclude Include="Source\Engine\World.h" />
@@ -1443,6 +1449,8 @@
     <ClInclude Include="Source\LuaBindings\Text_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TinyLLM_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TimerManager_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\Tween_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\Easing_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Node3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Vector_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Widget_Lua.h" />

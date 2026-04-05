@@ -25,6 +25,9 @@ function World:SpawnNode(nodeClass, position) end
 ---@return Node
 function World:SpawnScene(scene, position) end
 
+---@param sceneRoot Node
+function World:DespawnScene(sceneRoot) end
+
 ---@return Node
 function World:GetRootNode() end
 
