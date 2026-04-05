@@ -53,6 +53,8 @@ public:
 
     static bool HandlePropChange(class Datum* datum, uint32_t index, const void* newValue);
 
+    const std::vector<uint8_t>& GetPixels() const { return mPixels; }
+
 protected:
 
     uint32_t mWidth;

@@ -120,6 +120,13 @@ void GFX_DestroyVoxel3DResource(Voxel3D* voxel);
 void GFX_UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
 void GFX_DrawVoxel3D(Voxel3D* voxel);
 
+// Terrain3D
+class Terrain3D;
+void GFX_CreateTerrain3DResource(Terrain3D* terrain);
+void GFX_DestroyTerrain3DResource(Terrain3D* terrain);
+void GFX_UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
+void GFX_DrawTerrain3D(Terrain3D* terrain);
+
 // ParticleComp
 void GFX_CreateParticleCompResource(Particle3D* particleComp);
 void GFX_DestroyParticleCompResource(Particle3D* particleComp);

@@ -755,6 +755,7 @@
     <ClCompile Include="Source\Editor\TextureAtlas\TextureAtlasViewer.cpp" />
     <ClCompile Include="Source\Editor\TextureCrop\TextureCropEditor.cpp" />
     <ClCompile Include="Source\Editor\VoxelSculpt\VoxelSculptManager.cpp" />
+    <ClCompile Include="Source\Editor\TerrainSculpt\TerrainSculptManager.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\ThemeEditorWindow.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\CssGenerator.cpp" />
     <ClCompile Include="Source\Plugins\RuntimePluginManager.cpp" />
@@ -819,6 +820,7 @@
     <ClCompile Include="Source\Engine\Nodes\3D\TestSpinner.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\TextMesh3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\Voxel3d.cpp" />
+    <ClCompile Include="Source\Engine\Nodes\3D\Terrain3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\Node3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Node.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\ArrayWidget.cpp" />
@@ -1025,6 +1027,7 @@
     <ClCompile Include="Source\LuaBindings\TinyLLM_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TextMesh3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\Terrain3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Texture_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Text_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TimerManager_Lua.cpp" />
@@ -1163,6 +1166,7 @@
     <ClInclude Include="Source\Editor\TextureAtlas\TextureAtlasViewer.h" />
     <ClInclude Include="Source\Editor\TextureCrop\TextureCropEditor.h" />
     <ClInclude Include="Source\Editor\VoxelSculpt\VoxelSculptManager.h" />
+    <ClInclude Include="Source\Editor\TerrainSculpt\TerrainSculptManager.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\ThemeEditorWindow.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\CssGenerator.h" />
     <ClInclude Include="Source\Plugins\EditorUIHooks.h" />
@@ -1237,6 +1241,7 @@
     <ClInclude Include="Source\Engine\Nodes\3D\TestSpinner.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\TextMesh3d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\Voxel3d.h" />
+    <ClInclude Include="Source\Engine\Nodes\3D\Terrain3d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\Node3d.h" />
     <ClInclude Include="Source\Engine\Nodes\Node.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\ArrayWidget.h" />
@@ -1447,6 +1452,7 @@
     <ClInclude Include="Source\LuaBindings\System_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TextMesh3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\Terrain3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Texture_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Text_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TinyLLM_Lua.h" />

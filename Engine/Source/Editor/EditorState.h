@@ -68,6 +68,7 @@ enum class PaintMode
     Color,
     Instance,
     Voxel,
+    Terrain,
 
     Count
 };
@@ -167,6 +168,7 @@ struct EditorState
     PaintMode mPaintMode = PaintMode::None;
     PaintManager* mPaintManager = nullptr;
     VoxelSculptManager* mVoxelSculptManager = nullptr;
+    class TerrainSculptManager* mTerrainSculptManager = nullptr;
     bool mNodePropertySelect = false;
     int32_t mNodePropertySelectIndex = 0;
     std::string mNodePropertySelectName = "";

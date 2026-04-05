@@ -421,6 +421,29 @@ void GFX_DrawVoxel3D(Voxel3D* voxel)
     DrawVoxel3D(voxel);
 }
 
+void GFX_CreateTerrain3DResource(Terrain3D* terrain)
+{
+    if (IsHeadless()) return;
+    CreateTerrain3DResource(terrain);
+}
+
+void GFX_DestroyTerrain3DResource(Terrain3D* terrain)
+{
+    if (IsHeadless()) return;
+    DestroyTerrain3DResource(terrain);
+}
+
+void GFX_UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    if (IsHeadless()) return;
+    UpdateTerrain3DResource(terrain, vertices, indices);
+}
+
+void GFX_DrawTerrain3D(Terrain3D* terrain)
+{
+    DrawTerrain3D(terrain);
+}
+
 void GFX_CreateParticleCompResource(Particle3D* particleComp)
 {
     if (IsHeadless()) return;

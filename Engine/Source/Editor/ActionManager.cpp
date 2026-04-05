@@ -54,6 +54,8 @@
 #include "Log.h"
 
 #include "Nodes/3D/Voxel3d.h"
+#include "Nodes/3D/Terrain3d.h"
+#include "TerrainSculpt/TerrainSculptManager.h"
 #include "Nodes/3D/Mesh3d.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
 #include "Nodes/3D/StaticMesh3d.h"
@@ -6464,6 +6466,45 @@ void ActionSetVoxels::Reverse()
     {
         mVoxel->SetVoxel(c.x, c.y, c.z, c.oldValue);
     }
+}
+
+// ---------------------------------------------------------------------------
+// ActionSetTerrainHeights
+// ---------------------------------------------------------------------------
+
+ActionSetTerrainHeights::ActionSetTerrainHeights(Terrain3D* terrain, const std::vector<TerrainHeightChange>& changes)
+    : mTerrain(terrain), mChanges(changes)
+{
+}
+
+void ActionSetTerrainHeights::Execute()
+{
+    if (mTerrain == nullptr) return;
+
+    for (const auto& c : mChanges)
+    {
+        mTerrain->SetHeight(c.x, c.z, c.newHeight);
+        mTerrain->mSplatmap[c.z * mTerrain->GetResolutionX() + c.x] = c.newSplat;
+    }
+    mTerrain->MarkDirty();
+}
+
+void ActionSetTerrainHeights::Reverse()
+{
+    if (mTerrain == nullptr) return;
+
+    for (const auto& c : mChanges)
+    {
+        mTerrain->SetHeight(c.x, c.z, c.oldHeight);
+        mTerrain->mSplatmap[c.z * mTerrain->GetResolutionX() + c.x] = c.oldSplat;
+    }
+    mTerrain->MarkDirty();
+}
+
+void ActionManager::EXE_SetTerrainHeights(Terrain3D* terrain, const std::vector<TerrainHeightChange>& changes)
+{
+    ActionSetTerrainHeights* action = new ActionSetTerrainHeights(terrain, changes);
+    ActionManager::Get()->ExecuteAction(action);
 }
 
 #endif

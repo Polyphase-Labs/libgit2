@@ -36,6 +36,7 @@
 #include "Viewport2d.h"
 #include "PaintManager.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
+#include "TerrainSculpt/TerrainSculptManager.h"
 #include "Script.h"
 #include "Addons/AddonCreator.h"
 #include "Input/Input.h"
@@ -68,6 +69,7 @@ void EditorState::Init()
     mViewport2D = new Viewport2D();
     mPaintManager = new PaintManager();
     mVoxelSculptManager = new VoxelSculptManager();
+    mTerrainSculptManager = new TerrainSculptManager();
 
     mOverlayText = Node::Construct<Text>();
     mOverlayText->SetName("Overlay Text");
@@ -107,6 +109,9 @@ void EditorState::Shutdown()
 
     delete mVoxelSculptManager;
     mVoxelSculptManager = nullptr;
+
+    delete mTerrainSculptManager;
+    mTerrainSculptManager = nullptr;
 
     if (mTimelinePreviewInstance != nullptr)
     {
@@ -432,6 +437,11 @@ void EditorState::HandleNodeDestroy(Node* node)
     if (mVoxelSculptManager)
     {
         mVoxelSculptManager->HandleNodeDestroy(node);
+    }
+
+    if (mTerrainSculptManager)
+    {
+        mTerrainSculptManager->HandleNodeDestroy(node);
     }
 }
 

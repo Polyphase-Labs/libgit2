@@ -32,6 +32,7 @@
 #include "Nodes/3D/ShadowMesh3d.h"
 #include "Nodes/3D/TextMesh3d.h"
 #include "Nodes/3D/Voxel3d.h"
+#include "Nodes/3D/Terrain3d.h"
 #include "World.h"
 
 #include "Assets/Scene.h"
@@ -75,6 +76,7 @@
 #include "Profiling/ProfilingWindow.h"
 #include "TextureAtlas/TextureAtlasViewer.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
+#include "TerrainSculpt/TerrainSculptManager.h"
 #include "Preferences/General/GeneralModule.h"
 #include "Preferences/PreferencesManager.h"
 #include "Preferences/External/LaunchersModule.h"
@@ -7280,6 +7282,18 @@ static void DrawPropertiesPanel()
                         }
                     }
                 }
+                else if (obj->As<Terrain3D>())
+                {
+                    if (GetEditorState()->mPaintMode != PaintMode::Terrain)
+                    {
+                        ImGui::NewLine();
+                        if (ImGui::Button("Open In Terrain Sculpt"))
+                        {
+                            GetEditorState()->SetEditorMode(EditorMode::Scene3D);
+                            GetEditorState()->SetPaintMode(PaintMode::Terrain);
+                        }
+                    }
+                }
             }
 
             ImGui::EndTabItem();
@@ -8710,9 +8724,9 @@ static void DrawMainMenuBar()
             curMode = int(EditorMode::Count) + int(paintMode) - 1;
         }
 
-        const char* modeStrings[] = { "Scene", "2D", "3D", "Paint Colors", "Paint Instances", "Voxel Sculpt"};
+        const char* modeStrings[] = { "Scene", "2D", "3D", "Paint Colors", "Paint Instances", "Voxel Sculpt", "Terrain Sculpt"};
         ImGui::SetNextItemWidth(80);
-        ImGui::Combo("##EditorMode", &curMode, modeStrings, 6);
+        ImGui::Combo("##EditorMode", &curMode, modeStrings, 7);
 
         if (curMode == 3)
         {
@@ -8728,6 +8742,11 @@ static void DrawMainMenuBar()
         {
             curMode = (int)EditorMode::Scene3D;
             paintMode = PaintMode::Voxel;
+        }
+        else if (curMode == 6)
+        {
+            curMode = (int)EditorMode::Scene3D;
+            paintMode = PaintMode::Terrain;
         }
         else
         {
@@ -10875,6 +10894,105 @@ void EditorImguiDraw()
             else
             {
                 ImGui::TextWrapped("Select a Voxel3D node to begin sculpting.");
+            }
+
+            ImGui::End();
+        }
+        else if (paintMode == PaintMode::Terrain)
+        {
+            // Terrain sculpt panel
+            ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()));
+            ImGui::SetNextWindowSize(ImVec2(300.0f, 0.0f));
+            ImGui::Begin("Terrain Sculpt", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+
+            TerrainSculptManager* mgr = GetEditorState()->mTerrainSculptManager;
+
+            Node* sel = GetEditorState()->GetSelectedNode();
+            if (sel != nullptr && sel->GetType() == Terrain3D::GetStaticType())
+            {
+                Terrain3D* terrain = static_cast<Terrain3D*>(sel);
+
+                // Mode selection
+                ImGui::Text("Mode");
+                int mode = (int)mgr->mOptions.mMode;
+                ImGui::RadioButton("Raise", &mode, 0); ImGui::SameLine();
+                ImGui::RadioButton("Lower", &mode, 1); ImGui::SameLine();
+                ImGui::RadioButton("Flatten", &mode, 2);
+                ImGui::RadioButton("Smooth", &mode, 3); ImGui::SameLine();
+                ImGui::RadioButton("Paint Mat", &mode, 4);
+                mgr->mOptions.mMode = (TerrainSculptMode)mode;
+
+                ImGui::Separator();
+
+                // Brush settings
+                ImGui::SliderFloat("Radius", &mgr->mOptions.mBrushRadius, 0.5f, 50.0f);
+                ImGui::SliderFloat("Strength", &mgr->mOptions.mBrushStrength, 0.01f, 1.0f);
+                ImGui::SliderFloat("Falloff", &mgr->mOptions.mBrushFalloff, 0.0f, 1.0f);
+
+                if (mgr->mOptions.mMode == TerrainSculptMode::Flatten)
+                {
+                    ImGui::SliderFloat("Target Height", &mgr->mOptions.mFlattenHeight, -10.0f, 10.0f);
+                }
+
+                // Brush mask
+                ImGui::Separator();
+                ImGui::Text("Brush Mask");
+                Texture* maskTex = mgr->mOptions.mBrushMask.Get<Texture>();
+                if (maskTex != nullptr)
+                {
+                    ImGui::Text("%s", maskTex->GetName().c_str());
+                    ImGui::SameLine();
+                    if (ImGui::Button("Clear##BrushMask"))
+                    {
+                        mgr->mOptions.mBrushMask = nullptr;
+                    }
+                }
+                else
+                {
+                    ImGui::Text("(circular falloff)");
+                }
+
+                // Material painting options
+                if (mgr->mOptions.mMode == TerrainSculptMode::PaintMaterial)
+                {
+                    ImGui::Separator();
+                    ImGui::Text("Material Slot");
+                    ImGui::RadioButton("Slot 0", &mgr->mOptions.mPaintSlot, 0); ImGui::SameLine();
+                    ImGui::RadioButton("Slot 1", &mgr->mOptions.mPaintSlot, 1); ImGui::SameLine();
+                    ImGui::RadioButton("Slot 2", &mgr->mOptions.mPaintSlot, 2); ImGui::SameLine();
+                    ImGui::RadioButton("Slot 3", &mgr->mOptions.mPaintSlot, 3);
+                }
+
+                // Terrain config
+                ImGui::Separator();
+                ImGui::Text("Terrain Config");
+                ImGui::Text("Resolution: %d x %d", terrain->mResolutionX, terrain->mResolutionZ);
+                ImGui::Text("World Size: %.1f x %.1f", terrain->mWorldWidth, terrain->mWorldDepth);
+                ImGui::Text("Height Scale: %.2f", terrain->mHeightScale);
+
+                // Actions
+                ImGui::Separator();
+                if (ImGui::Button("Flatten All"))
+                {
+                    terrain->FlattenAll(0.0f);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Rebuild Mesh"))
+                {
+                    terrain->RebuildMesh();
+                }
+
+                // Hover info
+                if (mgr->mHoverValid)
+                {
+                    ImGui::Separator();
+                    ImGui::Text("Grid: [%d, %d]", mgr->mHoverGridX, mgr->mHoverGridZ);
+                    ImGui::Text("Height: %.3f", terrain->GetHeight(mgr->mHoverGridX, mgr->mHoverGridZ));
+                }
+            }
+            else
+            {
+                ImGui::TextWrapped("Select a Terrain3D node to begin sculpting.");
             }
 
             ImGui::End();

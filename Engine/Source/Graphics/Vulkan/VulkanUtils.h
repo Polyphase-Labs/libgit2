@@ -28,6 +28,7 @@ class ShadowMesh3D;
 class InstancedMesh3D;
 class TextMesh3D;
 class Voxel3D;
+class Terrain3D;
 class Particle3D;
 class Primitive3D;
 class Node3D;
@@ -155,6 +156,13 @@ void DestroyVoxel3DResource(Voxel3D* voxel);
 void UpdateVoxel3DResource(Voxel3D* voxel, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
 void DrawVoxel3D(Voxel3D* voxel);
 void BindGeometryDescriptorSet(Voxel3D* voxel);
+
+// Terrain3D
+void CreateTerrain3DResource(Terrain3D* terrain);
+void DestroyTerrain3DResource(Terrain3D* terrain);
+void UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
+void DrawTerrain3D(Terrain3D* terrain);
+void BindGeometryDescriptorSet(Terrain3D* terrain);
 
 // ParticleComp
 void DestroyParticleCompResource(Particle3D* particleComp);

@@ -171,6 +171,7 @@ public:
     void EXE_ResetScene(Node* node);
     void EXE_SetInstanceColors(const std::vector<ActionSetInstanceColorsData>& data);
     void EXE_SetVoxels(class Voxel3D* voxel, const std::vector<struct VoxelChange>& changes);
+    void EXE_SetTerrainHeights(class Terrain3D* terrain, const std::vector<struct TerrainHeightChange>& changes);
     void EXE_SetInstanceData(InstancedMesh3D* instMesh, int32_t startIndex, const std::vector<MeshInstanceData>& data);
 
     /**
@@ -637,4 +638,18 @@ public:
 protected:
     Voxel3D* mVoxel = nullptr;
     std::vector<VoxelChange> mChanges;
+};
+
+struct TerrainHeightChange;
+class Terrain3D;
+
+class ActionSetTerrainHeights : public Action
+{
+public:
+    DECLARE_ACTION_INTERFACE(SetTerrainHeights);
+    ActionSetTerrainHeights(Terrain3D* terrain, const std::vector<TerrainHeightChange>& changes);
+
+protected:
+    Terrain3D* mTerrain = nullptr;
+    std::vector<TerrainHeightChange> mChanges;
 };

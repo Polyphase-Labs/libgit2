@@ -171,6 +171,9 @@
     <Filter Include="Source Files\Editor\VoxelSculpt">
       <UniqueIdentifier>{e8cd2ce0-b11e-5907-dg78-hd2g798g7464}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\TerrainSculpt">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Editor\NodeEditor">
       <UniqueIdentifier>{b2c3d4e5-6f7a-8b9c-0d1e-f2a3b4c5d6e7}</UniqueIdentifier>
     </Filter>
@@ -722,6 +725,9 @@
     <ClCompile Include="Source\Engine\Nodes\3D\Voxel3d.cpp">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Engine\Nodes\3D\Terrain3d.cpp">
+      <Filter>Source Files\Engine\Nodes\3D</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Engine\Nodes\3D\Node3d.cpp">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClCompile>
@@ -774,6 +780,9 @@
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
     <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LuaBindings\Terrain3d_Lua.cpp">
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
     <ClCompile Include="Source\LuaBindings\Node3d_Lua.cpp">
@@ -1246,6 +1255,9 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\VoxelSculpt\VoxelSculptManager.cpp">
       <Filter>Source Files\Editor\VoxelSculpt</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\TerrainSculpt\TerrainSculptManager.cpp">
+      <Filter>Source Files\Editor\TerrainSculpt</Filter>
     </ClCompile>
     <ClCompile Include="Source\Engine\Assets\NodeGraphAsset.cpp">
       <Filter>Source Files\Engine\Assets</Filter>
@@ -1956,6 +1968,9 @@
     <ClInclude Include="Source\Engine\Nodes\3D\Voxel3d.h">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Engine\Nodes\3D\Terrain3d.h">
+      <Filter>Source Files\Engine\Nodes\3D</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Engine\Nodes\3D\Node3d.h">
       <Filter>Source Files\Engine\Nodes\3D</Filter>
     </ClInclude>
@@ -2008,6 +2023,9 @@
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
     <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\LuaBindings\Terrain3d_Lua.h">
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
     <ClInclude Include="Source\LuaBindings\Node3d_Lua.h">
@@ -2441,6 +2459,9 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\VoxelSculpt\VoxelSculptManager.h">
       <Filter>Source Files\Editor\VoxelSculpt</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\TerrainSculpt\TerrainSculptManager.h">
+      <Filter>Source Files\Editor\TerrainSculpt</Filter>
     </ClInclude>
     <ClInclude Include="Source\Engine\Assets\NodeGraphAsset.h">
       <Filter>Source Files\Engine\Assets</Filter>

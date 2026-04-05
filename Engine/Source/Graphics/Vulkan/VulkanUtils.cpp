@@ -18,6 +18,7 @@
 #include "Nodes/3D/InstancedMesh3d.h"
 #include "Nodes/3D/TextMesh3d.h"
 #include "Nodes/3D/Voxel3d.h"
+#include "Nodes/3D/Terrain3d.h"
 #include "Nodes/3D/Particle3d.h"
 #include "Nodes/Widgets/Quad.h"
 #include "Nodes/Widgets/Text.h"
@@ -2201,6 +2202,121 @@ void BindGeometryDescriptorSet(Voxel3D* voxel)
         .Build()
         .Bind(cb, 1);
 }
+
+// --- Terrain3D ---
+
+void CreateTerrain3DResource(Terrain3D* terrain)
+{
+    // Resource will be created on first upload
+}
+
+void DestroyTerrain3DResource(Terrain3D* terrain)
+{
+    Terrain3DResource* resource = terrain->GetResource();
+
+    if (resource->mVertexBuffer != nullptr)
+    {
+        GetDestroyQueue()->Destroy(resource->mVertexBuffer);
+        resource->mVertexBuffer = nullptr;
+    }
+
+    if (resource->mIndexBuffer != nullptr)
+    {
+        GetDestroyQueue()->Destroy(resource->mIndexBuffer);
+        resource->mIndexBuffer = nullptr;
+    }
+}
+
+void UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    Terrain3DResource* resource = terrain->GetResource();
+
+    // Vertex buffer
+    size_t vertexSize = vertices.size() * sizeof(VertexColor);
+    if (resource->mVertexBuffer != nullptr && resource->mVertexBuffer->GetSize() < vertexSize)
+    {
+        GetDestroyQueue()->Destroy(resource->mVertexBuffer);
+        resource->mVertexBuffer = nullptr;
+    }
+
+    if (resource->mVertexBuffer == nullptr && vertexSize > 0)
+    {
+        resource->mVertexBuffer = new Buffer(BufferType::Vertex, vertexSize, "Terrain3D Vertices");
+    }
+
+    if (resource->mVertexBuffer != nullptr && vertices.size() > 0)
+    {
+        resource->mVertexBuffer->Update(vertices.data(), vertexSize, 0);
+    }
+
+    // Index buffer
+    size_t indexSize = indices.size() * sizeof(IndexType);
+    if (resource->mIndexBuffer != nullptr && resource->mIndexBuffer->GetSize() < indexSize)
+    {
+        GetDestroyQueue()->Destroy(resource->mIndexBuffer);
+        resource->mIndexBuffer = nullptr;
+    }
+
+    if (resource->mIndexBuffer == nullptr && indexSize > 0)
+    {
+        resource->mIndexBuffer = new Buffer(BufferType::Index, indexSize, "Terrain3D Indices");
+    }
+
+    if (resource->mIndexBuffer != nullptr && indices.size() > 0)
+    {
+        resource->mIndexBuffer->Update(indices.data(), indexSize, 0);
+    }
+}
+
+void DrawTerrain3D(Terrain3D* terrain)
+{
+    Terrain3DResource* resource = terrain->GetResource();
+    if (resource->mVertexBuffer == nullptr || resource->mIndexBuffer == nullptr || terrain->GetNumIndices() == 0)
+        return;
+
+    VkCommandBuffer cb = GetCommandBuffer();
+
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = resource->mVertexBuffer->Get();
+    vkCmdBindVertexBuffers(cb, 0, 1, &vertexBuffer, &offset);
+    vkCmdBindIndexBuffer(cb, resource->mIndexBuffer->Get(), 0, VK_INDEX_TYPE_UINT32);
+
+    Material* material = nullptr;
+
+    if (GetVulkanContext()->AreMaterialsEnabled())
+    {
+        material = terrain->GetMaterial();
+        material = material ? material : Renderer::Get()->GetDefaultMaterial();
+    }
+
+    BindForwardVertexType(VertexType::VertexColor, material);
+    BindMaterialResource(material);
+    GetVulkanContext()->CommitPipeline();
+
+    BindGeometryDescriptorSet(terrain);
+    BindMaterialDescriptorSet(material);
+
+    vkCmdDrawIndexed(cb, terrain->GetNumIndices(), 1, 0, 0, 0);
+}
+
+void BindGeometryDescriptorSet(Terrain3D* terrain)
+{
+    VkCommandBuffer cb = GetCommandBuffer();
+
+    World* world = terrain->GetWorld();
+    GeometryData ubo = {};
+
+    WriteGeometryUniformData(ubo, world, terrain, terrain->GetRenderTransform());
+    GatherGeometryLightUniformData(ubo, terrain, terrain->GetMaterial(), false);
+
+    UniformBlock uniformBlock = WriteUniformBlock(&ubo, sizeof(ubo));
+    DescriptorSet::Begin("Terrain3D DS")
+        .WriteUniformBuffer(GD_UNIFORM_BUFFER, uniformBlock)
+        .Build()
+        .Bind(cb, 1);
+}
+
+// --- End Terrain3D ---
 
 void DestroyParticleCompResource(Particle3D* particleComp)
 {
