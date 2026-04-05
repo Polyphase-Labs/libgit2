@@ -2089,13 +2089,37 @@ static bool DrawAutocompleteDropdown(const char* dropdownId,
         dropdownActive = true; // Set to true to ensure dropdown shows
         selectedIndex = 0;
     }
+
+    // Always update filtered items before bounds checks so we use the actual item count
+    filteredItems.clear();
+    for (const auto& suggestion : suggestions)
+    {
+        if (filterFunc(suggestion, inputText))
+        {
+            filteredItems.push_back(suggestion);
+        }
+    }
+
+    // Reset selection state when filter text changes
+    if (inputText != lastInputText)
+    {
+        lastInputText = inputText;
+        selectedIndex = 0;
+        hasSelection = false;
+    }
+    if (hasSelection && selectedIndex >= filteredItems.size() && !filteredItems.empty())
+    {
+        selectedIndex = filteredItems.size() - 1;
+    }
+
     // Hide dropdown when input loses focus (but not if mouse is over dropdown)
-    else if (!isInputActive && !isInputFocused && activeDropdownId == inputId)
+    if (!isInputActive && !isInputFocused && activeDropdownId == inputId)
     {
         // Calculate dropdown bounds to check if mouse is hovering over it
         ImVec2 inputSize = ImVec2(inputRectMax.x - inputRectMin.x, inputRectMax.y - inputRectMin.y);
         const float itemHeight = ImGui::GetTextLineHeightWithSpacing();
-        const float maxDropdownHeight = itemHeight * 4 + ImGui::GetStyle().WindowPadding.y * 2;
+        const size_t visibleItems = std::min(filteredItems.size(), (size_t)4);
+        const float maxDropdownHeight = itemHeight * visibleItems + ImGui::GetStyle().WindowPadding.y * 2;
         ImVec2 dropdownMin = ImVec2(inputRectMin.x, inputRectMin.y + inputSize.y);
         ImVec2 dropdownMax = ImVec2(inputRectMax.x, inputRectMin.y + inputSize.y + maxDropdownHeight);
 
@@ -2116,7 +2140,8 @@ static bool DrawAutocompleteDropdown(const char* dropdownId,
         // Calculate dropdown bounds (same calculation as later in the function)
         ImVec2 inputSize = ImVec2(inputRectMax.x - inputRectMin.x, inputRectMax.y - inputRectMin.y);
         const float itemHeight = ImGui::GetTextLineHeightWithSpacing();
-        const float maxDropdownHeight = itemHeight * 4 + ImGui::GetStyle().WindowPadding.y * 2;
+        const size_t visibleItems = std::min(filteredItems.size(), (size_t)4);
+        const float maxDropdownHeight = itemHeight * visibleItems + ImGui::GetStyle().WindowPadding.y * 2;
 
         // Dropdown rect is below the input
         ImVec2 dropdownMin = ImVec2(inputRectMin.x, inputRectMin.y + inputSize.y);
@@ -2130,17 +2155,6 @@ static bool DrawAutocompleteDropdown(const char* dropdownId,
         if (outsideInput && outsideDropdown)
         {
             dropdownActive = false;
-        }
-    }
-    
-    // Always update filtered items, don't just update when text changes
-    // This ensures navigation works even with text entered
-    filteredItems.clear();
-    for (const auto& suggestion : suggestions)
-    {
-        if (filterFunc(suggestion, inputText))
-        {
-            filteredItems.push_back(suggestion);
         }
     }
     
@@ -2174,9 +2188,6 @@ static bool DrawAutocompleteDropdown(const char* dropdownId,
         
         if (ImGui::Begin(dropdownId, nullptr, flags))
         {
-            // Track if mouse is hovering over this window
-            // mouseOverDropdown = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-
             // Get current key state
             bool upArrowPressed = ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow));
             bool downArrowPressed = ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow));
@@ -2280,17 +2291,22 @@ static bool DrawAutocompleteDropdown(const char* dropdownId,
                 if (isSelected)
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
 
-                bool clicked = ImGui::Selectable(filteredItems[i].c_str(), isSelected);
+                ImGui::Selectable(filteredItems[i].c_str(), isSelected);
+
+                // Use AllowWhenBlockedByActiveItem to detect hover even when
+                // another widget (InputText) holds g.ActiveId
+                bool itemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 
                 // Mouse hover - update selection
-                if (ImGui::IsItemHovered())
+                if (itemHovered)
                 {
                     selectedIndex = i;
                     hasSelection = true;
                 }
 
-                // Mouse click - make selection
-                if (clicked)
+                // Mouse click - manual detection that bypasses Selectable's internal
+                // hover check which fails when InputText holds ActiveId
+                if (itemHovered && ImGui::IsMouseClicked(0))
                 {
                     inputText = filteredItems[i];
                     selectionMade = true;
