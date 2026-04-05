@@ -76,6 +76,11 @@ bool SYS_ExecFull(const char* cmd, std::string* outStdout, std::string* outStder
 void* SYS_AlignedMalloc(uint32_t size, uint32_t alignment);
 void SYS_AlignedFree(void* pointer);
 std::vector<MemoryStat> SYS_GetMemoryStats();
+float SYS_GetRAMUsage();
+float SYS_GetVRAMUsage();
+float SYS_GetRAM1Usage();
+float SYS_GetRAM2Usage();
+float SYS_GetCPUUsage();
 
 // Save / Memcard
 bool SYS_ReadSave(const char* saveName, Stream& outStream);

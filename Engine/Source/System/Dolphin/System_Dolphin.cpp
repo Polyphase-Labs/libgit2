@@ -443,6 +443,39 @@ std::vector<MemoryStat> SYS_GetMemoryStats()
     return stats;
 }
 
+float SYS_GetRAMUsage()
+{
+    uint64_t freeBytes = SYS_GetArena1Size();
+#if PLATFORM_WII
+    freeBytes += SYS_GetArena2Size();
+#endif
+    return (float)(freeBytes / (1024.0 * 1024.0));
+}
+
+float SYS_GetVRAMUsage()
+{
+    return 0.0f;
+}
+
+float SYS_GetRAM1Usage()
+{
+    return (float)(SYS_GetArena1Size() / (1024.0 * 1024.0));
+}
+
+float SYS_GetRAM2Usage()
+{
+#if PLATFORM_WII
+    return (float)(SYS_GetArena2Size() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetCPUUsage()
+{
+    return 0.0f;
+}
+
 static bool IsMemoryCardMounted()
 {
     return GetEngineState()->mSystem.mMemoryCardMounted;

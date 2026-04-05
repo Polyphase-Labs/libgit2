@@ -20,6 +20,10 @@
 #include <limits.h>
 #include <unistd.h>
 
+#if API_VULKAN
+#include "Graphics/Vulkan/VramAllocator.h"
+#endif
+
 #if EDITOR
 #include "imgui.h"
 #include "imgui_impl_xcb.h"
@@ -985,6 +989,101 @@ std::vector<MemoryStat> SYS_GetMemoryStats()
 {
     // What do?
     return {};
+}
+
+float SYS_GetRAMUsage()
+{
+    float ramMB = 0.0f;
+    FILE* file = fopen("/proc/self/status", "r");
+    if (file != nullptr)
+    {
+        char line[256];
+        while (fgets(line, sizeof(line), file))
+        {
+            if (strncmp(line, "VmRSS:", 6) == 0)
+            {
+                long rssKB = 0;
+                sscanf(line + 6, "%ld", &rssKB);
+                ramMB = (float)(rssKB / 1024.0);
+                break;
+            }
+        }
+        fclose(file);
+    }
+    return ramMB;
+}
+
+float SYS_GetVRAMUsage()
+{
+#if API_VULKAN
+    return (float)(VramAllocator::GetNumAllocatedBytes() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetRAM1Usage()
+{
+    return 0.0f;
+}
+
+float SYS_GetRAM2Usage()
+{
+    return 0.0f;
+}
+
+float SYS_GetCPUUsage()
+{
+    static long sPrevUtime = 0;
+    static long sPrevStime = 0;
+    static uint64_t sPrevWallUs = 0;
+    static float sCpuUsage = 0.0f;
+
+    long utime = 0;
+    long stime = 0;
+
+    FILE* file = fopen("/proc/self/stat", "r");
+    if (file != nullptr)
+    {
+        char buf[1024];
+        if (fgets(buf, sizeof(buf), file))
+        {
+            char* afterComm = strrchr(buf, ')');
+            if (afterComm != nullptr)
+            {
+                afterComm += 2;
+                char state;
+                int ppid, pgrp, session, ttyNr, tpgid;
+                unsigned int flags;
+                long unsigned minflt, cminflt, majflt, cmajflt;
+
+                sscanf(afterComm, "%c %d %d %d %d %d %u %lu %lu %lu %lu %ld %ld",
+                    &state, &ppid, &pgrp, &session, &ttyNr, &tpgid,
+                    &flags, &minflt, &cminflt, &majflt, &cmajflt, &utime, &stime);
+            }
+        }
+        fclose(file);
+    }
+
+    uint64_t wallUs = SYS_GetTimeMicroseconds();
+
+    if (sPrevWallUs != 0)
+    {
+        long cpuTicksDelta = (utime - sPrevUtime) + (stime - sPrevStime);
+        double cpuSecondsDelta = (double)cpuTicksDelta / sysconf(_SC_CLK_TCK);
+        double wallSecondsDelta = (double)(wallUs - sPrevWallUs) / 1000000.0;
+
+        if (wallSecondsDelta > 0.0)
+        {
+            sCpuUsage = (float)(100.0 * cpuSecondsDelta / wallSecondsDelta);
+        }
+    }
+
+    sPrevUtime = utime;
+    sPrevStime = stime;
+    sPrevWallUs = wallUs;
+
+    return sCpuUsage;
 }
 
 // Save Game

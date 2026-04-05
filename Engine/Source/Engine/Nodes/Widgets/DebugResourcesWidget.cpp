@@ -1,0 +1,194 @@
+
+#include "Nodes/Widgets/DebugResourcesWidget.h"
+#include "Nodes/Widgets/Text.h"
+#include "Nodes/Widgets/ProgressBar.h"
+#include "Nodes/Widgets/Quad.h"
+
+#include "System/System.h"
+
+#include <cstdio>
+
+FORCE_LINK_DEF(DebugResourcesWidget);
+DEFINE_NODE(DebugResourcesWidget, Canvas);
+
+void DebugResourcesWidget::Create()
+{
+    Super::Create();
+    SetName("DebugResourcesWidget");
+
+    mBackground = CreateChild<Quad>("Background");
+    mBackground->SetTransient(true);
+    mBackground->SetAnchorMode(AnchorMode::FullStretch);
+    mBackground->SetMargins(0.0f, 0.0f, 0.0f, 0.0f);
+    mBackground->SetColor(glm::vec4(0.05f, 0.05f, 0.05f, 0.85f));
+
+#if EDITOR
+    mBackground->mHiddenInTree = true;
+#endif
+
+    // Create all rows
+    auto createRow = [this](ResourceRow& row, const char* label)
+    {
+        row.mLabel = CreateChild<Text>(label);
+        row.mLabel->SetTransient(true);
+        row.mLabel->SetAnchorMode(AnchorMode::TopLeft);
+        row.mLabel->SetTextSize(14.0f);
+        row.mLabel->SetColor(glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+        row.mLabel->SetVerticalJustification(Justification::Center);
+
+        row.mBar = CreateChild<ProgressBar>(label);
+        row.mBar->SetTransient(true);
+        row.mBar->SetAnchorMode(AnchorMode::TopLeft);
+        row.mBar->SetMinValue(0.0f);
+        row.mBar->SetMaxValue(100.0f);
+        row.mBar->SetShowPercentage(false);
+        row.mBar->SetBackgroundColor(glm::vec4(0.15f, 0.15f, 0.15f, 1.0f));
+        row.mBar->SetFillColor(glm::vec4(0.2f, 0.6f, 0.9f, 1.0f));
+
+        row.mValue = CreateChild<Text>(label);
+        row.mValue->SetTransient(true);
+        row.mValue->SetAnchorMode(AnchorMode::TopLeft);
+        row.mValue->SetTextSize(14.0f);
+        row.mValue->SetColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+        row.mValue->SetVerticalJustification(Justification::Center);
+        row.mValue->SetHorizontalJustification(Justification::Right);
+
+#if EDITOR
+        row.mLabel->mHiddenInTree = true;
+        row.mBar->mHiddenInTree = true;
+        row.mValue->mHiddenInTree = true;
+#endif
+    };
+
+    createRow(mRAMRow, "RAM");
+    createRow(mVRAMRow, "VRAM");
+    createRow(mRAM1Row, "RAM1");
+    createRow(mRAM2Row, "RAM2");
+    createRow(mCPURow, "CPU");
+
+    mRAMRow.mLabel->SetText("RAM");
+    mVRAMRow.mLabel->SetText("VRAM");
+    mRAM1Row.mLabel->SetText("RAM1");
+    mRAM2Row.mLabel->SetText("RAM2");
+    mCPURow.mLabel->SetText("CPU");
+
+    // CPU bar has a different color
+    mCPURow.mBar->SetFillColor(glm::vec4(0.9f, 0.5f, 0.2f, 1.0f));
+
+    SetDimensions(300.0f, 140.0f);
+    mLayoutDirty = true;
+}
+
+void DebugResourcesWidget::RebuildLayout()
+{
+    float y = mPadding;
+    float totalWidth = GetWidth();
+    float barWidth = totalWidth - mLabelWidth - mValueWidth - mPadding * 4.0f;
+
+    auto layoutRow = [&](ResourceRow& row, bool visible)
+    {
+        row.mLabel->SetVisible(visible);
+        row.mBar->SetVisible(visible);
+        row.mValue->SetVisible(visible);
+
+        if (visible)
+        {
+            row.mLabel->SetPosition(mPadding, y);
+            row.mLabel->SetDimensions(mLabelWidth, mRowHeight);
+
+            row.mBar->SetPosition(mPadding + mLabelWidth + mPadding, y + 2.0f);
+            row.mBar->SetDimensions(barWidth, mRowHeight - 4.0f);
+
+            row.mValue->SetPosition(totalWidth - mValueWidth - mPadding, y);
+            row.mValue->SetDimensions(mValueWidth, mRowHeight);
+
+            y += mRowHeight + mPadding;
+        }
+    };
+
+    layoutRow(mRAMRow, true);
+    layoutRow(mVRAMRow, mShowVRAM);
+    layoutRow(mRAM1Row, mShowMultipleRAM);
+    layoutRow(mRAM2Row, mShowMultipleRAM);
+    layoutRow(mCPURow, mShowCPU);
+
+    SetHeight(y);
+    mLayoutDirty = false;
+}
+
+void DebugResourcesWidget::UpdateRow(ResourceRow& row, float value, float maxValue, const char* suffix)
+{
+    if (!row.mLabel->IsVisible())
+        return;
+
+    row.mBar->SetMaxValue(maxValue);
+    row.mBar->SetValue(value);
+
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1f %s", value, suffix);
+    row.mValue->SetText(buf);
+}
+
+void DebugResourcesWidget::Tick(float deltaTime)
+{
+    if (mLayoutDirty)
+        RebuildLayout();
+
+    mUpdateTimer += deltaTime;
+    if (mUpdateTimer >= sUpdateInterval)
+    {
+        mUpdateTimer = 0.0f;
+
+        float ram = SYS_GetRAMUsage();
+        float vram = SYS_GetVRAMUsage();
+        float ram1 = SYS_GetRAM1Usage();
+        float ram2 = SYS_GetRAM2Usage();
+        float cpu = SYS_GetCPUUsage();
+
+        // Use reasonable max values for the progress bars
+        float ramMax = (ram > 0.0f) ? ram * 2.0f : 512.0f;
+        float vramMax = (vram > 0.0f) ? vram * 2.0f : 256.0f;
+        float ram1Max = (ram1 > 0.0f) ? ram1 * 2.0f : 256.0f;
+        float ram2Max = (ram2 > 0.0f) ? ram2 * 2.0f : 128.0f;
+
+        UpdateRow(mRAMRow, ram, ramMax, "MB");
+        UpdateRow(mVRAMRow, vram, vramMax, "MB");
+        UpdateRow(mRAM1Row, ram1, ram1Max, "MB");
+        UpdateRow(mRAM2Row, ram2, ram2Max, "MB");
+        UpdateRow(mCPURow, cpu, 100.0f, "%");
+    }
+
+    Canvas::Tick(deltaTime);
+}
+
+void DebugResourcesWidget::EditorTick(float deltaTime)
+{
+    Tick(deltaTime);
+}
+
+void DebugResourcesWidget::SetShowMultipleRAM(bool show)
+{
+    if (mShowMultipleRAM != show)
+    {
+        mShowMultipleRAM = show;
+        mLayoutDirty = true;
+    }
+}
+
+void DebugResourcesWidget::SetShowCPU(bool show)
+{
+    if (mShowCPU != show)
+    {
+        mShowCPU = show;
+        mLayoutDirty = true;
+    }
+}
+
+void DebugResourcesWidget::SetShowVRAM(bool show)
+{
+    if (mShowVRAM != show)
+    {
+        mShowVRAM = show;
+        mLayoutDirty = true;
+    }
+}

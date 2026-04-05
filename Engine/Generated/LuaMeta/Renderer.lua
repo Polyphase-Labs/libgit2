@@ -114,3 +114,31 @@ function Renderer.GetResolutionScale() end
 
 ---@param value Vector
 function Renderer.SetClearColor(value) end
+
+---Returns process RAM usage in MB
+---@return number
+function Renderer.GetRAMUsage() end
+
+---Returns VRAM usage in MB (Vulkan: allocated GPU memory, 3DS: vram free)
+---@return number
+function Renderer.GetVRAMUsage() end
+
+---Returns platform-specific memory pool 1 in MB (3DS: linear free, Wii: arena1 free, others: 0)
+---@return number
+function Renderer.GetRAM1Usage() end
+
+---Returns platform-specific memory pool 2 in MB (3DS: vram free, Wii: arena2 free, others: 0)
+---@return number
+function Renderer.GetRAM2Usage() end
+
+---Returns CPU usage as a percentage (0-100)
+---@return number
+function Renderer.GetCPUUsage() end
+
+---Creates a DebugResourcesWidget showing resource usage with progress bars
+---@param parent Node Parent widget to attach to
+---@param showMultipleRAM? boolean Show RAM1/RAM2 rows (default true)
+---@param showCPU? boolean Show CPU row (default true)
+---@param showVRAM? boolean Show VRAM row (default true)
+---@return DebugResourcesWidget
+function Renderer.AddDebugResourcesWidget(parent, showMultipleRAM, showCPU, showVRAM) end

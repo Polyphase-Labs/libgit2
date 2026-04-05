@@ -460,6 +460,31 @@ std::vector<MemoryStat> SYS_GetMemoryStats()
     return stats;
 }
 
+float SYS_GetRAMUsage()
+{
+    return (float)(linearSpaceFree() / (1024.0 * 1024.0));
+}
+
+float SYS_GetVRAMUsage()
+{
+    return (float)(vramSpaceFree() / (1024.0 * 1024.0));
+}
+
+float SYS_GetRAM1Usage()
+{
+    return (float)(linearSpaceFree() / (1024.0 * 1024.0));
+}
+
+float SYS_GetRAM2Usage()
+{
+    return (float)(vramSpaceFree() / (1024.0 * 1024.0));
+}
+
+float SYS_GetCPUUsage()
+{
+    return 0.0f;
+}
+
 bool SYS_ReadSave(const char* saveName, Stream& outStream)
 {
     bool success = false;

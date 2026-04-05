@@ -10,7 +10,10 @@
 #include "LuaBindings/Material_Lua.h"
 #include "LuaBindings/StaticMesh_Lua.h"
 #include "LuaBindings/Widget_Lua.h"
+#include "LuaBindings/Node_Lua.h"
 #include "Nodes/Widgets/StatsOverlay.h"
+#include "Nodes/Widgets/DebugResourcesWidget.h"
+#include "System/System.h"
 
 
 #if LUA_ENABLED
@@ -361,6 +364,58 @@ int Renderer_Lua::SetClearColor(lua_State* L)
     return 0;
 }
 
+int Renderer_Lua::GetRAMUsage(lua_State* L)
+{
+    lua_pushnumber(L, SYS_GetRAMUsage());
+    return 1;
+}
+
+int Renderer_Lua::GetVRAMUsage(lua_State* L)
+{
+    lua_pushnumber(L, SYS_GetVRAMUsage());
+    return 1;
+}
+
+int Renderer_Lua::GetRAM1Usage(lua_State* L)
+{
+    lua_pushnumber(L, SYS_GetRAM1Usage());
+    return 1;
+}
+
+int Renderer_Lua::GetRAM2Usage(lua_State* L)
+{
+    lua_pushnumber(L, SYS_GetRAM2Usage());
+    return 1;
+}
+
+int Renderer_Lua::GetCPUUsage(lua_State* L)
+{
+    lua_pushnumber(L, SYS_GetCPUUsage());
+    return 1;
+}
+
+int Renderer_Lua::AddDebugResourcesWidget(lua_State* L)
+{
+    // Args: parent (Widget), showMultipleRAM (bool), showCPU (bool), showVRAM (bool)
+    Node* parent = CHECK_NODE(L, 1);
+
+    bool showMultipleRAM = lua_isnoneornil(L, 2) ? true : lua_toboolean(L, 2);
+    bool showCPU = lua_isnoneornil(L, 3) ? true : lua_toboolean(L, 3);
+    bool showVRAM = lua_isnoneornil(L, 4) ? true : lua_toboolean(L, 4);
+
+    DebugResourcesWidget* widget = parent->CreateChild<DebugResourcesWidget>();
+
+    if (widget != nullptr)
+    {
+        widget->SetShowMultipleRAM(showMultipleRAM);
+        widget->SetShowCPU(showCPU);
+        widget->SetShowVRAM(showVRAM);
+    }
+
+    Node_Lua::Create(L, widget);
+    return 1;
+}
+
 void Renderer_Lua::Bind()
 {
     lua_State* L = GetLua();
@@ -435,6 +490,18 @@ void Renderer_Lua::Bind()
     REGISTER_TABLE_FUNC(L, tableIdx, GetResolutionScale);
 
     REGISTER_TABLE_FUNC(L, tableIdx, SetClearColor);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, GetRAMUsage);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, GetVRAMUsage);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, GetRAM1Usage);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, GetRAM2Usage);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, GetCPUUsage);
+
+    REGISTER_TABLE_FUNC(L, tableIdx, AddDebugResourcesWidget);
 
     lua_setglobal(L, RENDERER_LUA_NAME);
 

@@ -15,6 +15,10 @@
 #include <assert.h>
 #include <signal.h>
 
+#if API_VULKAN
+#include "Graphics/Vulkan/VramAllocator.h"
+#endif
+
 #include <android/input.h>
 #include <android/window.h>
 #include <android/log.h>
@@ -828,6 +832,52 @@ std::vector<MemoryStat> SYS_GetMemoryStats()
 {
     // What do?
     return {};
+}
+
+float SYS_GetRAMUsage()
+{
+    float ramMB = 0.0f;
+    FILE* file = fopen("/proc/self/status", "r");
+    if (file != nullptr)
+    {
+        char line[256];
+        while (fgets(line, sizeof(line), file))
+        {
+            if (strncmp(line, "VmRSS:", 6) == 0)
+            {
+                long rssKB = 0;
+                sscanf(line + 6, "%ld", &rssKB);
+                ramMB = (float)(rssKB / 1024.0);
+                break;
+            }
+        }
+        fclose(file);
+    }
+    return ramMB;
+}
+
+float SYS_GetVRAMUsage()
+{
+#if API_VULKAN
+    return (float)(VramAllocator::GetNumAllocatedBytes() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetRAM1Usage()
+{
+    return 0.0f;
+}
+
+float SYS_GetRAM2Usage()
+{
+    return 0.0f;
+}
+
+float SYS_GetCPUUsage()
+{
+    return 0.0f;
 }
 
 // Save Game

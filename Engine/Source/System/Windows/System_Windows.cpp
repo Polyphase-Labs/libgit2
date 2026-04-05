@@ -12,6 +12,10 @@
 #include <direct.h>
 #include <chrono>
 #include <psapi.h>
+
+#if API_VULKAN
+#include "Graphics/Vulkan/VramAllocator.h"
+#endif
 #include <Shlobj.h>
 #include <assert.h>
 #include <errno.h>
@@ -971,6 +975,73 @@ std::vector<MemoryStat> SYS_GetMemoryStats()
     }
 
     return stats;
+}
+
+float SYS_GetRAMUsage()
+{
+    HANDLE procHandle = GetCurrentProcess();
+    PROCESS_MEMORY_COUNTERS counters;
+    GetProcessMemoryInfo(procHandle, &counters, sizeof(PROCESS_MEMORY_COUNTERS));
+    return (float)(counters.WorkingSetSize / (1024.0 * 1024.0));
+}
+
+float SYS_GetVRAMUsage()
+{
+#if API_VULKAN
+    return (float)(VramAllocator::GetNumAllocatedBytes() / (1024.0 * 1024.0));
+#else
+    return 0.0f;
+#endif
+}
+
+float SYS_GetRAM1Usage()
+{
+    return 0.0f;
+}
+
+float SYS_GetRAM2Usage()
+{
+    return 0.0f;
+}
+
+float SYS_GetCPUUsage()
+{
+    static ULARGE_INTEGER sPrevKernel = {};
+    static ULARGE_INTEGER sPrevUser = {};
+    static ULARGE_INTEGER sPrevTime = {};
+    static float sCpuUsage = 0.0f;
+
+    FILETIME ftCreation, ftExit, ftKernel, ftUser;
+    FILETIME ftNow;
+
+    GetProcessTimes(GetCurrentProcess(), &ftCreation, &ftExit, &ftKernel, &ftUser);
+    GetSystemTimeAsFileTime(&ftNow);
+
+    ULARGE_INTEGER curKernel, curUser, curTime;
+    curKernel.LowPart = ftKernel.dwLowDateTime;
+    curKernel.HighPart = ftKernel.dwHighDateTime;
+    curUser.LowPart = ftUser.dwLowDateTime;
+    curUser.HighPart = ftUser.dwHighDateTime;
+    curTime.LowPart = ftNow.dwLowDateTime;
+    curTime.HighPart = ftNow.dwHighDateTime;
+
+    if (sPrevTime.QuadPart != 0)
+    {
+        ULONGLONG cpuDelta = (curKernel.QuadPart - sPrevKernel.QuadPart)
+                           + (curUser.QuadPart - sPrevUser.QuadPart);
+        ULONGLONG timeDelta = curTime.QuadPart - sPrevTime.QuadPart;
+
+        if (timeDelta > 0)
+        {
+            sCpuUsage = (float)(100.0 * cpuDelta / timeDelta);
+        }
+    }
+
+    sPrevKernel = curKernel;
+    sPrevUser = curUser;
+    sPrevTime = curTime;
+
+    return sCpuUsage;
 }
 
 // Save Game

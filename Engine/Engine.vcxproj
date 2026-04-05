@@ -842,6 +842,7 @@
     <ClCompile Include="Source\Engine\Nodes\Widgets\PolyRect.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\Quad.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\StatsOverlay.cpp" />
+    <ClCompile Include="Source\Engine\Nodes\Widgets\DebugResourcesWidget.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\Text.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\Widget.cpp" />
     <ClCompile Include="Source\Engine\UI\UITypes.cpp" />
@@ -1259,6 +1260,7 @@
     <ClInclude Include="Source\Engine\Nodes\Widgets\PolyRect.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\Quad.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\StatsOverlay.h" />
+    <ClInclude Include="Source\Engine\Nodes\Widgets\DebugResourcesWidget.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\Text.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\Widget.h" />
     <ClInclude Include="Source\Engine\UI\UITypes.h" />
