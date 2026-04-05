@@ -6,6 +6,7 @@
 #include "Assets/MaterialLite.h"
 #include "Assets/Texture.h"
 #include "Maths.h"
+#include "Utilities.h"
 #include "Graphics/Graphics.h"
 
 #include <btBulletDynamicsCommon.h>
@@ -31,6 +32,28 @@ bool Terrain3D::HandlePropChange(Datum* datum, uint32_t index, const void* newVa
         {
             terrain->SetHeightFromTexture(tex);
         }
+    }
+
+    // Always rebind atlas texture when any property changes.
+    // This handles any order of: enabling atlas, setting texture, toggling material slots.
+    if (MaterialLite* mat = terrain->mDefaultMaterial.Get<MaterialLite>())
+    {
+        Texture* atlasTex = terrain->mAtlasTexture.Get<Texture>();
+        if (atlasTex != nullptr && terrain->mEnableAtlasTexturing)
+        {
+            mat->SetTexture(0, atlasTex);
+            mat->SetVertexColorMode(VertexColorMode::Modulate);
+        }
+        else
+        {
+            mat->SetTexture(0, nullptr);
+        }
+    }
+
+    // Warn if material override is set while atlas is enabled (override takes priority)
+    if (terrain->mEnableAtlasTexturing && terrain->mMaterialOverride.Get<Material>() != nullptr)
+    {
+        LogWarning("Terrain3D: Material Override is set — atlas texture won't be visible. Clear Material Override to use atlas texturing.");
     }
 
     // Snap position to grid when snap grid size is set
@@ -83,6 +106,23 @@ void Terrain3D::GatherProperties(std::vector<Property>& outProps)
         outProps.push_back(Property(DatumType::Bool, "Use Material Slots", this, &mUseMaterialSlots, 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Asset, "Heightmap Texture", this, &mHeightmapTexture, 1, HandlePropChange, int32_t(Texture::GetStaticType())));
     }
+
+    {
+        SCOPED_CATEGORY("Atlas Texturing");
+        outProps.push_back(Property(DatumType::Bool, "Enable Atlas", this, &mEnableAtlasTexturing, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Asset, "Atlas Texture", this, &mAtlasTexture, 1, HandlePropChange, int32_t(Texture::GetStaticType())));
+        outProps.push_back(Property(DatumType::Integer, "Tiles X", this, &mAtlasTilesX, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Tiles Y", this, &mAtlasTilesY, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Float, "Texture Tiling", this, &mTextureTiling, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Slot 0 Tile", this, &mSlotAtlasTile[0], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Slot 1 Tile", this, &mSlotAtlasTile[1], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Slot 2 Tile", this, &mSlotAtlasTile[2], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Slot 3 Tile", this, &mSlotAtlasTile[3], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Color, "Slot 0 Tint", this, &mSlotTintColor[0], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Color, "Slot 1 Tint", this, &mSlotTintColor[1], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Color, "Slot 2 Tint", this, &mSlotTintColor[2], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Color, "Slot 3 Tint", this, &mSlotTintColor[3], 1, HandlePropChange));
+    }
 }
 
 void Terrain3D::Create()
@@ -109,6 +149,13 @@ void Terrain3D::Create()
     {
         mat->SetShadingModel(ShadingModel::Lit);
         mat->SetVertexColorMode(VertexColorMode::Modulate);
+
+        // Bind atlas texture if enabled
+        Texture* atlasTex = mAtlasTexture.Get<Texture>();
+        if (atlasTex != nullptr && mEnableAtlasTexturing)
+        {
+            mat->SetTexture(0, atlasTex);
+        }
     }
 
     MarkDirty();
@@ -155,10 +202,17 @@ void Terrain3D::Copy(Node* srcNode, bool recurse)
     mSplatmap = src->mSplatmap;
     mUseMaterialSlots = src->mUseMaterialSlots;
     mHeightmapTexture = src->mHeightmapTexture;
+    mAtlasTexture = src->mAtlasTexture;
+    mEnableAtlasTexturing = src->mEnableAtlasTexturing;
+    mAtlasTilesX = src->mAtlasTilesX;
+    mAtlasTilesY = src->mAtlasTilesY;
+    mTextureTiling = src->mTextureTiling;
 
     for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
     {
         mMaterialSlots[i] = src->mMaterialSlots[i];
+        mSlotAtlasTile[i] = src->mSlotAtlasTile[i];
+        mSlotTintColor[i] = src->mSlotTintColor[i];
     }
 
     MarkDirty();
@@ -228,6 +282,18 @@ void Terrain3D::SaveStream(Stream& stream, Platform platform)
 
     // Write heightmap texture reference
     stream.WriteAsset(mHeightmapTexture);
+
+    // Atlas texturing (ASSET_VERSION_TERRAIN3D_ATLAS)
+    stream.WriteBool(mEnableAtlasTexturing);
+    stream.WriteAsset(mAtlasTexture);
+    stream.WriteUint32(mAtlasTilesX);
+    stream.WriteUint32(mAtlasTilesY);
+    stream.WriteFloat(mTextureTiling);
+    for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
+    {
+        stream.WriteInt32(mSlotAtlasTile[i]);
+        stream.WriteVec4(mSlotTintColor[i]);
+    }
 }
 
 void Terrain3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
@@ -272,6 +338,21 @@ void Terrain3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
 
         // Read heightmap texture reference
         stream.ReadAsset(mHeightmapTexture);
+
+        // Atlas texturing
+        if (version >= ASSET_VERSION_TERRAIN3D_ATLAS)
+        {
+            mEnableAtlasTexturing = stream.ReadBool();
+            stream.ReadAsset(mAtlasTexture);
+            mAtlasTilesX = stream.ReadUint32();
+            mAtlasTilesY = stream.ReadUint32();
+            mTextureTiling = stream.ReadFloat();
+            for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
+            {
+                mSlotAtlasTile[i] = stream.ReadInt32();
+                mSlotTintColor[i] = stream.ReadVec4();
+            }
+        }
     }
 
     MarkDirty();
@@ -499,6 +580,60 @@ void Terrain3D::RebuildMesh()
     }
 }
 
+// Helper: compute position for a grid vertex
+static glm::vec3 TerrainGridPos(const std::vector<float>& heightmap, int32_t ix, int32_t iz,
+                                 int32_t resX, float stepX, float stepZ, float halfW, float halfD, float heightScale)
+{
+    return glm::vec3(
+        ix * stepX - halfW,
+        heightmap[iz * resX + ix] * heightScale,
+        iz * stepZ - halfD
+    );
+}
+
+// Helper: compute smooth normal via central differences
+static glm::vec3 TerrainGridNormal(const std::vector<float>& heightmap, int32_t ix, int32_t iz,
+                                    int32_t resX, int32_t resZ, float stepX, float heightScale)
+{
+    size_t idx = iz * resX + ix;
+    float hL = (ix > 0) ? heightmap[iz * resX + (ix - 1)] : heightmap[idx];
+    float hR = (ix < resX - 1) ? heightmap[iz * resX + (ix + 1)] : heightmap[idx];
+    float hD = (iz > 0) ? heightmap[(iz - 1) * resX + ix] : heightmap[idx];
+    float hU = (iz < resZ - 1) ? heightmap[(iz + 1) * resX + ix] : heightmap[idx];
+    return glm::normalize(glm::vec3((hL - hR) * heightScale, 2.0f * stepX, (hD - hU) * heightScale));
+}
+
+// Helper: find dominant material slot from packed splatmap value
+static int32_t GetDominantSlot(uint32_t packed)
+{
+    uint8_t w[4] = {
+        (uint8_t)((packed >> 0) & 0xFF),
+        (uint8_t)((packed >> 8) & 0xFF),
+        (uint8_t)((packed >> 16) & 0xFF),
+        (uint8_t)((packed >> 24) & 0xFF)
+    };
+    int32_t best = 0;
+    for (int32_t s = 1; s < 4; ++s)
+        if (w[s] > w[best]) best = s;
+    return best;
+}
+
+// Helper: map local UV [0,1] into atlas tile with half-texel inset
+static glm::vec2 AtlasTileUV(float localU, float localV, int32_t tile,
+                              uint32_t tilesX, uint32_t tilesY, float texW, float texH)
+{
+    float tileW = 1.0f / (float)tilesX;
+    float tileH = 1.0f / (float)tilesY;
+    uint32_t tx = tile % tilesX;
+    uint32_t ty = tile / tilesX;
+    float insetU = (texW > 0.0f) ? (0.5f / texW) : 0.0f;
+    float insetV = (texH > 0.0f) ? (0.5f / texH) : 0.0f;
+    return glm::vec2(
+        (float)tx * tileW + insetU + localU * (tileW - 2.0f * insetU),
+        (float)ty * tileH + insetV + localV * (tileH - 2.0f * insetV)
+    );
+}
+
 void Terrain3D::RebuildMeshInternal()
 {
     if (mHeightmap.empty() || mResolutionX < 2 || mResolutionZ < 2)
@@ -512,74 +647,159 @@ void Terrain3D::RebuildMeshInternal()
     float halfW = mWorldWidth * 0.5f;
     float halfD = mWorldDepth * 0.5f;
 
-    // Generate vertices
-    mVertices.clear();
-    mVertices.reserve(mResolutionX * mResolutionZ);
-
-    for (int32_t iz = 0; iz < mResolutionZ; ++iz)
+    bool useAtlas = mEnableAtlasTexturing && mAtlasTexture.Get() != nullptr;
+    float atlasTW = 0.0f, atlasTH = 0.0f;
+    if (useAtlas)
     {
-        for (int32_t ix = 0; ix < mResolutionX; ++ix)
-        {
-            size_t idx = iz * mResolutionX + ix;
-            VertexColor v;
-
-            // Position (centered on origin)
-            v.mPosition.x = ix * stepX - halfW;
-            v.mPosition.y = mHeightmap[idx] * mHeightScale;
-            v.mPosition.z = iz * stepZ - halfD;
-
-            // Normal via central differences
-            float hL = (ix > 0) ? mHeightmap[iz * mResolutionX + (ix - 1)] : mHeightmap[idx];
-            float hR = (ix < mResolutionX - 1) ? mHeightmap[iz * mResolutionX + (ix + 1)] : mHeightmap[idx];
-            float hD = (iz > 0) ? mHeightmap[(iz - 1) * mResolutionX + ix] : mHeightmap[idx];
-            float hU = (iz < mResolutionZ - 1) ? mHeightmap[(iz + 1) * mResolutionX + ix] : mHeightmap[idx];
-
-            glm::vec3 normal = glm::normalize(glm::vec3(
-                (hL - hR) * mHeightScale,
-                2.0f * stepX,
-                (hD - hU) * mHeightScale
-            ));
-            v.mNormal = normal;
-
-            // UVs
-            v.mTexcoord0 = glm::vec2(
-                (float)ix / (mResolutionX - 1),
-                (float)iz / (mResolutionZ - 1)
-            );
-            v.mTexcoord1 = glm::vec2(0.0f);
-
-            // Color from splatmap (material weights) or white if material slots disabled
-            if (mUseMaterialSlots)
-                v.mColor = (idx < mSplatmap.size()) ? mSplatmap[idx] : 0x000000FF;
-            else
-                v.mColor = 0xFFFFFFFF; // White — no tinting
-
-            mVertices.push_back(v);
-        }
+        Texture* atlasTex = mAtlasTexture.Get<Texture>();
+        atlasTW = (float)atlasTex->GetWidth();
+        atlasTH = (float)atlasTex->GetHeight();
     }
 
-    // Generate indices (2 triangles per quad cell)
+    mVertices.clear();
     mIndices.clear();
-    mIndices.reserve((mResolutionX - 1) * (mResolutionZ - 1) * 6);
 
-    for (int32_t iz = 0; iz < mResolutionZ - 1; ++iz)
+    if (useAtlas)
     {
-        for (int32_t ix = 0; ix < mResolutionX - 1; ++ix)
+        // Atlas mode: per-triangle unique vertices to avoid UV discontinuities
+        // at tile repeat boundaries. Same approach as Voxel3D.
+        uint32_t numTris = (mResolutionX - 1) * (mResolutionZ - 1) * 2;
+        mVertices.reserve(numTris * 3);
+        mIndices.reserve(numTris * 3);
+
+        float cellsPerTile = std::max(1.0f, mTextureTiling);
+
+        for (int32_t iz = 0; iz < mResolutionZ - 1; ++iz)
         {
-            IndexType topLeft     = iz * mResolutionX + ix;
-            IndexType topRight    = iz * mResolutionX + ix + 1;
-            IndexType bottomLeft  = (iz + 1) * mResolutionX + ix;
-            IndexType bottomRight = (iz + 1) * mResolutionX + ix + 1;
+            for (int32_t ix = 0; ix < mResolutionX - 1; ++ix)
+            {
+                // Four corner grid indices for this quad
+                int32_t corners[4][2] = {
+                    {ix, iz}, {ix + 1, iz}, {ix, iz + 1}, {ix + 1, iz + 1}
+                };
 
-            // Triangle 1
-            mIndices.push_back(topLeft);
-            mIndices.push_back(bottomLeft);
-            mIndices.push_back(topRight);
+                // Two triangles: (0,2,1) and (1,2,3)
+                int32_t tris[2][3] = { {0, 2, 1}, {1, 2, 3} };
 
-            // Triangle 2
-            mIndices.push_back(topRight);
-            mIndices.push_back(bottomLeft);
-            mIndices.push_back(bottomRight);
+                for (int32_t t = 0; t < 2; ++t)
+                {
+                    // Compute triangle centroid grid position to determine tile period
+                    float centX = 0.0f, centZ = 0.0f;
+                    for (int32_t c = 0; c < 3; ++c)
+                    {
+                        centX += (float)corners[tris[t][c]][0];
+                        centZ += (float)corners[tris[t][c]][1];
+                    }
+                    centX /= 3.0f;
+                    centZ /= 3.0f;
+
+                    // Determine which tile period the centroid is in
+                    float periodX = std::floor(centX / cellsPerTile) * cellsPerTile;
+                    float periodZ = std::floor(centZ / cellsPerTile) * cellsPerTile;
+
+                    // Determine dominant material slot ONCE for the whole triangle
+                    // using the centroid's nearest grid position. This prevents UV
+                    // smearing when vertices at a material boundary pick different tiles.
+                    int32_t triSlot = 0;
+                    if (mUseMaterialSlots)
+                    {
+                        int32_t centGX = std::max(0, std::min((int32_t)std::round(centX), mResolutionX - 1));
+                        int32_t centGZ = std::max(0, std::min((int32_t)std::round(centZ), mResolutionZ - 1));
+                        size_t centIdx = centGZ * mResolutionX + centGX;
+                        if (centIdx < mSplatmap.size())
+                        {
+                            triSlot = GetDominantSlot(mSplatmap[centIdx]);
+                        }
+                    }
+
+                    int32_t triTile = mSlotAtlasTile[triSlot];
+                    uint32_t triColor = mUseMaterialSlots
+                        ? ColorFloat4ToUint32(mSlotTintColor[triSlot])
+                        : 0xFFFFFFFF;
+
+                    IndexType base = (IndexType)mVertices.size();
+
+                    for (int32_t c = 0; c < 3; ++c)
+                    {
+                        int32_t gx = corners[tris[t][c]][0];
+                        int32_t gz = corners[tris[t][c]][1];
+
+                        VertexColor v;
+                        v.mPosition = TerrainGridPos(mHeightmap, gx, gz, mResolutionX,
+                                                     stepX, stepZ, halfW, halfD, mHeightScale);
+                        v.mNormal = TerrainGridNormal(mHeightmap, gx, gz, mResolutionX,
+                                                      mResolutionZ, stepX, mHeightScale);
+
+                        // Compute UV relative to centroid's tile period — always continuous
+                        float localU = ((float)gx - periodX) / cellsPerTile;
+                        float localV = ((float)gz - periodZ) / cellsPerTile;
+
+                        // All 3 vertices use the same atlas tile (determined by triangle centroid)
+                        v.mTexcoord0 = AtlasTileUV(localU, localV, triTile,
+                                                    mAtlasTilesX, mAtlasTilesY, atlasTW, atlasTH);
+                        v.mTexcoord1 = glm::vec2(0.0f);
+                        v.mColor = triColor;
+
+                        mVertices.push_back(v);
+                    }
+
+                    mIndices.push_back(base);
+                    mIndices.push_back(base + 1);
+                    mIndices.push_back(base + 2);
+                }
+            }
+        }
+    }
+    else
+    {
+        // Non-atlas mode: shared vertices with simple UV mapping
+        mVertices.reserve(mResolutionX * mResolutionZ);
+
+        for (int32_t iz = 0; iz < mResolutionZ; ++iz)
+        {
+            for (int32_t ix = 0; ix < mResolutionX; ++ix)
+            {
+                size_t idx = iz * mResolutionX + ix;
+                VertexColor v;
+
+                v.mPosition = TerrainGridPos(mHeightmap, ix, iz, mResolutionX,
+                                             stepX, stepZ, halfW, halfD, mHeightScale);
+                v.mNormal = TerrainGridNormal(mHeightmap, ix, iz, mResolutionX,
+                                              mResolutionZ, stepX, mHeightScale);
+
+                v.mTexcoord0 = glm::vec2(
+                    (float)ix / (mResolutionX - 1) * mTextureTiling,
+                    (float)iz / (mResolutionZ - 1) * mTextureTiling
+                );
+                v.mTexcoord1 = glm::vec2(0.0f);
+
+                if (mUseMaterialSlots)
+                    v.mColor = (idx < mSplatmap.size()) ? mSplatmap[idx] : 0x000000FFu;
+                else
+                    v.mColor = 0xFFFFFFFF;
+
+                mVertices.push_back(v);
+            }
+        }
+
+        mIndices.reserve((mResolutionX - 1) * (mResolutionZ - 1) * 6);
+        for (int32_t iz = 0; iz < mResolutionZ - 1; ++iz)
+        {
+            for (int32_t ix = 0; ix < mResolutionX - 1; ++ix)
+            {
+                IndexType tl = iz * mResolutionX + ix;
+                IndexType tr = tl + 1;
+                IndexType bl = tl + mResolutionX;
+                IndexType br = bl + 1;
+
+                mIndices.push_back(tl);
+                mIndices.push_back(bl);
+                mIndices.push_back(tr);
+
+                mIndices.push_back(tr);
+                mIndices.push_back(bl);
+                mIndices.push_back(br);
+            }
         }
     }
 

@@ -35,6 +35,17 @@ public:
     MaterialRef mMaterialSlots[MAX_MATERIAL_SLOTS];
     bool mUseMaterialSlots = false;  // When false, vertex color is white (no splatmap tinting)
 
+    // Atlas texturing (same approach as Voxel3D)
+    TextureRef mAtlasTexture;
+    bool mEnableAtlasTexturing = false;
+    uint32_t mAtlasTilesX = 4;          // atlas grid columns
+    uint32_t mAtlasTilesY = 4;          // atlas grid rows
+    int32_t mSlotAtlasTile[MAX_MATERIAL_SLOTS] = {0, 1, 2, 3}; // tile index per slot
+    float mTextureTiling = 32.0f;       // UV repetitions across the terrain
+    glm::vec4 mSlotTintColor[MAX_MATERIAL_SLOTS] = {
+        glm::vec4(1.0f), glm::vec4(1.0f), glm::vec4(1.0f), glm::vec4(1.0f)
+    };
+
     // Snapping
     float mSnapGridSize = 0.0f;  // 0 = no snapping
 

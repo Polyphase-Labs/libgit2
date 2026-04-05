@@ -44,7 +44,8 @@ class AssetDir;
 #define ASSET_VERSION_VOXEL3D_ATLAS_INT32 22
 #define ASSET_VERSION_TERRAIN3D 23
 #define ASSET_VERSION_TERRAIN3D_MATSLOTS 24
-#define ASSET_VERSION_CURRENT 24
+#define ASSET_VERSION_TERRAIN3D_ATLAS 25
+#define ASSET_VERSION_CURRENT 25
 // ----------------------------------------------------
 
 #define DECLARE_ASSET(Base, Parent) DECLARE_FACTORY(Base, Asset); DECLARE_OBJECT(Base, Parent);
