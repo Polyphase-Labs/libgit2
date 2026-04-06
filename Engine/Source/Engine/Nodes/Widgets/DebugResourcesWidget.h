@@ -15,6 +15,7 @@ public:
     virtual void Create() override;
     virtual void Tick(float deltaTime) override;
     virtual void EditorTick(float deltaTime) override;
+    virtual void PreRender() override;
 
     void SetShowMultipleRAM(bool show);
     void SetShowFPS(bool show);
@@ -31,6 +32,7 @@ private:
 
     void RebuildLayout();
     void UpdateRow(ResourceRow& row, float value, float maxValue, const char* suffix);
+    void UpdateMetrics(float deltaTime);
 
     ResourceRow mRAMRow;
     ResourceRow mVRAMRow;
