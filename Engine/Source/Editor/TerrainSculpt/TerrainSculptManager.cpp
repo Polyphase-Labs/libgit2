@@ -396,11 +396,11 @@ void TerrainSculptManager::CommitStroke()
     {
         ActionManager::Get()->EXE_SetTerrainHeights(mPendingTarget, mPendingChanges);
 
-        // Rebake splatmap texture after material painting for smooth blending
+        // Rebake and auto-save splatmap after material painting
         if (mOptions.mMode == TerrainSculptMode::PaintMaterial &&
             mPendingTarget->mBakeSplatmap && mPendingTarget->mEnableAtlasTexturing)
         {
-            mPendingTarget->BakeSplatmapTexture();
+            mPendingTarget->BakeAndSaveMap();
         }
     }
 

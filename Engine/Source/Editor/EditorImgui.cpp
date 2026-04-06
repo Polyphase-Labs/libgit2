@@ -3477,6 +3477,18 @@ static void DrawAddNodeMenu(Node* node)
     {
         for (uint32_t i = 0; i < sNode3dNames.size(); ++i)
         {
+            // Terrain3D gets special handling to create companion files
+            if (sNode3dNames[i] == "Terrain3D" || sNode3dNames[i] == "Terrain")
+            {
+                if (ImGui::MenuItem(sNode3dNames[i].c_str()))
+                {
+                    Node* newNode = am->SpawnBasicNode(BASIC_TERRAIN, node, nullptr, false, {});
+                    if (newNode)
+                        GetEditorState()->SetSelectedNode(newNode);
+                }
+                continue;
+            }
+
             if (ImGui::MenuItem(sNode3dNames[i].c_str()))
             {
                 const char* nodeName = sNode3dNames[i].c_str();
@@ -3741,6 +3753,8 @@ static void DrawSpawnBasic3dMenu(Node* node, bool setFocusPos)
         am->SpawnBasicNode(BASIC_TEXT_MESH, node, selAsset, setFocusPos, spawnPos);
     if (ImGui::MenuItem(BASIC_INSTANCED_MESH))
         am->SpawnBasicNode(BASIC_INSTANCED_MESH, node, selAsset, setFocusPos, spawnPos);
+    if (ImGui::MenuItem(BASIC_TERRAIN))
+        am->SpawnBasicNode(BASIC_TERRAIN, node, selAsset, setFocusPos, spawnPos);
 
     if (ImGui::BeginMenu("Skybox"))
     {
@@ -10988,6 +11002,29 @@ void EditorImguiDraw()
                     {
                         terrain->BakeSplatmapTexture();
                     }
+                }
+
+                if (terrain->mEnableAtlasTexturing && terrain->mUseMaterialSlots)
+                {
+                    if (ImGui::Button("Bake & Save Map"))
+                    {
+                        terrain->BakeAndSaveMap();
+                    }
+                    ImGui::SameLine();
+                }
+                if (ImGui::Button("Save Heightmap"))
+                {
+                    terrain->BakeAndSaveHeightmap();
+                }
+
+                // Warn if no baked map is saved
+                if (terrain->mEnableAtlasTexturing && terrain->mUseMaterialSlots &&
+                    terrain->mBakedMapTexture.Get<Texture>() == nullptr)
+                {
+                    ImGui::Separator();
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+                    ImGui::TextWrapped("No Baked Map saved. The terrain material won't display in PIE or runtime builds. Click \"Bake & Save Map\" to export.");
+                    ImGui::PopStyleColor();
                 }
 
                 // Debug splatmap toggle

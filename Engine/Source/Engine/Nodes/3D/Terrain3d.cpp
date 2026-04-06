@@ -7,6 +7,7 @@
 #include "Assets/Texture.h"
 #include "Maths.h"
 #include "Utilities.h"
+#include "System/System.h"
 #include "Graphics/Graphics.h"
 
 #include <btBulletDynamicsCommon.h>
@@ -46,26 +47,23 @@ bool Terrain3D::HandlePropChange(Datum* datum, uint32_t index, const void* newVa
 
     terrain->MarkDirty();
 
-    // Update material texture binding
+    // Update material texture binding (priority: saved baked map > raw atlas)
+    // Runtime baking only happens on explicit user action (Bake button / BakeAndSaveMap)
     if (MaterialLite* mat = terrain->mDefaultMaterial.Get<MaterialLite>())
     {
-        if (terrain->mBakeSplatmap && terrain->mEnableAtlasTexturing)
+        Texture* bakedMap = terrain->mBakedMapTexture.Get<Texture>();
+        if (bakedMap != nullptr)
         {
-            // Bake mode: generate blended texture and bind it (replaces raw atlas)
-            terrain->BakeSplatmapTexture();
+            mat->SetTexture(0, bakedMap);
         }
         else if (terrain->mEnableAtlasTexturing)
         {
-            // Atlas mode (no bake): bind the raw atlas texture
             Texture* atlasTex = terrain->mAtlasTexture.Get<Texture>();
             if (atlasTex != nullptr)
-            {
                 mat->SetTexture(0, atlasTex);
-            }
         }
         else
         {
-            // No atlas: clear texture
             mat->SetTexture(0, nullptr);
         }
         mat->SetVertexColorMode(VertexColorMode::Modulate);
@@ -128,6 +126,7 @@ void Terrain3D::GatherProperties(std::vector<Property>& outProps)
         outProps.push_back(Property(DatumType::Color, "Slot 3 Tint", this, &mSlotTintColor[3], 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Bool, "Bake Splatmap", this, &mBakeSplatmap, 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Integer, "Bake Resolution", this, &mBakeResolution, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Asset, "Baked Map", this, &mBakedMapTexture, 1, HandlePropChange, int32_t(Texture::GetStaticType())));
     }
 }
 
@@ -156,19 +155,18 @@ void Terrain3D::Create()
         mat->SetShadingModel(ShadingModel::Lit);
         mat->SetVertexColorMode(VertexColorMode::Modulate);
 
-        if (mBakeSplatmap && mEnableAtlasTexturing)
+        // Texture binding is handled in TickCommon after LoadStream sets asset refs.
+        // Just check if a baked map or atlas is already available at Create time.
+        Texture* bakedMap = mBakedMapTexture.Get<Texture>();
+        if (bakedMap != nullptr)
         {
-            // Bake mode: generate blended texture
-            BakeSplatmapTexture();
+            mat->SetTexture(0, bakedMap);
         }
         else if (mEnableAtlasTexturing)
         {
-            // Atlas mode: bind raw atlas texture
             Texture* atlasTex = mAtlasTexture.Get<Texture>();
             if (atlasTex != nullptr)
-            {
                 mat->SetTexture(0, atlasTex);
-            }
         }
     }
 
@@ -223,6 +221,7 @@ void Terrain3D::Copy(Node* srcNode, bool recurse)
     mTextureTiling = src->mTextureTiling;
     mBakeSplatmap = src->mBakeSplatmap;
     mBakeResolution = src->mBakeResolution;
+    mBakedMapTexture = src->mBakedMapTexture;
 
     for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
     {
@@ -257,6 +256,16 @@ void Terrain3D::TickCommon(float deltaTime)
     {
         RebuildMeshInternal();
         RecreateCollisionShape();
+    }
+
+    // Auto-bind saved baked map on first tick after LoadStream
+    if (mBakedMapTexture.Get<Texture>() != nullptr)
+    {
+        if (MaterialLite* mat = mDefaultMaterial.Get<MaterialLite>())
+        {
+            if (mat->GetTexture(0) != mBakedMapTexture.Get<Texture>())
+                mat->SetTexture(0, mBakedMapTexture.Get<Texture>());
+        }
     }
 
     UploadMeshData();
@@ -307,6 +316,7 @@ void Terrain3D::SaveStream(Stream& stream, Platform platform)
     stream.WriteFloat(mTextureTiling);
     stream.WriteBool(mBakeSplatmap);
     stream.WriteUint32(mBakeResolution);
+    stream.WriteAsset(mBakedMapTexture);
     for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
     {
         stream.WriteInt32(mSlotAtlasTile[i]);
@@ -369,6 +379,10 @@ void Terrain3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
             {
                 mBakeSplatmap = stream.ReadBool();
                 mBakeResolution = stream.ReadUint32();
+            }
+            if (version >= ASSET_VERSION_TERRAIN3D_BAKEDMAP)
+            {
+                stream.ReadAsset(mBakedMapTexture);
             }
             for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
             {
@@ -746,6 +760,186 @@ void Terrain3D::BakeSplatmapTexture()
              mSlotTintColor[1].r, mSlotTintColor[1].g, mSlotTintColor[1].b,
              mSlotTintColor[2].r, mSlotTintColor[2].g, mSlotTintColor[2].b,
              mSlotTintColor[3].r, mSlotTintColor[3].g, mSlotTintColor[3].b);
+}
+
+// Helper: create a texture from pixel data, show save dialog, write to chosen path,
+// and register with the asset system. Returns the saved Texture, or nullptr on cancel.
+static Texture* SaveTextureAsset(uint32_t width, uint32_t height, uint8_t* pixelData, const std::string& providedPath = "")
+{
+#if EDITOR
+    std::string savePath = providedPath;
+    if (savePath.empty())
+    {
+        savePath = SYS_SaveFileDialog();
+        if (savePath.empty())
+            return nullptr; // User cancelled
+    }
+
+    std::replace(savePath.begin(), savePath.end(), '\\', '/');
+
+    // Ensure .oct extension
+    if (savePath.size() < 4 || savePath.substr(savePath.size() - 4) != ".oct")
+        savePath += ".oct";
+
+    std::string assetName = Asset::GetNameFromPath(savePath);
+
+    // Check if this asset already exists in the system
+    AssetManager* am = AssetManager::Get();
+    AssetStub* stub = am->GetAssetStub(assetName);
+    Texture* tex = nullptr;
+
+    if (stub != nullptr && stub->mAsset != nullptr)
+    {
+        // Overwrite existing asset:
+        // 1. Unload the old asset
+        // 2. Create a fresh texture with the new pixel data
+        // 3. Replace the stub's asset pointer
+        tex = static_cast<Texture*>(stub->mAsset);
+        tex->Destroy();
+        delete tex;
+
+        tex = static_cast<Texture*>(Asset::CreateInstance(Texture::GetStaticType()));
+        tex->Init(width, height, pixelData);
+        tex->Create();
+        tex->SetName(assetName);
+        tex->SetUuid(stub->mUuid);
+        stub->mAsset = tex;
+    }
+    else
+    {
+        // Create new texture
+        tex = static_cast<Texture*>(Asset::CreateInstance(Texture::GetStaticType()));
+        tex->Init(width, height, pixelData);
+        tex->Create();
+        tex->SetName(assetName);
+    }
+
+    // Write directly to the user's chosen path
+    tex->SaveFile(savePath.c_str(), Platform::Count);
+
+    // Register with asset manager if not already known
+    if (stub == nullptr)
+    {
+        std::string dirPath = Asset::GetDirectoryFromPath(savePath);
+        AssetDir* dir = am->GetAssetDirFromPath(dirPath);
+        if (dir == nullptr)
+            dir = am->GetRootDirectory();
+
+        stub = am->RegisterAsset(assetName, Texture::GetStaticType(), dir, nullptr, false);
+        if (stub != nullptr)
+        {
+            stub->mAsset = tex;
+            stub->mPath = savePath;
+            tex->SetUuid(stub->mUuid);
+        }
+    }
+
+    LogDebug("Terrain3D: Saved texture '%s' to %s", assetName.c_str(), savePath.c_str());
+    return tex;
+#else
+    return nullptr;
+#endif
+}
+
+void Terrain3D::BakeAndSaveMap(const std::string& savePath)
+{
+#if EDITOR
+    // Try to bake from atlas — if no atlas is set, create a default white texture
+    BakeSplatmapTexture();
+
+    std::vector<uint8_t> defaultPixels;
+    uint32_t bakeW = 0, bakeH = 0;
+    uint8_t* pixelData = nullptr;
+
+    if (mBakedTexture != nullptr && !mBakedTexture->GetPixels().empty())
+    {
+        bakeW = mBakedTexture->GetWidth();
+        bakeH = mBakedTexture->GetHeight();
+        pixelData = const_cast<uint8_t*>(mBakedTexture->GetPixels().data());
+    }
+    else
+    {
+        // No atlas set — save a default white placeholder texture
+        uint32_t res = std::max(mBakeResolution, (uint32_t)64);
+        defaultPixels.assign(res * res * 4, 255);
+        bakeW = res;
+        bakeH = res;
+        pixelData = defaultPixels.data();
+    }
+
+    // If we already have a saved baked map, reuse its path (auto-overwrite, no dialog)
+    std::string resolvedPath = savePath;
+    if (resolvedPath.empty())
+    {
+        Texture* existing = mBakedMapTexture.Get<Texture>();
+        if (existing != nullptr)
+        {
+            AssetStub* existingStub = AssetManager::Get()->GetAssetStub(existing->GetName());
+            if (existingStub != nullptr && !existingStub->mPath.empty())
+            {
+                resolvedPath = existingStub->mPath;
+            }
+        }
+    }
+
+    Texture* savedTex = SaveTextureAsset(bakeW, bakeH, pixelData, resolvedPath);
+
+    if (savedTex != nullptr)
+    {
+        mBakedMapTexture = savedTex;
+
+        if (MaterialLite* mat = mDefaultMaterial.Get<MaterialLite>())
+        {
+            mat->SetTexture(0, savedTex);
+        }
+    }
+#endif
+}
+
+void Terrain3D::BakeAndSaveHeightmap(const std::string& savePath)
+{
+#if EDITOR
+
+    uint32_t res = (uint32_t)std::max(mResolutionX, mResolutionZ);
+    std::vector<uint8_t> pixels(res * res * 4);
+
+    // Find height range for normalization
+    float minH = 0.0f, maxH = 0.0f;
+    if (!mHeightmap.empty())
+    {
+        minH = maxH = mHeightmap[0];
+        for (float h : mHeightmap)
+        {
+            if (h < minH) minH = h;
+            if (h > maxH) maxH = h;
+        }
+    }
+    float range = maxH - minH;
+    if (range < 0.0001f) range = 1.0f;
+
+    for (uint32_t py = 0; py < res; ++py)
+    {
+        for (uint32_t px = 0; px < res; ++px)
+        {
+            float u = (float)px / (res - 1);
+            float v = (float)py / (res - 1);
+
+            int32_t gx = std::min((int32_t)(u * (mResolutionX - 1)), mResolutionX - 1);
+            int32_t gz = std::min((int32_t)(v * (mResolutionZ - 1)), mResolutionZ - 1);
+
+            float h = mHeightmap[gz * mResolutionX + gx];
+            uint8_t gray = (uint8_t)(((h - minH) / range) * 255.0f);
+
+            uint32_t idx = (py * res + px) * 4;
+            pixels[idx + 0] = gray;
+            pixels[idx + 1] = gray;
+            pixels[idx + 2] = gray;
+            pixels[idx + 3] = 255;
+        }
+    }
+
+    SaveTextureAsset(res, res, pixels.data(), savePath);
+#endif
 }
 
 void Terrain3D::MarkDirty()

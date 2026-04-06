@@ -46,7 +46,8 @@ class AssetDir;
 #define ASSET_VERSION_TERRAIN3D_MATSLOTS 24
 #define ASSET_VERSION_TERRAIN3D_ATLAS 25
 #define ASSET_VERSION_TERRAIN3D_BAKE 26
-#define ASSET_VERSION_CURRENT 26
+#define ASSET_VERSION_TERRAIN3D_BAKEDMAP 27
+#define ASSET_VERSION_CURRENT 27
 // ----------------------------------------------------
 
 #define DECLARE_ASSET(Base, Parent) DECLARE_FACTORY(Base, Asset); DECLARE_OBJECT(Base, Parent);

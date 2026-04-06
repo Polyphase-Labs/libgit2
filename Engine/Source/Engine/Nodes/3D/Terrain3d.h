@@ -49,7 +49,8 @@ public:
     // Baked splatmap: blends atlas tiles per-pixel for smooth material transitions
     bool mBakeSplatmap = false;          // When true, generates a blended texture
     uint32_t mBakeResolution = 512;      // Baked texture resolution (NxN)
-    bool mDebugSplatmap = false;         // When true, renders raw splatmap weights as vertex color (R=slot0, G=slot1, B=slot2, A=slot3)
+    bool mDebugSplatmap = false;         // When true, renders raw splatmap weights as vertex color
+    TextureRef mBakedMapTexture;         // Saved baked map asset (persists across PIE/runtime)
 
     // Snapping
     float mSnapGridSize = 0.0f;  // 0 = no snapping
@@ -90,6 +91,8 @@ public:
 
     // Baked splatmap
     void BakeSplatmapTexture();
+    void BakeAndSaveMap(const std::string& savePath = "");
+    void BakeAndSaveHeightmap(const std::string& savePath = "");
 
     // Mesh control
     void MarkDirty();

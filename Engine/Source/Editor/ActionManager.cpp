@@ -1885,6 +1885,46 @@ Node* ActionManager::SpawnBasicNode(const std::string& name, Node* parent, Asset
     {
         spawnedNode = EXE_SpawnNode(Spline3D::GetStaticType())->As<Spline3D>();
     }
+    else if (name == BASIC_TERRAIN)
+    {
+        Terrain3D* terrainNode = EXE_SpawnNode(Terrain3D::GetStaticType())->As<Terrain3D>();
+        terrainNode->SetName("Terrain");
+        terrainNode->EnableCollision(true);
+        terrainNode->EnableOverlaps(false);
+        terrainNode->EnablePhysics(false);
+        terrainNode->SetCollisionGroup(ColGroup1);
+        terrainNode->SetCollisionMask(~ColGroup1);
+
+        // Prompt user for save location — creates _BakedMap and _Heightmap companion files
+        std::string savePath = SYS_SaveFileDialog();
+        if (!savePath.empty())
+        {
+            std::replace(savePath.begin(), savePath.end(), '\\', '/');
+
+            // Strip extension if user typed one
+            std::string basePath = savePath;
+            size_t dotPos = basePath.rfind('.');
+            size_t slashPos = basePath.rfind('/');
+            if (dotPos != std::string::npos && (slashPos == std::string::npos || dotPos > slashPos))
+                basePath = basePath.substr(0, dotPos);
+
+            std::string baseName = Asset::GetNameFromPath(basePath);
+            terrainNode->SetName(baseName);
+
+            // Enable atlas + material slots for the companion files
+            terrainNode->mUseMaterialSlots = true;
+            terrainNode->mEnableAtlasTexturing = true;
+            terrainNode->mBakeSplatmap = true;
+
+            // Save heightmap (flat by default)
+            terrainNode->BakeAndSaveHeightmap(basePath + "_Heightmap.oct");
+
+            // Save default splatmap (white — user assigns atlas and rebakes later)
+            terrainNode->BakeAndSaveMap(basePath + "_Splatmap.oct");
+        }
+
+        spawnedNode = terrainNode;
+    }
 
     if (spawnedNode != nullptr)
     {
