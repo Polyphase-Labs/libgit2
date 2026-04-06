@@ -5,6 +5,7 @@
 #include "AnsiStripper.h"
 #include "ITerminalOutputParser.h"
 
+#include <deque>
 #include <string>
 
 /**
@@ -108,16 +109,19 @@ private:
     bool mEndsWithNewline = true;
 
     /**
-     * The last non-blank line we actually emitted. Consecutive identical
-     * lines are dropped — this is the cheapest possible defence against
-     * Ink's spinner-redraw storm, where each animation tick re-prints the
-     * same glyph at the same cursor position and the AnsiStripper turns
-     * the cursor-position sequences into newlines, yielding one spinner
-     * row per tick. Real content with adjacent identical lines (e.g. two
-     * `}` rows in a code block) is collapsed too, which is an acceptable
-     * trade in a log-view of a TUI app.
+     * Move-to-front LRU of recently emitted lines, used in alt-screen mode
+     * to suppress Ink frame redraws. When a line being emitted is found in
+     * the deque it is dropped and moved to the front (so persistently
+     * redrawn frame chrome stays warm and never ages out). When it isn't
+     * found it's emitted and pushed to the front, evicting the least
+     * recently touched line if the deque is full.
+     *
+     * Disabled in non-alt-screen mode so plain pipe-mode output is left
+     * untouched. Cleared on every alt-screen toggle so a fresh enter
+     * starts with a clean slate.
      */
-    std::string mLastEmittedLine;
+    std::deque<std::string> mRecentEmittedLines;
+    static constexpr size_t kRecentEmittedMax = 64;
 };
 
 #endif

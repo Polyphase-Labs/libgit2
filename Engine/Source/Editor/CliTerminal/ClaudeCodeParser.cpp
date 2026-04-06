@@ -4,6 +4,7 @@
 
 #include "Log.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 
@@ -163,8 +164,30 @@ namespace
             case 0x2013: case 0x2014: return "-";
             case 0x00A0:              return " "; // nbsp
 
-            default: return nullptr;
+            default: break;  // fall through to range checks below
         }
+
+        // ---- Range catch-alls ----
+        // Dingbats block (U+2700..U+27BF). Ink uses many of these as spinner
+        // animation frames. Anything not matched explicitly above (which has
+        // a more specific ASCII equivalent like check/cross marks) is
+        // collapsed to '*' so the consecutive-line dedupe can suppress
+        // spinner storms cleanly.
+        if (cp >= 0x2700 && cp <= 0x27BF)
+        {
+            return "*";
+        }
+
+        // Miscellaneous Symbols and Arrows (U+2B00..U+2BFF) — also used by
+        // Ink for arrow / triangle decorations. Map to nearest ASCII.
+        if (cp >= 0x2B00 && cp <= 0x2B0F) return "^";  // up arrows
+        if (cp >= 0x2B10 && cp <= 0x2B1F) return "v";  // down arrows
+        if (cp >= 0x2B05 && cp <= 0x2B05) return "<";
+        if (cp >= 0x2B06 && cp <= 0x2B06) return "^";
+        if (cp >= 0x2B07 && cp <= 0x2B07) return "v";
+        if (cp >= 0x2B95 && cp <= 0x2B95) return ">";
+
+        return nullptr;
     }
 
     /**
@@ -226,10 +249,11 @@ ClaudeCodeParser::ClaudeCodeParser() = default;
 void ClaudeCodeParser::Reset()
 {
     mStripper.Reset();
+    mStripper.SetSynthesizeFrameNewlines(true);
     mAltScreen = false;
     mPeephole.clear();
     mEndsWithNewline = true;
-    mLastEmittedLine.clear();
+    mRecentEmittedLines.clear();
 }
 
 void ClaudeCodeParser::ScanAltScreenToggles(const char* data, size_t len)
@@ -256,6 +280,14 @@ void ClaudeCodeParser::ScanAltScreenToggles(const char* data, size_t len)
                     LogDebug("[CLI][claude] Alt-screen ENTER (ESC[?1049h)");
                 }
                 mAltScreen = true;
+                // Stop the inner stripper from synthesising a newline on
+                // every cursor-position sequence. In Ink-rendered apps the
+                // spinner / progress text updates individual cells via
+                // ESC[<row>;<col>H, and the synthetic newlines were turning
+                // each updated character into its own log row.
+                mStripper.SetSynthesizeFrameNewlines(false);
+                // Fresh dedupe slate for the new alt-screen session.
+                mRecentEmittedLines.clear();
             }
             else if (std::memcmp(mPeephole.data(), kLeave, kSeqLen) == 0)
             {
@@ -264,6 +296,8 @@ void ClaudeCodeParser::ScanAltScreenToggles(const char* data, size_t len)
                     LogDebug("[CLI][claude] Alt-screen LEAVE (ESC[?1049l)");
                 }
                 mAltScreen = false;
+                mStripper.SetSynthesizeFrameNewlines(true);
+                mRecentEmittedLines.clear();
             }
         }
     }
@@ -382,36 +416,55 @@ std::string ClaudeCodeParser::PostProcess(std::string stripped)
         }
         else
         {
-            // Consecutive-line dedupe. If this line is byte-identical to
-            // the last non-blank line we emitted, drop it. This kills the
-            // Ink spinner-redraw storm: each animation tick re-prints the
-            // same `✻` row, the stripper turns the surrounding cursor-
-            // position sequences into newlines, and without dedupe we get
-            // one spinner row per frame.
+            // Move-to-front LRU dedupe in alt-screen mode. Each Ink frame
+            // redraws the same chrome (header, separators, prompt, status)
+            // every animation tick. The first frame populates the LRU; on
+            // subsequent frames each repeated row is found in the LRU,
+            // dropped, and bumped to the front so it never ages out. Only
+            // genuinely new lines (a spinner glyph rotating, a typed
+            // character, etc.) are emitted.
             //
-            // Only applied to *complete* lines so we don't mistake a
-            // partial chunk-tail for a duplicate.
-            if (complete && lineLen == mLastEmittedLine.size() &&
-                std::memcmp(stripped.data() + start, mLastEmittedLine.data(),
-                            lineLen) == 0)
+            // Disabled outside alt-screen so plain pipe-mode output is
+            // not touched. Disabled for partial trailing lines (incomplete
+            // chunk) so we don't dedupe a half-line.
+            bool dropped = false;
+            if (complete && mAltScreen)
             {
-                // Drop the duplicate. consecutiveBlanks is intentionally
-                // not reset so a run of <spinner><blank><spinner><blank>
-                // still collapses cleanly via the blank-line rule above.
+                std::string lineStr(stripped.data() + start, lineLen);
+                auto it = std::find(mRecentEmittedLines.begin(),
+                                    mRecentEmittedLines.end(), lineStr);
+                if (it != mRecentEmittedLines.end())
+                {
+                    // Hit — drop the line and bump it to the front so the
+                    // hot frame chrome stays warm. consecutiveBlanks is
+                    // intentionally not reset so adjacent blank-line runs
+                    // still collapse cleanly via the blank rule above.
+                    if (it != mRecentEmittedLines.begin())
+                    {
+                        std::string moved = std::move(*it);
+                        mRecentEmittedLines.erase(it);
+                        mRecentEmittedLines.push_front(std::move(moved));
+                    }
+                    dropped = true;
+                }
+                else
+                {
+                    // Miss — emit and remember at front.
+                    mRecentEmittedLines.push_front(std::move(lineStr));
+                    while (mRecentEmittedLines.size() > kRecentEmittedMax)
+                    {
+                        mRecentEmittedLines.pop_back();
+                    }
+                }
             }
-            else
+
+            if (!dropped)
             {
                 consecutiveBlanks = 0;
                 out.append(stripped, start, lineLen);
                 if (complete)
                 {
                     out.push_back('\n');
-                    mLastEmittedLine.assign(stripped.data() + start, lineLen);
-                }
-                else
-                {
-                    // Partial trailing line — don't update mLastEmittedLine
-                    // until the next chunk completes it.
                 }
             }
         }

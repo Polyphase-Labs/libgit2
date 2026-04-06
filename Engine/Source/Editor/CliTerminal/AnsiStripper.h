@@ -41,6 +41,17 @@ public:
 
     const char* GetName() const override { return "default"; }
 
+    /**
+     * Whether ESC[H / ESC[f / ESC[A / ESC[J cursor-position sequences emit
+     * a synthetic newline. Default true — useful for non-TTY tools that
+     * redraw progress bars in place. ClaudeCodeParser disables this in
+     * alt-screen mode because Ink-rendered apps update individual cells
+     * via cursor positioning and the synthetic newlines turn each updated
+     * character into its own log row.
+     */
+    void SetSynthesizeFrameNewlines(bool enable) { mSynthesizeFrameNewlines = enable; }
+    bool GetSynthesizeFrameNewlines() const      { return mSynthesizeFrameNewlines; }
+
 private:
     enum class State
     {
@@ -65,6 +76,9 @@ private:
     // TUI apps like `claude` emit a clear-screen + cursor-home at the start
     // of every chunk, producing a blank line per redraw cycle.
     bool mEndsWithNewline = true;
+
+    // See SetSynthesizeFrameNewlines.
+    bool mSynthesizeFrameNewlines = true;
 };
 
 #endif

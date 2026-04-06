@@ -175,6 +175,15 @@ std::string AnsiStripper::Process(const char* data, size_t len)
                         case 'A':
                         case 'J':
                         {
+                            if (!mSynthesizeFrameNewlines)
+                            {
+                                // Caller (e.g. ClaudeCodeParser in alt-screen
+                                // mode) explicitly disabled this — TUI apps
+                                // update individual cells via cursor moves
+                                // and we don't want each updated character
+                                // to become its own log row.
+                                break;
+                            }
                             // Suppress the synthetic frame-marker newline if
                             // the previous emitted character (this chunk OR
                             // the previous chunk) was already a newline. This
