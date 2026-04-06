@@ -10981,6 +10981,26 @@ void EditorImguiDraw()
                 {
                     terrain->RebuildMesh();
                 }
+                if (terrain->mEnableAtlasTexturing && terrain->mBakeSplatmap)
+                {
+                    ImGui::SameLine();
+                    if (ImGui::Button("Bake Splatmap"))
+                    {
+                        terrain->BakeSplatmapTexture();
+                    }
+                }
+
+                // Debug splatmap toggle
+                ImGui::Separator();
+                if (ImGui::Checkbox("Debug Splatmap", &terrain->mDebugSplatmap))
+                {
+                    terrain->MarkDirty();
+                }
+                if (terrain->mDebugSplatmap)
+                {
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(R=Slot0 G=Slot1 B=Slot2 A=Slot3)");
+                }
 
                 // Hover info
                 if (mgr->mHoverValid)
@@ -10988,6 +11008,14 @@ void EditorImguiDraw()
                     ImGui::Separator();
                     ImGui::Text("Grid: [%d, %d]", mgr->mHoverGridX, mgr->mHoverGridZ);
                     ImGui::Text("Height: %.3f", terrain->GetHeight(mgr->mHoverGridX, mgr->mHoverGridZ));
+                    if (terrain->mUseMaterialSlots)
+                    {
+                        ImGui::Text("Weights: %.0f%% %.0f%% %.0f%% %.0f%%",
+                            terrain->GetMaterialWeight(mgr->mHoverGridX, mgr->mHoverGridZ, 0) * 100.0f,
+                            terrain->GetMaterialWeight(mgr->mHoverGridX, mgr->mHoverGridZ, 1) * 100.0f,
+                            terrain->GetMaterialWeight(mgr->mHoverGridX, mgr->mHoverGridZ, 2) * 100.0f,
+                            terrain->GetMaterialWeight(mgr->mHoverGridX, mgr->mHoverGridZ, 3) * 100.0f);
+                    }
                 }
             }
             else

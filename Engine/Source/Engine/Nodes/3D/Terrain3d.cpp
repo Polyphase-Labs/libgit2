@@ -34,28 +34,6 @@ bool Terrain3D::HandlePropChange(Datum* datum, uint32_t index, const void* newVa
         }
     }
 
-    // Always rebind atlas texture when any property changes.
-    // This handles any order of: enabling atlas, setting texture, toggling material slots.
-    if (MaterialLite* mat = terrain->mDefaultMaterial.Get<MaterialLite>())
-    {
-        Texture* atlasTex = terrain->mAtlasTexture.Get<Texture>();
-        if (atlasTex != nullptr && terrain->mEnableAtlasTexturing)
-        {
-            mat->SetTexture(0, atlasTex);
-            mat->SetVertexColorMode(VertexColorMode::Modulate);
-        }
-        else
-        {
-            mat->SetTexture(0, nullptr);
-        }
-    }
-
-    // Warn if material override is set while atlas is enabled (override takes priority)
-    if (terrain->mEnableAtlasTexturing && terrain->mMaterialOverride.Get<Material>() != nullptr)
-    {
-        LogWarning("Terrain3D: Material Override is set — atlas texture won't be visible. Clear Material Override to use atlas texturing.");
-    }
-
     // Snap position to grid when snap grid size is set
     if (terrain->mSnapGridSize > 0.0f)
     {
@@ -67,6 +45,32 @@ bool Terrain3D::HandlePropChange(Datum* datum, uint32_t index, const void* newVa
     }
 
     terrain->MarkDirty();
+
+    // Update material texture binding
+    if (MaterialLite* mat = terrain->mDefaultMaterial.Get<MaterialLite>())
+    {
+        if (terrain->mBakeSplatmap && terrain->mEnableAtlasTexturing)
+        {
+            // Bake mode: generate blended texture and bind it (replaces raw atlas)
+            terrain->BakeSplatmapTexture();
+        }
+        else if (terrain->mEnableAtlasTexturing)
+        {
+            // Atlas mode (no bake): bind the raw atlas texture
+            Texture* atlasTex = terrain->mAtlasTexture.Get<Texture>();
+            if (atlasTex != nullptr)
+            {
+                mat->SetTexture(0, atlasTex);
+            }
+        }
+        else
+        {
+            // No atlas: clear texture
+            mat->SetTexture(0, nullptr);
+        }
+        mat->SetVertexColorMode(VertexColorMode::Modulate);
+    }
+
     return false;
 }
 
@@ -122,6 +126,8 @@ void Terrain3D::GatherProperties(std::vector<Property>& outProps)
         outProps.push_back(Property(DatumType::Color, "Slot 1 Tint", this, &mSlotTintColor[1], 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Color, "Slot 2 Tint", this, &mSlotTintColor[2], 1, HandlePropChange));
         outProps.push_back(Property(DatumType::Color, "Slot 3 Tint", this, &mSlotTintColor[3], 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Bool, "Bake Splatmap", this, &mBakeSplatmap, 1, HandlePropChange));
+        outProps.push_back(Property(DatumType::Integer, "Bake Resolution", this, &mBakeResolution, 1, HandlePropChange));
     }
 }
 
@@ -150,11 +156,19 @@ void Terrain3D::Create()
         mat->SetShadingModel(ShadingModel::Lit);
         mat->SetVertexColorMode(VertexColorMode::Modulate);
 
-        // Bind atlas texture if enabled
-        Texture* atlasTex = mAtlasTexture.Get<Texture>();
-        if (atlasTex != nullptr && mEnableAtlasTexturing)
+        if (mBakeSplatmap && mEnableAtlasTexturing)
         {
-            mat->SetTexture(0, atlasTex);
+            // Bake mode: generate blended texture
+            BakeSplatmapTexture();
+        }
+        else if (mEnableAtlasTexturing)
+        {
+            // Atlas mode: bind raw atlas texture
+            Texture* atlasTex = mAtlasTexture.Get<Texture>();
+            if (atlasTex != nullptr)
+            {
+                mat->SetTexture(0, atlasTex);
+            }
         }
     }
 
@@ -207,6 +221,8 @@ void Terrain3D::Copy(Node* srcNode, bool recurse)
     mAtlasTilesX = src->mAtlasTilesX;
     mAtlasTilesY = src->mAtlasTilesY;
     mTextureTiling = src->mTextureTiling;
+    mBakeSplatmap = src->mBakeSplatmap;
+    mBakeResolution = src->mBakeResolution;
 
     for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
     {
@@ -289,6 +305,8 @@ void Terrain3D::SaveStream(Stream& stream, Platform platform)
     stream.WriteUint32(mAtlasTilesX);
     stream.WriteUint32(mAtlasTilesY);
     stream.WriteFloat(mTextureTiling);
+    stream.WriteBool(mBakeSplatmap);
+    stream.WriteUint32(mBakeResolution);
     for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
     {
         stream.WriteInt32(mSlotAtlasTile[i]);
@@ -347,6 +365,11 @@ void Terrain3D::LoadStream(Stream& stream, Platform platform, uint32_t version)
             mAtlasTilesX = stream.ReadUint32();
             mAtlasTilesY = stream.ReadUint32();
             mTextureTiling = stream.ReadFloat();
+            if (version >= ASSET_VERSION_TERRAIN3D_BAKE)
+            {
+                mBakeSplatmap = stream.ReadBool();
+                mBakeResolution = stream.ReadUint32();
+            }
             for (int32_t i = 0; i < MAX_MATERIAL_SLOTS; ++i)
             {
                 mSlotAtlasTile[i] = stream.ReadInt32();
@@ -559,6 +582,172 @@ Material* Terrain3D::GetMaterialSlot(int32_t slot) const
     return nullptr;
 }
 
+void Terrain3D::BakeSplatmapTexture()
+{
+    if (!mEnableAtlasTexturing || !mUseMaterialSlots)
+    {
+        LogWarning("BakeSplatmapTexture: Enable Atlas and Use Material Slots must both be on");
+        return;
+    }
+
+    Texture* atlasTex = mAtlasTexture.Get<Texture>();
+    if (atlasTex == nullptr)
+    {
+        LogWarning("BakeSplatmapTexture: No atlas texture set");
+        return;
+    }
+
+    if (atlasTex->GetPixels().empty())
+    {
+        LogWarning("BakeSplatmapTexture: Atlas texture has no CPU pixel data (try re-importing the texture)");
+        return;
+    }
+
+    uint32_t atlasW = atlasTex->GetWidth();
+    uint32_t atlasH = atlasTex->GetHeight();
+    if (atlasW == 0 || atlasH == 0)
+        return;
+
+    const std::vector<uint8_t>& atlasPixels = atlasTex->GetPixels();
+    uint32_t bakeRes = std::max(mBakeResolution, (uint32_t)64);
+    float tiling = std::max(1.0f, mTextureTiling);
+
+    // Tile pixel dimensions in atlas
+    uint32_t tilePxW = atlasW / std::max(mAtlasTilesX, (uint32_t)1);
+    uint32_t tilePxH = atlasH / std::max(mAtlasTilesY, (uint32_t)1);
+
+    std::vector<uint8_t> bakedPixels(bakeRes * bakeRes * 4);
+
+    for (uint32_t py = 0; py < bakeRes; ++py)
+    {
+        for (uint32_t px = 0; px < bakeRes; ++px)
+        {
+            // Terrain UV [0,1]
+            float u = (float)px / (bakeRes - 1);
+            float v = (float)py / (bakeRes - 1);
+
+            // Grid position (floating-point) for splatmap interpolation
+            float gx = u * (mResolutionX - 1);
+            float gz = v * (mResolutionZ - 1);
+
+            int32_t gx0 = std::max(0, std::min((int32_t)gx, mResolutionX - 2));
+            int32_t gz0 = std::max(0, std::min((int32_t)gz, mResolutionZ - 2));
+            float fx = gx - gx0;
+            float fz = gz - gz0;
+
+            // Bilinear interpolation of splatmap weights
+            float slotWeights[MAX_MATERIAL_SLOTS] = {};
+
+            uint32_t s00 = mSplatmap[gz0 * mResolutionX + gx0];
+            uint32_t s10 = mSplatmap[gz0 * mResolutionX + gx0 + 1];
+            uint32_t s01 = mSplatmap[(gz0 + 1) * mResolutionX + gx0];
+            uint32_t s11 = mSplatmap[(gz0 + 1) * mResolutionX + gx0 + 1];
+
+            for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+            {
+                int shift = s * 8;
+                float w00 = ((s00 >> shift) & 0xFF) / 255.0f;
+                float w10 = ((s10 >> shift) & 0xFF) / 255.0f;
+                float w01 = ((s01 >> shift) & 0xFF) / 255.0f;
+                float w11 = ((s11 >> shift) & 0xFF) / 255.0f;
+
+                float w0 = w00 + (w10 - w00) * fx;
+                float w1 = w01 + (w11 - w01) * fx;
+                slotWeights[s] = w0 + (w1 - w0) * fz;
+            }
+
+            // Normalize weights
+            float totalW = 0.0f;
+            for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+                totalW += slotWeights[s];
+            if (totalW > 0.0f)
+            {
+                for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+                    slotWeights[s] /= totalW;
+            }
+
+            // Tiled UV for sampling the atlas tile texture
+            // tiling = "grid cells per tile repeat" (matches non-bake atlas mode)
+            // Convert to total repeats: (resolution-1) cells / cellsPerTile
+            float repeatsX = (float)(mResolutionX - 1) / tiling;
+            float repeatsZ = (float)(mResolutionZ - 1) / tiling;
+            float tiledU = u * repeatsX;
+            float tiledV = v * repeatsZ;
+            float localU = tiledU - std::floor(tiledU);
+            float localV = tiledV - std::floor(tiledV);
+
+            // Blend material tile samples weighted by splatmap
+            float blendR = 0.0f, blendG = 0.0f, blendB = 0.0f, blendA = 0.0f;
+
+            for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+            {
+                if (slotWeights[s] < 0.001f)
+                    continue;
+
+                int32_t tile = mSlotAtlasTile[s];
+                uint32_t tileCol = tile % mAtlasTilesX;
+                uint32_t tileRow = tile / mAtlasTilesX;
+
+                // Sample position within tile
+                uint32_t sampleX = tileCol * tilePxW + (uint32_t)(localU * (tilePxW - 1));
+                uint32_t sampleY = tileRow * tilePxH + (uint32_t)(localV * (tilePxH - 1));
+                sampleX = std::min(sampleX, atlasW - 1);
+                sampleY = std::min(sampleY, atlasH - 1);
+
+                uint32_t atlasIdx = (sampleY * atlasW + sampleX) * 4;
+                if (atlasIdx + 3 < atlasPixels.size())
+                {
+                    float w = slotWeights[s];
+                    float tR = mSlotTintColor[s].r;
+                    float tG = mSlotTintColor[s].g;
+                    float tB = mSlotTintColor[s].b;
+
+                    blendR += atlasPixels[atlasIdx + 0] * w * tR;
+                    blendG += atlasPixels[atlasIdx + 1] * w * tG;
+                    blendB += atlasPixels[atlasIdx + 2] * w * tB;
+                    blendA += atlasPixels[atlasIdx + 3] * w;
+                }
+            }
+
+            uint32_t outIdx = (py * bakeRes + px) * 4;
+            bakedPixels[outIdx + 0] = (uint8_t)std::min(255.0f, blendR);
+            bakedPixels[outIdx + 1] = (uint8_t)std::min(255.0f, blendG);
+            bakedPixels[outIdx + 2] = (uint8_t)std::min(255.0f, blendB);
+            bakedPixels[outIdx + 3] = (uint8_t)std::min(255.0f, blendA);
+        }
+    }
+
+    // Always create a fresh texture (Asset::Create asserts if called twice)
+    if (mBakedTexture != nullptr)
+    {
+        // Unbind from material first
+        if (MaterialLite* mat = mDefaultMaterial.Get<MaterialLite>())
+        {
+            mat->SetTexture(0, nullptr);
+        }
+        mBakedTexture->Destroy();
+        mBakedTexture = nullptr;
+    }
+
+    mBakedTexture = NewTransientAsset<Texture>();
+    mBakedTexture->SetName("TerrainBakedSplatmap");
+    mBakedTexture->Init(bakeRes, bakeRes, bakedPixels.data());
+    mBakedTexture->Create();
+
+    // Bind to default material
+    if (MaterialLite* mat = mDefaultMaterial.Get<MaterialLite>())
+    {
+        mat->SetTexture(0, mBakedTexture);
+    }
+
+    LogDebug("BakeSplatmapTexture: Baked %dx%d texture (atlas %dx%d, tiles %dx%d, tiling %.1f, tints: [%.2f,%.2f,%.2f] [%.2f,%.2f,%.2f] [%.2f,%.2f,%.2f] [%.2f,%.2f,%.2f])",
+             bakeRes, bakeRes, atlasW, atlasH, mAtlasTilesX, mAtlasTilesY, tiling,
+             mSlotTintColor[0].r, mSlotTintColor[0].g, mSlotTintColor[0].b,
+             mSlotTintColor[1].r, mSlotTintColor[1].g, mSlotTintColor[1].b,
+             mSlotTintColor[2].r, mSlotTintColor[2].g, mSlotTintColor[2].b,
+             mSlotTintColor[3].r, mSlotTintColor[3].g, mSlotTintColor[3].b);
+}
+
 void Terrain3D::MarkDirty()
 {
     mMeshDirty = true;
@@ -647,7 +836,8 @@ void Terrain3D::RebuildMeshInternal()
     float halfW = mWorldWidth * 0.5f;
     float halfD = mWorldDepth * 0.5f;
 
-    bool useAtlas = mEnableAtlasTexturing && mAtlasTexture.Get() != nullptr;
+    // When bake splatmap is enabled, use simple UVs — the baked texture has the blending baked in
+    bool useAtlas = mEnableAtlasTexturing && mAtlasTexture.Get() != nullptr && !mBakeSplatmap;
     float atlasTW = 0.0f, atlasTH = 0.0f;
     if (useAtlas)
     {
@@ -752,7 +942,8 @@ void Terrain3D::RebuildMeshInternal()
     }
     else
     {
-        // Non-atlas mode: shared vertices with simple UV mapping
+        // Non-atlas mode (or baked splatmap mode): shared vertices with simple UV mapping
+        bool isBaked = mBakeSplatmap && mEnableAtlasTexturing;
         mVertices.reserve(mResolutionX * mResolutionZ);
 
         for (int32_t iz = 0; iz < mResolutionZ; ++iz)
@@ -767,16 +958,38 @@ void Terrain3D::RebuildMeshInternal()
                 v.mNormal = TerrainGridNormal(mHeightmap, ix, iz, mResolutionX,
                                               mResolutionZ, stepX, mHeightScale);
 
-                v.mTexcoord0 = glm::vec2(
-                    (float)ix / (mResolutionX - 1) * mTextureTiling,
-                    (float)iz / (mResolutionZ - 1) * mTextureTiling
-                );
-                v.mTexcoord1 = glm::vec2(0.0f);
-
-                if (mUseMaterialSlots)
+                if (mDebugSplatmap)
+                {
+                    // Debug: show raw splatmap as vertex color tint (R=slot0, G=slot1, B=slot2, A=slot3)
+                    v.mTexcoord0 = glm::vec2(
+                        (float)ix / (mResolutionX - 1),
+                        (float)iz / (mResolutionZ - 1)
+                    );
                     v.mColor = (idx < mSplatmap.size()) ? mSplatmap[idx] : 0x000000FFu;
-                else
+                }
+                else if (isBaked)
+                {
+                    // Baked splatmap: UVs are [0,1] — tiling is baked into the texture
+                    v.mTexcoord0 = glm::vec2(
+                        (float)ix / (mResolutionX - 1),
+                        (float)iz / (mResolutionZ - 1)
+                    );
+                    // White vertex color — blending is in the baked texture
                     v.mColor = 0xFFFFFFFF;
+                }
+                else
+                {
+                    v.mTexcoord0 = glm::vec2(
+                        (float)ix / (mResolutionX - 1) * mTextureTiling,
+                        (float)iz / (mResolutionZ - 1) * mTextureTiling
+                    );
+
+                    if (mUseMaterialSlots)
+                        v.mColor = (idx < mSplatmap.size()) ? mSplatmap[idx] : 0x000000FFu;
+                    else
+                        v.mColor = 0xFFFFFFFF;
+                }
+                v.mTexcoord1 = glm::vec2(0.0f);
 
                 mVertices.push_back(v);
             }

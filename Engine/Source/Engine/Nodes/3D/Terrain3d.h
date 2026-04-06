@@ -46,6 +46,11 @@ public:
         glm::vec4(1.0f), glm::vec4(1.0f), glm::vec4(1.0f), glm::vec4(1.0f)
     };
 
+    // Baked splatmap: blends atlas tiles per-pixel for smooth material transitions
+    bool mBakeSplatmap = false;          // When true, generates a blended texture
+    uint32_t mBakeResolution = 512;      // Baked texture resolution (NxN)
+    bool mDebugSplatmap = false;         // When true, renders raw splatmap weights as vertex color (R=slot0, G=slot1, B=slot2, A=slot3)
+
     // Snapping
     float mSnapGridSize = 0.0f;  // 0 = no snapping
 
@@ -82,6 +87,9 @@ public:
     float GetMaterialWeight(int32_t x, int32_t z, int32_t slot) const;
     void SetMaterialSlot(int32_t slot, Material* mat);
     Material* GetMaterialSlot(int32_t slot) const;
+
+    // Baked splatmap
+    void BakeSplatmapTexture();
 
     // Mesh control
     void MarkDirty();
@@ -126,6 +134,9 @@ protected:
 
     // Default material
     MaterialRef mDefaultMaterial;
+
+    // Baked splatmap texture (runtime-generated)
+    Texture* mBakedTexture = nullptr;
 
     // Triangle collision data
     std::vector<glm::vec3> mCollisionVertices;

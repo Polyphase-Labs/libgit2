@@ -224,7 +224,7 @@ void TerrainSculptManager::ApplyBrush(Terrain3D* terrain, glm::vec3 worldCenter)
     minGZ = std::max(0, minGZ);
     maxGZ = std::min(resZ - 1, maxGZ);
 
-    float dt = 3.0f / 60.0f; // Brush speed multiplier (3x base rate)
+    float dt = 18.0f / 60.0f; // Brush speed multiplier (6x previous rate)
 
     for (int32_t gz = minGZ; gz <= maxGZ; ++gz)
     {
@@ -395,6 +395,13 @@ void TerrainSculptManager::CommitStroke()
     if (!mPendingChanges.empty() && mPendingTarget != nullptr)
     {
         ActionManager::Get()->EXE_SetTerrainHeights(mPendingTarget, mPendingChanges);
+
+        // Rebake splatmap texture after material painting for smooth blending
+        if (mOptions.mMode == TerrainSculptMode::PaintMaterial &&
+            mPendingTarget->mBakeSplatmap && mPendingTarget->mEnableAtlasTexturing)
+        {
+            mPendingTarget->BakeSplatmapTexture();
+        }
     }
 
     mPendingChanges.clear();
