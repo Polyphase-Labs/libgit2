@@ -60,6 +60,13 @@ public:
     /** Append a UserEcho entry and write the line + LF to stdin. */
     bool SendCommand(const std::string& line);
 
+    /**
+     * @brief Send raw bytes to the child's stdin with no echo and no line
+     * terminator. Use for TUI key sequences like arrow keys (`\x1b[A`),
+     * Enter (`\r`), Ctrl+C (`\x03`), etc.
+     */
+    bool SendRaw(const char* data, size_t len);
+
     /** Synchronous teardown for editor shutdown — joins everything before returning. */
     void ShutdownSync();
 

@@ -151,7 +151,24 @@ bool TerminalSession::Start()
 
     TransitionTo(TerminalSessionState::Starting);
 
-    mProcess.reset(CreateTerminalProcess());
+    // Pick a backend. ConPTY is required for interactive CLIs (claude, python,
+    // node, etc.) that refuse to start when stdin is a plain pipe. The pipe
+    // backend is the fallback for non-interactive use or for older Windows.
+    ITerminalProcess* backend = nullptr;
+    if (cli->mUseConPty)
+    {
+        backend = CreateTerminalProcessConPTY();
+        if (backend == nullptr)
+        {
+            EmitSystem("ConPTY unavailable; falling back to pipe backend.");
+        }
+    }
+    if (backend == nullptr)
+    {
+        backend = CreateTerminalProcess();
+    }
+
+    mProcess.reset(backend);
     if (!mProcess)
     {
         mLastError = "No terminal process implementation for this platform.";
@@ -239,12 +256,40 @@ bool TerminalSession::SendCommand(const std::string& line)
         return false;
     }
 
-    // Echo what the user typed so they always see it (non-PTY shells don't echo).
-    mBuffer.Append(TerminalEntryKind::UserEcho, "> " + line + "\n", NowSeconds());
+    const bool tty = mProcess->IsTty();
 
+    // In pipe mode the child doesn't see a terminal so it won't echo input
+    // back; we synthesize an echo line so the user can see what they typed.
+    // In TTY mode the shell echoes input itself via the pseudo-console, so
+    // a synthetic echo would produce double-printing.
+    if (!tty)
+    {
+        mBuffer.Append(TerminalEntryKind::UserEcho, "> " + line + "\n", NowSeconds());
+    }
+
+    // Line terminator differs between modes:
+    //  - Pipe mode: bytes go straight to the child's stdin; cmd / bash / etc.
+    //    treat '\n' as the standard line terminator.
+    //  - ConPTY mode: conhost translates raw bytes into terminal key events.
+    //    "Enter" must be CR ('\r'); LF is treated as a literal char and the
+    //    shell never sees a line-commit, so the command sits in the input
+    //    buffer forever and never runs.
     std::string toSend = line;
-    toSend.push_back('\n');  // LF only — Git Bash / MSYS2 dislike CRLF; cmd tolerates LF.
+    toSend.push_back(tty ? '\r' : '\n');
     return mProcess->WriteStdin(toSend.data(), toSend.size());
+}
+
+bool TerminalSession::SendRaw(const char* data, size_t len)
+{
+    if (mState.load() != TerminalSessionState::Running || !mProcess)
+    {
+        return false;
+    }
+    if (data == nullptr || len == 0)
+    {
+        return true;
+    }
+    return mProcess->WriteStdin(data, len);
 }
 
 void TerminalSession::ShutdownSync()
@@ -286,6 +331,12 @@ void TerminalSession::EmitSystem(const std::string& msg)
 
 void TerminalSession::OnProcessOutput(TerminalEntryKind kind, std::string text)
 {
+    static int sCallCount = 0;
+    if (sCallCount < 5)
+    {
+        ++sCallCount;
+        LogDebug("[CLI] OnProcessOutput #%d kind=%d size=%zu", sCallCount, static_cast<int>(kind), text.size());
+    }
     mBuffer.Append(kind, std::move(text), NowSeconds());
 }
 
@@ -297,16 +348,22 @@ void TerminalSession::OnProcessExit(int exitCode)
 
 void TerminalSession::RunStopSequence(int timeoutMs)
 {
+    LogDebug("[CLI] RunStopSequence enter timeout=%d", timeoutMs);
+
     if (!mProcess)
     {
+        LogDebug("[CLI] RunStopSequence: no mProcess, setting pendingExit");
         mPendingExit.store(true);
         return;
     }
 
     // Best-effort cooperative exit.
+    LogDebug("[CLI] RunStopSequence: writing 'exit\\n'");
     mProcess->WriteStdin("exit\n", 5);
+    LogDebug("[CLI] RunStopSequence: calling RequestStop");
     mProcess->RequestStop();
 
+    LogDebug("[CLI] RunStopSequence: graceful wait loop start");
     const int sliceMs = 25;
     int waited = 0;
     while (waited < timeoutMs && mProcess->IsRunning())
@@ -314,6 +371,8 @@ void TerminalSession::RunStopSequence(int timeoutMs)
         std::this_thread::sleep_for(std::chrono::milliseconds(sliceMs));
         waited += sliceMs;
     }
+    LogDebug("[CLI] RunStopSequence: graceful wait done (waited=%d, running=%d)",
+             waited, mProcess->IsRunning() ? 1 : 0);
 
     if (mProcess->IsRunning())
     {
@@ -321,6 +380,7 @@ void TerminalSession::RunStopSequence(int timeoutMs)
         mProcess->ForceKill();
     }
 
+    LogDebug("[CLI] RunStopSequence exit");
     // Wait thread will set mPendingExit via OnProcessExit; nothing else to do here.
 }
 

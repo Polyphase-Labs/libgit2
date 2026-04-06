@@ -43,6 +43,7 @@ public:
     bool        mLaunchOnPanelOpen = false;
     bool        mReuseSession = true;
     bool        mCloseProcessOnPanelClose = true;
+    bool        mUseConPty = true;            // Windows: use ConPTY for interactive shells
     int         mGracefulShutdownMs = 2000;
     std::string mLastCommand;                 // optional persistence
 

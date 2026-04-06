@@ -61,6 +61,16 @@ public:
     /** Joins reader and wait threads. Idempotent; safe to call repeatedly. */
     virtual void Join() = 0;
 
+    /**
+     * @brief True if the child sees a real terminal (TTY/PTY) on its stdio.
+     *
+     * The pipe-based backend returns false; the ConPTY backend returns true.
+     * TerminalSession uses this to decide whether to synthesize a UserEcho
+     * entry for typed commands (pipe mode: yes, because the child won't echo;
+     * TTY mode: no, because the shell echoes input back via stdout itself).
+     */
+    virtual bool IsTty() const = 0;
+
     void SetOutputCallback(OutputCallback cb) { mOnOutput = std::move(cb); }
     void SetExitCallback(ExitCallback cb) { mOnExit = std::move(cb); }
 
@@ -69,7 +79,16 @@ protected:
     ExitCallback mOnExit;
 };
 
-/** Factory: returns a Windows or POSIX implementation depending on platform. */
+/** Factory: returns the pipe-based backend (no TTY) for the current platform. */
 ITerminalProcess* CreateTerminalProcess();
+
+/**
+ * @brief Factory: returns the ConPTY backend on Windows.
+ *
+ * Returns nullptr on platforms without a pseudo-console implementation, or
+ * if the running OS doesn't expose CreatePseudoConsole. Callers should fall
+ * back to CreateTerminalProcess() in that case.
+ */
+ITerminalProcess* CreateTerminalProcessConPTY();
 
 #endif

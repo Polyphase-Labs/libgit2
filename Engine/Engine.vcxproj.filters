@@ -1223,6 +1223,12 @@
     <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Windows.cpp">
       <Filter>Source Files\Editor\CliTerminal</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_WindowsConPTY.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\AnsiStripper.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Posix.cpp">
       <Filter>Source Files\Editor\CliTerminal</Filter>
     </ClCompile>
@@ -2458,6 +2464,12 @@
       <Filter>Source Files\Editor\CliTerminal</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Windows.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_WindowsConPTY.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\AnsiStripper.h">
       <Filter>Source Files\Editor\CliTerminal</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Posix.h">

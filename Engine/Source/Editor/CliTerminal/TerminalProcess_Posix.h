@@ -31,6 +31,7 @@ public:
     bool IsRunning() const override { return mRunning.load(); }
     int  GetExitCode() const override { return mExitCode.load(); }
     void Join() override;
+    bool IsTty() const override { return false; }
 
 private:
     void ReaderLoop(int fd, TerminalEntryKind kind);

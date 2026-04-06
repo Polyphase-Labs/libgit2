@@ -181,6 +181,11 @@ void CliModule::Render()
     {
         changed = true;
     }
+    if (ImGui::Checkbox("Use pseudo-console (ConPTY) for interactive shells", &mUseConPty))
+    {
+        changed = true;
+    }
+    ImGui::TextDisabled("Required for interactive tools like 'claude', 'python', 'node'.\nDisable for raw pipe-based logging only. Windows 10 1809+.");
     ImGui::SetNextItemWidth(220.0f);
     if (ImGui::DragInt("Graceful shutdown timeout (ms)", &mGracefulShutdownMs, 50.0f, 100, 30000))
     {
@@ -205,6 +210,7 @@ void CliModule::LoadSettings(const rapidjson::Document& doc)
     mLaunchOnPanelOpen       = JsonSettings::GetBool(doc, "launchOnPanelOpen", false);
     mReuseSession            = JsonSettings::GetBool(doc, "reuseSession", true);
     mCloseProcessOnPanelClose= JsonSettings::GetBool(doc, "closeProcessOnPanelClose", true);
+    mUseConPty               = JsonSettings::GetBool(doc, "useConPty", true);
     mGracefulShutdownMs      = JsonSettings::GetInt(doc, "gracefulShutdownMs", 2000);
     mLastCommand             = JsonSettings::GetString(doc, "lastCommand", "");
 
@@ -230,6 +236,7 @@ void CliModule::SaveSettings(rapidjson::Document& doc)
     JsonSettings::SetBool  (doc, "launchOnPanelOpen",       mLaunchOnPanelOpen);
     JsonSettings::SetBool  (doc, "reuseSession",            mReuseSession);
     JsonSettings::SetBool  (doc, "closeProcessOnPanelClose",mCloseProcessOnPanelClose);
+    JsonSettings::SetBool  (doc, "useConPty",               mUseConPty);
     JsonSettings::SetInt   (doc, "gracefulShutdownMs",      mGracefulShutdownMs);
     JsonSettings::SetString(doc, "lastCommand",             mLastCommand);
 }

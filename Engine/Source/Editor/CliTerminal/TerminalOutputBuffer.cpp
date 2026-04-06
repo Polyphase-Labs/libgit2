@@ -2,6 +2,8 @@
 
 #include "TerminalOutputBuffer.h"
 
+#include "Log.h"
+
 #include <utility>
 
 void TerminalOutputBuffer::Append(TerminalEntryKind kind, std::string text, float timestamp)
@@ -16,9 +18,20 @@ void TerminalOutputBuffer::Append(TerminalEntryKind kind, std::string text, floa
     entry.mText = std::move(text);
     entry.mTimestamp = timestamp;
 
-    std::lock_guard<std::mutex> lock(mMutex);
-    mPending.push_back(std::move(entry));
-    mDirty = true;
+    size_t pendingAfter = 0;
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mPending.push_back(std::move(entry));
+        mDirty = true;
+        pendingAfter = mPending.size();
+    }
+
+    static int sAppendCount = 0;
+    if (sAppendCount < 5)
+    {
+        ++sAppendCount;
+        LogDebug("[CLI] Buffer::Append #%d pending=%zu this=%p", sAppendCount, pendingAfter, (void*)this);
+    }
 }
 
 void TerminalOutputBuffer::Drain()
@@ -33,6 +46,13 @@ void TerminalOutputBuffer::Drain()
         }
         drained.swap(mPending);
         mDirty = false;
+    }
+
+    static int sDrainCount = 0;
+    if (sDrainCount < 5)
+    {
+        ++sDrainCount;
+        LogDebug("[CLI] Buffer::Drain #%d drained=%zu entries=%zu this=%p", sDrainCount, drained.size(), mEntries.size(), (void*)this);
     }
 
     for (TerminalOutputEntry& entry : drained)

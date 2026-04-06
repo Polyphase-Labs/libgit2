@@ -112,10 +112,51 @@ void TerminalPanel::Shutdown()
 void TerminalPanel::DrawContent()
 {
     DrawToolbar();
+    DrawTuiKeys();
     ImGui::Separator();
     DrawOutput();
     ImGui::Separator();
     DrawInput();
+}
+
+void TerminalPanel::DrawTuiKeys()
+{
+    // Compact row of "send raw key" buttons for navigating interactive TUI
+    // prompts (arrow keys for menus, Enter to confirm, Esc/Ctrl+C to abort).
+    // Only useful when the session is running and connected to a real TTY,
+    // but we render them whenever the session is running so the user can
+    // also use them with pipe-mode shells if desired.
+    bool running = (mSession.GetState() == TerminalSessionState::Running);
+    if (!running) ImGui::BeginDisabled();
+
+    auto sendKey = [this](const char* seq, size_t len) {
+        mSession.SendRaw(seq, len);
+        mScrollToBottom = true;
+    };
+
+    if (ImGui::SmallButton("Up"))    sendKey("\x1b[A", 3);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Down"))  sendKey("\x1b[B", 3);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Left"))  sendKey("\x1b[D", 3);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Right")) sendKey("\x1b[C", 3);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Enter")) sendKey("\r", 1);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Tab"))   sendKey("\t", 1);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Esc"))   sendKey("\x1b", 1);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Space")) sendKey(" ", 1);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("^C"))    sendKey("\x03", 1);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("y"))     sendKey("y", 1);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("n"))     sendKey("n", 1);
+
+    if (!running) ImGui::EndDisabled();
 }
 
 void TerminalPanel::DrawToolbar()
@@ -150,6 +191,23 @@ void TerminalPanel::DrawToolbar()
     if (ImGui::Button("Clear"))
     {
         mSession.Clear();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Copy All"))
+    {
+        std::string all;
+        const auto& entries = mSession.GetBuffer().GetEntries();
+        all.reserve(entries.size() * 32);
+        for (const TerminalOutputEntry& e : entries)
+        {
+            all.append(e.mText);
+            if (!e.mText.empty() && e.mText.back() != '\n')
+            {
+                all.push_back('\n');
+            }
+        }
+        ImGui::SetClipboardText(all.c_str());
     }
 
     ImGui::SameLine();
@@ -192,33 +250,89 @@ void TerminalPanel::DrawOutput()
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
     const auto& entries = mSession.GetBuffer().GetEntries();
+
+    // One-shot diagnostic: log when entries first becomes non-empty so we
+    // can confirm the panel sees the buffer.
+    {
+        static bool sLoggedNonEmpty = false;
+        if (!sLoggedNonEmpty && !entries.empty())
+        {
+            sLoggedNonEmpty = true;
+            LogDebug("[CLI] DrawOutput: first frame with entries, count=%zu buffer=%p",
+                     entries.size(), (const void*)&mSession.GetBuffer());
+        }
+    }
+
+    // Render each entry as one or more Selectable lines so the user can
+    // click to highlight a line and right-click to copy. We split each
+    // chunk on '\n' so multi-line chunks become multiple selectable rows.
+    int globalLineIndex = 0;
     for (const TerminalOutputEntry& entry : entries)
     {
         ImVec4 color = ColorForKind(entry.mKind);
         ImGui::PushStyleColor(ImGuiCol_Text, color);
 
-        // Split chunk on '\n' so each line wraps independently and selection works.
         const std::string& s = entry.mText;
         size_t start = 0;
         while (start <= s.size())
         {
             size_t nl = s.find('\n', start);
             size_t lineEnd = (nl == std::string::npos) ? s.size() : nl;
-            // Trim trailing CR for cleaner display.
             size_t actualEnd = lineEnd;
             if (actualEnd > start && s[actualEnd - 1] == '\r')
             {
                 --actualEnd;
             }
+
+            // Build a stable temporary std::string for the line so we can
+            // pass it to Selectable (which needs a null-terminated label)
+            // and to SetClipboardText.
+            std::string line;
             if (actualEnd > start)
             {
-                ImGui::TextUnformatted(s.data() + start, s.data() + actualEnd);
+                line.assign(s.data() + start, actualEnd - start);
             }
-            else if (nl != std::string::npos)
+
+            // Use the line index as the ID so identical lines don't collide.
+            ImGui::PushID(globalLineIndex++);
+
+            const char* label = line.empty() ? " " : line.c_str();
+            bool selected = (mSelectedLineIndex == globalLineIndex - 1);
+            if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_AllowDoubleClick))
             {
-                // Empty line — keep visual spacing.
-                ImGui::TextUnformatted("");
+                mSelectedLineIndex = globalLineIndex - 1;
+                mSelectedLineText = line;
+                if (ImGui::IsMouseDoubleClicked(0))
+                {
+                    ImGui::SetClipboardText(line.c_str());
+                }
             }
+
+            if (ImGui::BeginPopupContextItem("##LineCtx"))
+            {
+                if (ImGui::MenuItem("Copy line"))
+                {
+                    ImGui::SetClipboardText(line.c_str());
+                }
+                if (ImGui::MenuItem("Copy all"))
+                {
+                    std::string all;
+                    all.reserve(entries.size() * 32);
+                    for (const TerminalOutputEntry& e : entries)
+                    {
+                        all.append(e.mText);
+                        if (!e.mText.empty() && e.mText.back() != '\n')
+                        {
+                            all.push_back('\n');
+                        }
+                    }
+                    ImGui::SetClipboardText(all.c_str());
+                }
+                ImGui::EndPopup();
+            }
+
+            ImGui::PopID();
+
             if (nl == std::string::npos)
             {
                 break;
@@ -227,6 +341,31 @@ void TerminalPanel::DrawOutput()
         }
 
         ImGui::PopStyleColor();
+    }
+
+    // Ctrl+C while the output area is hovered copies the currently selected
+    // line, or the whole buffer if nothing is selected.
+    if (ImGui::IsWindowHovered() && ImGui::IsKeyPressed(ImGuiKey_C) &&
+        (ImGui::GetIO().KeyCtrl))
+    {
+        if (!mSelectedLineText.empty())
+        {
+            ImGui::SetClipboardText(mSelectedLineText.c_str());
+        }
+        else
+        {
+            std::string all;
+            all.reserve(entries.size() * 32);
+            for (const TerminalOutputEntry& e : entries)
+            {
+                all.append(e.mText);
+                if (!e.mText.empty() && e.mText.back() != '\n')
+                {
+                    all.push_back('\n');
+                }
+            }
+            ImGui::SetClipboardText(all.c_str());
+        }
     }
 
     ImGui::PopStyleVar();

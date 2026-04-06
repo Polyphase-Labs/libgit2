@@ -5,6 +5,8 @@
 #include "CommandHistory.h"
 #include "TerminalSession.h"
 
+#include <string>
+
 struct ImGuiInputTextCallbackData;
 
 /**
@@ -27,6 +29,7 @@ public:
 
 private:
     void DrawToolbar();
+    void DrawTuiKeys();
     void DrawOutput();
     void DrawInput();
     void OnSubmit();
@@ -43,6 +46,9 @@ private:
     bool mLaunchedThisOpen = false;
 
     bool mScrollToBottom = false;
+
+    int mSelectedLineIndex = -1;
+    std::string mSelectedLineText;
 };
 
 TerminalPanel* GetTerminalPanel();

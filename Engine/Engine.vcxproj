@@ -751,8 +751,10 @@
     <ClCompile Include="Source\Editor\CliTerminal\CommandHistory.cpp" />
     <ClCompile Include="Source\Editor\CliTerminal\ShellPresets.cpp" />
     <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Windows.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_WindowsConPTY.cpp" />
     <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Posix.cpp" />
     <ClCompile Include="Source\Editor\CliTerminal\TerminalProcessFactory.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\AnsiStripper.cpp" />
     <ClCompile Include="Source\Editor\CliTerminal\TerminalSession.cpp" />
     <ClCompile Include="Source\Editor\CliTerminal\TerminalPanel.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Packaging\DockerModule.cpp" />
@@ -1115,7 +1117,9 @@
     <ClInclude Include="Source\Editor\CliTerminal\CommandHistory.h" />
     <ClInclude Include="Source\Editor\CliTerminal\ShellPresets.h" />
     <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Windows.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_WindowsConPTY.h" />
     <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Posix.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\AnsiStripper.h" />
     <ClInclude Include="Source\Editor\CliTerminal\TerminalSession.h" />
     <ClInclude Include="Source\Editor\CliTerminal\TerminalPanel.h" />
     <ClInclude Include="Source\Editor\SecondScreenPreview\SecondScreenPreview.h" />
