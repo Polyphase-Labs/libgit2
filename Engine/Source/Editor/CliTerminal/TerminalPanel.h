@@ -33,6 +33,7 @@ private:
     void DrawOutput();
     void DrawInput();
     void OnSubmit();
+    void ForwardKeysToProcess();
 
     static int InputCallback(ImGuiInputTextCallbackData* data);
 
@@ -42,6 +43,7 @@ private:
     char mInputBuffer[2048] = {};
     bool mAutoScroll = true;
     bool mFocusInputNextFrame = false;
+    bool mFocusOutputNextFrame = false;
     bool mPrevVisible = false;
     bool mLaunchedThisOpen = false;
 

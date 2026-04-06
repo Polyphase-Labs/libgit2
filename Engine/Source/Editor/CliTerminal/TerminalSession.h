@@ -76,6 +76,9 @@ public:
     const std::string& GetLastError() const { return mLastError; }
     TerminalOutputBuffer& GetBuffer() { return mBuffer; }
 
+    /** True when the running backend exposes a real TTY (e.g. ConPTY). */
+    bool IsTty() const { return mProcess && mProcess->IsTty(); }
+
 private:
     void EmitSystem(const std::string& msg);
     void OnProcessOutput(TerminalEntryKind kind, std::string text);

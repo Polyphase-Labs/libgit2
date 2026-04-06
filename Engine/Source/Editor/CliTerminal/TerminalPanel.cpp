@@ -55,6 +55,34 @@ namespace
             default:                             return ImVec4(1, 1, 1, 1);
         }
     }
+
+    /** Encode a single Unicode codepoint as UTF-8. Returns byte length. */
+    int EncodeUtf8(unsigned int c, char buf[4])
+    {
+        if (c < 0x80)
+        {
+            buf[0] = static_cast<char>(c);
+            return 1;
+        }
+        if (c < 0x800)
+        {
+            buf[0] = static_cast<char>(0xC0 | (c >> 6));
+            buf[1] = static_cast<char>(0x80 | (c & 0x3F));
+            return 2;
+        }
+        if (c < 0x10000)
+        {
+            buf[0] = static_cast<char>(0xE0 | (c >> 12));
+            buf[1] = static_cast<char>(0x80 | ((c >> 6) & 0x3F));
+            buf[2] = static_cast<char>(0x80 | (c & 0x3F));
+            return 3;
+        }
+        buf[0] = static_cast<char>(0xF0 | (c >> 18));
+        buf[1] = static_cast<char>(0x80 | ((c >> 12) & 0x3F));
+        buf[2] = static_cast<char>(0x80 | ((c >> 6) & 0x3F));
+        buf[3] = static_cast<char>(0x80 | (c & 0x3F));
+        return 4;
+    }
 }
 
 void TerminalPanel::Tick()
@@ -67,7 +95,6 @@ void TerminalPanel::Tick()
     if (opened)
     {
         mLaunchedThisOpen = false;
-        mFocusInputNextFrame = true;
 
         CliModule* cli = FindCliModule();
         if (cli != nullptr && cli->mEnabled && cli->mLaunchOnPanelOpen)
@@ -78,6 +105,15 @@ void TerminalPanel::Tick()
                 mSession.Start();
                 mLaunchedThisOpen = true;
             }
+        }
+
+        if (mSession.IsTty())
+        {
+            mFocusOutputNextFrame = true;
+        }
+        else
+        {
+            mFocusInputNextFrame = true;
         }
     }
 
@@ -169,7 +205,17 @@ void TerminalPanel::DrawToolbar()
     if (ImGui::Button("Start"))
     {
         mSession.Start();
-        mFocusInputNextFrame = true;
+        // In TTY mode the output area is the keyboard target so interactive
+        // apps can be typed into directly. In pipe mode the input box is
+        // where users type commands.
+        if (mSession.IsTty())
+        {
+            mFocusOutputNextFrame = true;
+        }
+        else
+        {
+            mFocusInputNextFrame = true;
+        }
     }
     if (!canStart) ImGui::EndDisabled();
 
@@ -244,8 +290,18 @@ void TerminalPanel::DrawOutput()
 {
     // Reserve space for the input box (~one line height + spacing).
     float footerHeight = ImGui::GetFrameHeightWithSpacing();
+    // ImGuiWindowFlags_NoNavInputs prevents ImGui's keyboard nav from
+    // consuming arrow keys when the user wants them forwarded to the child.
     ImGui::BeginChild("##CliTerminalOutput", ImVec2(0, -footerHeight), false,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+                      ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoNavInputs);
+
+    // Auto-focus the output area on TTY start so the user can immediately
+    // type into the running program. Cleared after one frame.
+    if (mFocusOutputNextFrame)
+    {
+        ImGui::SetWindowFocus();
+        mFocusOutputNextFrame = false;
+    }
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
@@ -343,11 +399,20 @@ void TerminalPanel::DrawOutput()
         ImGui::PopStyleColor();
     }
 
-    // Ctrl+C while the output area is hovered copies the currently selected
-    // line, or the whole buffer if nothing is selected.
-    if (ImGui::IsWindowHovered() && ImGui::IsKeyPressed(ImGuiKey_C) &&
-        (ImGui::GetIO().KeyCtrl))
+    // Forward raw keystrokes to the child process when in TTY mode and the
+    // output child window has focus. This makes interactive TUI apps (claude,
+    // lazygit, vim, etc.) usable: arrow keys navigate menus, typed characters
+    // appear immediately, Ctrl+C interrupts, etc.
+    bool tty = (mSession.GetState() == TerminalSessionState::Running) && mSession.IsTty();
+    bool childFocused = ImGui::IsWindowFocused();
+    if (tty && childFocused)
     {
+        ForwardKeysToProcess();
+    }
+    else if (ImGui::IsWindowHovered() && ImGui::IsKeyPressed(ImGuiKey_C) &&
+             (ImGui::GetIO().KeyCtrl))
+    {
+        // Pipe-mode fallback: Ctrl+C copies output to clipboard.
         if (!mSelectedLineText.empty())
         {
             ImGui::SetClipboardText(mSelectedLineText.c_str());
@@ -423,6 +488,105 @@ void TerminalPanel::OnSubmit()
     {
         mHistory.Add(line);
         mScrollToBottom = true;
+    }
+}
+
+void TerminalPanel::ForwardKeysToProcess()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    // ---- Typed printable characters (handles Shift, IME, layout, etc.) ----
+    // Read and clear ImGui's character input queue. Each entry is a Unicode
+    // codepoint that should be sent to the child as UTF-8.
+    if (io.InputQueueCharacters.Size > 0)
+    {
+        for (int i = 0; i < io.InputQueueCharacters.Size; ++i)
+        {
+            unsigned int cp = static_cast<unsigned int>(io.InputQueueCharacters[i]);
+            char buf[4];
+            int len = EncodeUtf8(cp, buf);
+            if (len > 0)
+            {
+                mSession.SendRaw(buf, static_cast<size_t>(len));
+            }
+        }
+        io.InputQueueCharacters.resize(0);
+        mScrollToBottom = true;
+    }
+
+    // ---- Special keys (not present in the character queue) ----
+    struct KeyMap
+    {
+        ImGuiKey key;
+        const char* seq;
+        size_t len;
+    };
+    static const KeyMap sKeyMap[] = {
+        { ImGuiKey_Enter,        "\r",         1 },
+        { ImGuiKey_KeypadEnter,  "\r",         1 },
+        { ImGuiKey_Tab,          "\t",         1 },
+        { ImGuiKey_Escape,       "\x1b",       1 },
+        { ImGuiKey_Backspace,    "\x7f",       1 },  // DEL is the conventional TTY backspace
+        { ImGuiKey_UpArrow,      "\x1b[A",     3 },
+        { ImGuiKey_DownArrow,    "\x1b[B",     3 },
+        { ImGuiKey_RightArrow,   "\x1b[C",     3 },
+        { ImGuiKey_LeftArrow,    "\x1b[D",     3 },
+        { ImGuiKey_Home,         "\x1b[H",     3 },
+        { ImGuiKey_End,          "\x1b[F",     3 },
+        { ImGuiKey_Delete,       "\x1b[3~",    4 },
+        { ImGuiKey_PageUp,       "\x1b[5~",    4 },
+        { ImGuiKey_PageDown,     "\x1b[6~",    4 },
+        { ImGuiKey_F1,           "\x1bOP",     3 },
+        { ImGuiKey_F2,           "\x1bOQ",     3 },
+        { ImGuiKey_F3,           "\x1bOR",     3 },
+        { ImGuiKey_F4,           "\x1bOS",     3 },
+        { ImGuiKey_F5,           "\x1b[15~",   5 },
+        { ImGuiKey_F6,           "\x1b[17~",   5 },
+        { ImGuiKey_F7,           "\x1b[18~",   5 },
+        { ImGuiKey_F8,           "\x1b[19~",   5 },
+        { ImGuiKey_F9,           "\x1b[20~",   5 },
+        { ImGuiKey_F10,          "\x1b[21~",   5 },
+        { ImGuiKey_F11,          "\x1b[23~",   5 },
+        { ImGuiKey_F12,          "\x1b[24~",   5 },
+    };
+    for (const KeyMap& km : sKeyMap)
+    {
+        if (ImGui::IsKeyPressed(km.key, true))
+        {
+            mSession.SendRaw(km.seq, km.len);
+            mScrollToBottom = true;
+        }
+    }
+
+    // ---- Ctrl+letter -> control characters ----
+    // We intercept these in TTY mode so they reach the child instead of
+    // triggering ImGui shortcuts (Ctrl+C copy, Ctrl+V paste, etc.).
+    if (io.KeyCtrl)
+    {
+        struct CtrlMap
+        {
+            ImGuiKey key;
+            char ctrl;
+        };
+        static const CtrlMap sCtrl[] = {
+            { ImGuiKey_A, 0x01 }, { ImGuiKey_B, 0x02 }, { ImGuiKey_C, 0x03 },
+            { ImGuiKey_D, 0x04 }, { ImGuiKey_E, 0x05 }, { ImGuiKey_F, 0x06 },
+            { ImGuiKey_G, 0x07 }, { ImGuiKey_H, 0x08 }, { ImGuiKey_I, 0x09 },
+            { ImGuiKey_J, 0x0A }, { ImGuiKey_K, 0x0B }, { ImGuiKey_L, 0x0C },
+            { ImGuiKey_M, 0x0D }, { ImGuiKey_N, 0x0E }, { ImGuiKey_O, 0x0F },
+            { ImGuiKey_P, 0x10 }, { ImGuiKey_Q, 0x11 }, { ImGuiKey_R, 0x12 },
+            { ImGuiKey_S, 0x13 }, { ImGuiKey_T, 0x14 }, { ImGuiKey_U, 0x15 },
+            { ImGuiKey_V, 0x16 }, { ImGuiKey_W, 0x17 }, { ImGuiKey_X, 0x18 },
+            { ImGuiKey_Y, 0x19 }, { ImGuiKey_Z, 0x1A },
+        };
+        for (const CtrlMap& cm : sCtrl)
+        {
+            if (ImGui::IsKeyPressed(cm.key, false))
+            {
+                mSession.SendRaw(&cm.ctrl, 1);
+                mScrollToBottom = true;
+            }
+        }
     }
 }
 
