@@ -3,10 +3,11 @@
 #if EDITOR
 #if PLATFORM_LINUX
 
-#include "AnsiStripper.h"
+#include "ITerminalOutputParser.h"
 #include "ITerminalProcess.h"
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <sys/types.h>
 #include <thread>
@@ -47,7 +48,7 @@ private:
     pid_t mPid = -1;
     int   mPtyFd = -1;     // master side of the PTY pair
 
-    AnsiStripper mStripper;
+    std::unique_ptr<ITerminalOutputParser> mParser;
 
     std::thread mReader;
     std::thread mWaitThread;

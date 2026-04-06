@@ -2,10 +2,54 @@
 
 #include "AnsiStripper.h"
 
+#include "Log.h"
+
+#include <cstdio>
 #include <cstdlib>
+
+// Set to 1 to dump every raw chunk that arrives at the stripper as
+// "<hex>  <ascii>" lines via LogDebug. Useful when adapting the parser to
+// new TUI apps (e.g. claude on Linux PTY) — leave at 0 in normal builds
+// because it is extremely chatty.
+#ifndef CLI_TERMINAL_DEBUG_DUMP
+#define CLI_TERMINAL_DEBUG_DUMP 0
+#endif
 
 namespace
 {
+#if CLI_TERMINAL_DEBUG_DUMP
+    void DebugDumpChunk(const char* data, size_t len)
+    {
+        // 16 bytes per row, hex on the left and printable-ASCII on the right.
+        // Control bytes show as "." in the ASCII column and ESC is rendered
+        // explicitly as "\e" in a separate prefix so escape sequences stand
+        // out at a glance.
+        constexpr size_t kRow = 16;
+        char hex[kRow * 3 + 1];
+        char asc[kRow + 1];
+        for (size_t off = 0; off < len; off += kRow)
+        {
+            size_t n = (len - off) < kRow ? (len - off) : kRow;
+            size_t hp = 0;
+            for (size_t i = 0; i < n; ++i)
+            {
+                unsigned char b = static_cast<unsigned char>(data[off + i]);
+                hp += static_cast<size_t>(snprintf(hex + hp, sizeof(hex) - hp,
+                                                   "%02X ", b));
+                asc[i] = (b >= 0x20 && b < 0x7F) ? static_cast<char>(b) : '.';
+            }
+            for (size_t i = n; i < kRow; ++i)
+            {
+                hp += static_cast<size_t>(snprintf(hex + hp, sizeof(hex) - hp,
+                                                   "   "));
+                asc[i] = ' ';
+            }
+            asc[kRow] = '\0';
+            LogDebug("[CLI][raw] %04zX  %s |%s|", off, hex, asc);
+        }
+    }
+#endif
+
     bool IsPrintableOrAllowedControl(unsigned char c)
     {
         // Printable ASCII (and high bytes for UTF-8 passthrough).
@@ -33,6 +77,14 @@ namespace
 
 std::string AnsiStripper::Process(const char* data, size_t len)
 {
+#if CLI_TERMINAL_DEBUG_DUMP
+    if (len > 0)
+    {
+        LogDebug("[CLI][raw] === chunk len=%zu ===", len);
+        DebugDumpChunk(data, len);
+    }
+#endif
+
     std::string out;
     out.reserve(len);
 
@@ -123,7 +175,16 @@ std::string AnsiStripper::Process(const char* data, size_t len)
                         case 'A':
                         case 'J':
                         {
-                            if (!out.empty() && out.back() != '\n')
+                            // Suppress the synthetic frame-marker newline if
+                            // the previous emitted character (this chunk OR
+                            // the previous chunk) was already a newline. This
+                            // is critical for TTY backends where TUI apps
+                            // redraw frequently — without the cross-call
+                            // check, every redraw cycle would inject a blank
+                            // line into the log.
+                            bool lastWasNl = out.empty() ? mEndsWithNewline
+                                                         : (out.back() == '\n');
+                            if (!lastWasNl)
                             {
                                 out.push_back('\n');
                             }
@@ -169,6 +230,11 @@ std::string AnsiStripper::Process(const char* data, size_t len)
                 }
                 break;
         }
+    }
+
+    if (!out.empty())
+    {
+        mEndsWithNewline = (out.back() == '\n');
     }
 
     return out;

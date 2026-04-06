@@ -232,6 +232,11 @@ static bool sDuplicateNodeFocus = false;
 static AssetStub* sDuplicateAssetStub = nullptr;
 static bool sNodesDiscovered = false;
 static bool showTheming = false;
+
+// Optional monospace font with extended Unicode coverage, loaded for the
+// CLI Terminal panel only. May remain null if F_RobotoMono16.ttf isn't
+// shipped — callers must check.
+static ImFont* sTerminalFont = nullptr;
 static std::vector<std::string> sNode3dNames;
 static std::vector<std::string> sNodeWidgetNames;
 static std::vector<std::string> sNodeOtherNames;
@@ -10575,6 +10580,56 @@ void EditorImguiInit()
         MergePolyphaseIcons(io.Fonts, 14.0f, iconFontPath.c_str());
     }
 
+    // Terminal panel font: load Roboto Mono with an extended glyph range
+    // covering the Unicode blocks Ink-rendered TUI apps (claude, etc.) use
+    // for layout. Loaded as a separate ImFont so it only applies inside the
+    // terminal panel via PushFont/PopFont.
+    {
+        const std::string termFontPath =
+            SYS_GetAbsolutePath("Engine/Assets/Fonts/F_RobotoMono16.ttf");
+        if (SYS_DoesFileExist(termFontPath.c_str(), false))
+        {
+            // Build the glyph range. Static so the lifetime extends past
+            // AddFontFromFileTTF, which only stores a pointer to it.
+            static const ImWchar kTerminalRanges[] = {
+                0x0020, 0x00FF, // Basic Latin + Latin-1 Supplement
+                0x2010, 0x205F, // General Punctuation (dashes, quotes, ellipsis)
+                0x2190, 0x21FF, // Arrows
+                0x2200, 0x22FF, // Mathematical Operators
+                0x2300, 0x23FF, // Miscellaneous Technical
+                0x2500, 0x257F, // Box Drawing
+                0x2580, 0x259F, // Block Elements (incl. quadrants)
+                0x25A0, 0x25FF, // Geometric Shapes
+                0x2600, 0x26FF, // Miscellaneous Symbols
+                0x2700, 0x27BF, // Dingbats (spinners ✶✷✸✹✺✻ live here)
+                0,
+            };
+
+            ImFontConfig cfg;
+            cfg.OversampleH = 1;
+            cfg.OversampleV = 1;
+            cfg.PixelSnapH = true;
+
+            sTerminalFont = io.Fonts->AddFontFromFileTTF(
+                termFontPath.c_str(), 15.0f, &cfg, kTerminalRanges);
+            if (sTerminalFont == nullptr)
+            {
+                LogWarning("[CLI] Failed to load terminal font from %s",
+                           termFontPath.c_str());
+            }
+            else
+            {
+                LogDebug("[CLI] Terminal font loaded from %s", termFontPath.c_str());
+            }
+        }
+        else
+        {
+            LogWarning("[CLI] Terminal font %s not found; terminal panel will "
+                       "use the editor default font and may render some glyphs "
+                       "as '?'.", termFontPath.c_str());
+        }
+    }
+
     //ImGui::StyleColorsLight();
 
     // Override theme
@@ -10600,6 +10655,11 @@ void EditorImguiInit()
     // If dock panel names changed (e.g. icons added), the saved layout won't
     // match and causes crashes.  Delete the file so ImGui starts fresh.
     ValidateDockLayoutIni();
+}
+
+ImFont* GetEditorTerminalFont()
+{
+    return sTerminalFont;
 }
 
 void EditorImguiDraw()

@@ -3,10 +3,11 @@
 #if EDITOR
 #if PLATFORM_WINDOWS
 
-#include "AnsiStripper.h"
+#include "ITerminalOutputParser.h"
 #include "ITerminalProcess.h"
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -63,7 +64,7 @@ private:
 
     void* mAttributeListMem = nullptr;  // HeapAlloc'd PROC_THREAD_ATTRIBUTE_LIST*
 
-    AnsiStripper mStripper;
+    std::unique_ptr<ITerminalOutputParser> mParser;
 
     std::thread mReader;
     std::thread mWaitThread;

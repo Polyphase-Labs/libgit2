@@ -2,10 +2,12 @@
 
 #include "TerminalPanel.h"
 
+#include "EditorImgui.h"
 #include "Preferences/External/CliModule.h"
 #include "Preferences/PreferencesManager.h"
 
 #include "Log.h"
+#include "System/System.h"
 
 #include "imgui.h"
 
@@ -22,6 +24,21 @@ TerminalPanel* GetTerminalPanel()
 
 namespace
 {
+    /**
+     * Push text to both the engine's system clipboard (XCB on Linux,
+     * Win32 OpenClipboard on Windows) AND ImGui's in-process clipboard so
+     * the value is reachable from any other widget in the same process
+     * (e.g. ImGui::InputText paste). The editor never installs an
+     * io.SetClipboardTextFn callback that bridges ImGui to SYS_*Clipboard*,
+     * so calling ImGui::SetClipboardText alone leaves the system clipboard
+     * empty on Linux. We fan out to both here.
+     */
+    void CopyToClipboardBoth(const std::string& text)
+    {
+        SYS_SetClipboardText(text);
+        ImGui::SetClipboardText(text.c_str());
+    }
+
     CliModule* FindCliModule()
     {
         PreferencesManager* mgr = PreferencesManager::Get();
@@ -282,18 +299,30 @@ void TerminalPanel::DrawToolbar()
     ImGui::SameLine();
     if (ImGui::Button(ICON_MATERIAL_SYMBOLS_FILE_COPY_SHARP))
     {
-        std::string all;
-        const auto& entries = mSession.GetBuffer().GetEntries();
-        all.reserve(entries.size() * 32);
-        for (const TerminalOutputEntry& e : entries)
+        CopyToClipboardBoth(BuildAllLinesText());
+    }
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Copy entire log to clipboard");
+    }
+
+    ImGui::SameLine();
+    {
+        bool hasSelection = !mSelectedLineIndices.empty();
+        if (!hasSelection) ImGui::BeginDisabled();
+        if (ImGui::Button("Copy Selected"))
         {
-            all.append(e.mText);
-            if (!e.mText.empty() && e.mText.back() != '\n')
-            {
-                all.push_back('\n');
-            }
+            CopyToClipboardBoth(BuildSelectedLinesText());
         }
-        ImGui::SetClipboardText(all.c_str());
+        if (ImGui::IsItemHovered() && hasSelection)
+        {
+            ImGui::SetTooltip(
+                "Copy the %zu currently-selected row(s).\n"
+                "Click a row to select, Ctrl+Click to toggle,\n"
+                "Shift+Click to extend the range.",
+                mSelectedLineIndices.size());
+        }
+        if (!hasSelection) ImGui::EndDisabled();
     }
 
     ImGui::SameLine();
@@ -335,6 +364,16 @@ void TerminalPanel::DrawOutput()
     ImGui::BeginChild("##CliTerminalOutput", ImVec2(0, -footerHeight), false,
                       ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoNavInputs);
 
+    // Push the monospace terminal font (Roboto Mono with extended glyph
+    // ranges) so box-drawing characters, block elements, arrows, and
+    // dingbat spinners render properly instead of falling back to '?'.
+    // Falls back to the editor default font if the file wasn't loaded.
+    ImFont* termFont = GetEditorTerminalFont();
+    if (termFont != nullptr)
+    {
+        ImGui::PushFont(termFont);
+    }
+
     // Auto-focus the output area on TTY start so the user can immediately
     // type into the running program. Cleared after one frame.
     if (mFocusOutputNextFrame)
@@ -362,7 +401,14 @@ void TerminalPanel::DrawOutput()
     // Render each entry as one or more Selectable lines so the user can
     // click to highlight a line and right-click to copy. We split each
     // chunk on '\n' so multi-line chunks become multiple selectable rows.
+    //
+    // Selection model (multi-row):
+    //   - Plain click            -> replace selection with this row, set anchor
+    //   - Ctrl+Click             -> toggle this row, set anchor
+    //   - Shift+Click            -> select inclusive range from anchor..this
+    //   - Double-click           -> copy that single row to clipboard
     int globalLineIndex = 0;
+    ImGuiIO& io = ImGui::GetIO();
     for (const TerminalOutputEntry& entry : entries)
     {
         ImVec4 color = ColorForKind(entry.mKind);
@@ -389,40 +435,94 @@ void TerminalPanel::DrawOutput()
                 line.assign(s.data() + start, actualEnd - start);
             }
 
-            // Use the line index as the ID so identical lines don't collide.
-            ImGui::PushID(globalLineIndex++);
+            int rowIndex = globalLineIndex++;
+            ImGui::PushID(rowIndex);
 
             const char* label = line.empty() ? " " : line.c_str();
-            bool selected = (mSelectedLineIndex == globalLineIndex - 1);
+            bool selected = (mSelectedLineIndices.count(rowIndex) != 0);
             if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_AllowDoubleClick))
             {
-                mSelectedLineIndex = globalLineIndex - 1;
-                mSelectedLineText = line;
+                if (io.KeyShift && mSelectionAnchor >= 0)
+                {
+                    int lo = mSelectionAnchor < rowIndex ? mSelectionAnchor : rowIndex;
+                    int hi = mSelectionAnchor > rowIndex ? mSelectionAnchor : rowIndex;
+                    if (!io.KeyCtrl)
+                    {
+                        mSelectedLineIndices.clear();
+                    }
+                    for (int i = lo; i <= hi; ++i)
+                    {
+                        mSelectedLineIndices.insert(i);
+                    }
+                }
+                else if (io.KeyCtrl)
+                {
+                    if (mSelectedLineIndices.count(rowIndex) != 0)
+                    {
+                        mSelectedLineIndices.erase(rowIndex);
+                    }
+                    else
+                    {
+                        mSelectedLineIndices.insert(rowIndex);
+                    }
+                    mSelectionAnchor = rowIndex;
+                }
+                else
+                {
+                    mSelectedLineIndices.clear();
+                    mSelectedLineIndices.insert(rowIndex);
+                    mSelectionAnchor = rowIndex;
+                }
+
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    ImGui::SetClipboardText(line.c_str());
+                    CopyToClipboardBoth(line);
                 }
             }
 
             if (ImGui::BeginPopupContextItem("##LineCtx"))
             {
+                // Right-clicking a row that isn't part of the current
+                // selection should make it the (sole) selection so the
+                // "Copy selected" action below operates on what the user
+                // actually right-clicked.
+                if (mSelectedLineIndices.count(rowIndex) == 0)
+                {
+                    mSelectedLineIndices.clear();
+                    mSelectedLineIndices.insert(rowIndex);
+                    mSelectionAnchor = rowIndex;
+                }
+
                 if (ImGui::MenuItem("Copy line"))
                 {
-                    ImGui::SetClipboardText(line.c_str());
+                    CopyToClipboardBoth(line);
+                }
+                char selLabel[64];
+                snprintf(selLabel, sizeof(selLabel),
+                         "Copy selected (%zu)", mSelectedLineIndices.size());
+                if (ImGui::MenuItem(selLabel, nullptr, false,
+                                    !mSelectedLineIndices.empty()))
+                {
+                    CopyToClipboardBoth(BuildSelectedLinesText());
                 }
                 if (ImGui::MenuItem("Copy all"))
                 {
-                    std::string all;
-                    all.reserve(entries.size() * 32);
-                    for (const TerminalOutputEntry& e : entries)
+                    CopyToClipboardBoth(BuildAllLinesText());
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Select all"))
+                {
+                    mSelectedLineIndices.clear();
+                    for (int i = 0; i < mSelectionLineCount; ++i)
                     {
-                        all.append(e.mText);
-                        if (!e.mText.empty() && e.mText.back() != '\n')
-                        {
-                            all.push_back('\n');
-                        }
+                        mSelectedLineIndices.insert(i);
                     }
-                    ImGui::SetClipboardText(all.c_str());
+                }
+                if (ImGui::MenuItem("Clear selection", nullptr, false,
+                                    !mSelectedLineIndices.empty()))
+                {
+                    mSelectedLineIndices.clear();
+                    mSelectionAnchor = -1;
                 }
                 ImGui::EndPopup();
             }
@@ -439,6 +539,20 @@ void TerminalPanel::DrawOutput()
         ImGui::PopStyleColor();
     }
 
+    // Remember the row count for "Select all" and to allow Ctrl+A handling.
+    mSelectionLineCount = globalLineIndex;
+
+    // Ctrl+A while the output area is focused selects every visible row.
+    if (ImGui::IsWindowFocused() && io.KeyCtrl &&
+        ImGui::IsKeyPressed(ImGuiKey_A, false))
+    {
+        mSelectedLineIndices.clear();
+        for (int i = 0; i < mSelectionLineCount; ++i)
+        {
+            mSelectedLineIndices.insert(i);
+        }
+    }
+
     // Forward raw keystrokes to the child process when in TTY mode and the
     // output child window has focus. This makes interactive TUI apps (claude,
     // lazygit, vim, etc.) usable: arrow keys navigate menus, typed characters
@@ -452,24 +566,15 @@ void TerminalPanel::DrawOutput()
     else if (ImGui::IsWindowHovered() && ImGui::IsKeyPressed(ImGuiKey_C) &&
              (ImGui::GetIO().KeyCtrl))
     {
-        // Pipe-mode fallback: Ctrl+C copies output to clipboard.
-        if (!mSelectedLineText.empty())
+        // Pipe-mode fallback: Ctrl+C copies the current selection if any,
+        // otherwise the entire log.
+        if (!mSelectedLineIndices.empty())
         {
-            ImGui::SetClipboardText(mSelectedLineText.c_str());
+            CopyToClipboardBoth(BuildSelectedLinesText());
         }
         else
         {
-            std::string all;
-            all.reserve(entries.size() * 32);
-            for (const TerminalOutputEntry& e : entries)
-            {
-                all.append(e.mText);
-                if (!e.mText.empty() && e.mText.back() != '\n')
-                {
-                    all.push_back('\n');
-                }
-            }
-            ImGui::SetClipboardText(all.c_str());
+            CopyToClipboardBoth(BuildAllLinesText());
         }
     }
 
@@ -480,6 +585,11 @@ void TerminalPanel::DrawOutput()
         ImGui::SetScrollHereY(1.0f);
     }
     mScrollToBottom = false;
+
+    if (termFont != nullptr)
+    {
+        ImGui::PopFont();
+    }
 
     ImGui::EndChild();
 }
@@ -628,6 +738,70 @@ void TerminalPanel::ForwardKeysToProcess()
             }
         }
     }
+}
+
+std::string TerminalPanel::BuildAllLinesText()
+{
+    const auto& entries = mSession.GetBuffer().GetEntries();
+    std::string all;
+    all.reserve(entries.size() * 32);
+    for (const TerminalOutputEntry& e : entries)
+    {
+        all.append(e.mText);
+        if (!e.mText.empty() && e.mText.back() != '\n')
+        {
+            all.push_back('\n');
+        }
+    }
+    return all;
+}
+
+std::string TerminalPanel::BuildSelectedLinesText()
+{
+    if (mSelectedLineIndices.empty())
+    {
+        return {};
+    }
+
+    // Walk the buffer the same way DrawOutput does, in row order, picking
+    // the rows whose row index is in mSelectedLineIndices. This guarantees
+    // the copied text matches the on-screen order even when the user
+    // selected rows out-of-order.
+    const auto& entries = mSession.GetBuffer().GetEntries();
+    std::string out;
+    int rowIndex = 0;
+    for (const TerminalOutputEntry& entry : entries)
+    {
+        const std::string& s = entry.mText;
+        size_t start = 0;
+        while (start <= s.size())
+        {
+            size_t nl = s.find('\n', start);
+            size_t lineEnd = (nl == std::string::npos) ? s.size() : nl;
+            size_t actualEnd = lineEnd;
+            if (actualEnd > start && s[actualEnd - 1] == '\r')
+            {
+                --actualEnd;
+            }
+
+            if (mSelectedLineIndices.count(rowIndex) != 0)
+            {
+                if (actualEnd > start)
+                {
+                    out.append(s.data() + start, actualEnd - start);
+                }
+                out.push_back('\n');
+            }
+
+            ++rowIndex;
+            if (nl == std::string::npos)
+            {
+                break;
+            }
+            start = nl + 1;
+        }
+    }
+    return out;
 }
 
 int TerminalPanel::InputCallback(ImGuiInputTextCallbackData* data)

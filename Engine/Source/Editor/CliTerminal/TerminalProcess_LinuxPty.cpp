@@ -3,6 +3,8 @@
 
 #include "TerminalProcess_LinuxPty.h"
 
+#include "TerminalParserRegistry.h"
+
 #include "Log.h"
 
 #include <cerrno>
@@ -46,7 +48,16 @@ bool TerminalProcess_LinuxPty::Start(const TerminalLaunchConfig& cfg, std::strin
 
     mStopRequested.store(false);
     mExitCode.store(0);
-    mStripper.Reset();
+
+    // Pick the parser via the registry. Auto-detection looks at cfg.mExecutable
+    // (e.g. `claude` -> ClaudeCodeParser); falls back to the default ANSI
+    // stripper for everything else.
+    mParser = TerminalParserRegistry::Get().CreateParserFor(cfg);
+    if (mParser)
+    {
+        mParser->Reset();
+        LogDebug("[CLI] LinuxPty using parser \"%s\"", mParser->GetName());
+    }
 
     // Initial window size for the PTY. Apps that respect SIGWINCH will
     // adjust their layout if we ResizePseudoConsole-equivalent later.
@@ -150,7 +161,9 @@ void TerminalProcess_LinuxPty::ReaderLoop()
             ++reads;
             totalBytes += static_cast<unsigned long>(n);
 
-            std::string clean = mStripper.Process(buffer, static_cast<size_t>(n));
+            std::string clean = mParser
+                ? mParser->Process(buffer, static_cast<size_t>(n))
+                : std::string(buffer, static_cast<size_t>(n));
 
             if (reads <= 3)
             {

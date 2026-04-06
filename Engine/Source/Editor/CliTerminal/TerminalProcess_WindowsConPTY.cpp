@@ -3,6 +3,8 @@
 
 #include "TerminalProcess_WindowsConPTY.h"
 
+#include "TerminalParserRegistry.h"
+
 #include "Log.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -175,7 +177,16 @@ bool TerminalProcess_WindowsConPTY::Start(const TerminalLaunchConfig& cfg, std::
 
     mStopRequested.store(false);
     mExitCode.store(0);
-    mStripper.Reset();
+
+    // Pick the parser via the registry. Auto-detection looks at cfg.mExecutable
+    // (e.g. `claude.exe` -> ClaudeCodeParser); falls back to the default ANSI
+    // stripper for everything else.
+    mParser = TerminalParserRegistry::Get().CreateParserFor(cfg);
+    if (mParser)
+    {
+        mParser->Reset();
+        LogDebug("[CLI] ConPTY using parser \"%s\"", mParser->GetName());
+    }
 
     // Create the two pipes that the pseudo-console will use:
     //   inputRead  <- ConPTY reads child stdin from here  (we write to inputWrite)
@@ -396,7 +407,9 @@ void TerminalProcess_WindowsConPTY::ReaderLoop()
         ++reads;
         totalBytes += bytesRead;
 
-        std::string clean = mStripper.Process(buffer, static_cast<size_t>(bytesRead));
+        std::string clean = mParser
+            ? mParser->Process(buffer, static_cast<size_t>(bytesRead))
+            : std::string(buffer, static_cast<size_t>(bytesRead));
         size_t cleanedSize = clean.size();
 
         // Log the first few reads so we can confirm data is flowing.

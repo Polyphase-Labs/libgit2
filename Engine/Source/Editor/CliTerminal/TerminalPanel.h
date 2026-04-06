@@ -5,6 +5,7 @@
 #include "CommandHistory.h"
 #include "TerminalSession.h"
 
+#include <set>
 #include <string>
 
 struct ImGuiInputTextCallbackData;
@@ -49,8 +50,23 @@ private:
 
     bool mScrollToBottom = false;
 
-    int mSelectedLineIndex = -1;
-    std::string mSelectedLineText;
+    // Multi-row selection in the output area. mSelectedLineIndices holds
+    // the set of currently-selected (zero-based) row indices. mSelectionAnchor
+    // is the row index of the most recent plain click and acts as the anchor
+    // for shift-click range extension. mSelectionLineCount is the row count
+    // observed on the previous frame and is used to drop indices that fell
+    // off the top of the bounded ring buffer.
+    std::set<int> mSelectedLineIndices;
+    int mSelectionAnchor = -1;
+    int mSelectionLineCount = 0;
+
+    // Build a newline-joined string of the rows in mSelectedLineIndices,
+    // walking the buffer in row order so the result matches on-screen order.
+    // Not const because TerminalSession::GetBuffer() is non-const.
+    std::string BuildSelectedLinesText();
+
+    // Build a newline-joined string of every entry in the buffer.
+    std::string BuildAllLinesText();
 };
 
 TerminalPanel* GetTerminalPanel();

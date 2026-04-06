@@ -2,6 +2,8 @@
 
 #if EDITOR
 
+#include "ITerminalOutputParser.h"
+
 #include <string>
 
 /**
@@ -28,14 +30,16 @@
  *  - Cursor-positioning re-render (e.g. progress bars that overwrite a line)
  *  - SGR colour parsing (could be added later for coloured output)
  */
-class AnsiStripper
+class AnsiStripper : public ITerminalOutputParser
 {
 public:
     /** Process a chunk of raw bytes; returns the cleaned text. */
-    std::string Process(const char* data, size_t len);
+    std::string Process(const char* data, size_t len) override;
 
     /** Reset state (call between sessions). */
-    void Reset() { mState = State::Normal; }
+    void Reset() override { mState = State::Normal; mEndsWithNewline = true; }
+
+    const char* GetName() const override { return "default"; }
 
 private:
     enum class State
@@ -54,6 +58,13 @@ private:
     // common cursor movements (specifically "cursor forward N" -> emit N
     // spaces) which TUI apps use for layout instead of literal spaces.
     std::string mCsiParams;
+
+    // Tracks whether the last byte we emitted (across all Process() calls)
+    // was a newline. Used to suppress synthetic frame-redraw newlines that
+    // would otherwise stack up on TTY backends (notably Linux PTY) where
+    // TUI apps like `claude` emit a clear-screen + cursor-home at the start
+    // of every chunk, producing a blank line per redraw cycle.
+    bool mEndsWithNewline = true;
 };
 
 #endif
