@@ -135,6 +135,9 @@
     <Filter Include="Source Files\Editor\DebugLog">
       <UniqueIdentifier>{d3a5c7b2-1f4e-4a8b-9c6d-e2f0b8a1d5c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\CliTerminal">
+      <UniqueIdentifier>{e8c11a47-4b9d-4f6c-8a72-1d53b6e9c204}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Editor\SecondScreenPreview">
       <UniqueIdentifier>{b4c6d8e0-2a3f-4b5c-8d7e-f9a1b3c5d7e9}</UniqueIdentifier>
     </Filter>
@@ -1204,6 +1207,33 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\Preferences\External\EditorsModule.cpp">
       <Filter>Source Files\Editor\Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Preferences\External\CliModule.cpp">
+      <Filter>Source Files\Editor\Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalOutputBuffer.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\CommandHistory.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\ShellPresets.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Windows.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Posix.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcessFactory.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalSession.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalPanel.cpp">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\Preferences\Packaging\DockerModule.cpp">
       <Filter>Source Files\Editor\Preferences</Filter>
@@ -2411,6 +2441,33 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\Preferences\External\EditorsModule.h">
       <Filter>Source Files\Editor\Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Preferences\External\CliModule.h">
+      <Filter>Source Files\Editor\Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\ITerminalProcess.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalOutputBuffer.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\CommandHistory.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\ShellPresets.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Windows.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Posix.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalSession.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalPanel.h">
+      <Filter>Source Files\Editor\CliTerminal</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\Preferences\Packaging\DockerModule.h">
       <Filter>Source Files\Editor\Preferences</Filter>

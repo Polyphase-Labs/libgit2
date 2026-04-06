@@ -28,6 +28,7 @@
 #include "ActionManager.h"
 #include "BuildCache.h"
 #include "InputManager.h"
+#include "CliTerminal/TerminalPanel.h"
 #include "Preferences/PreferencesManager.h"
 #include "Preferences/General/GeneralModule.h"
 #include "ProjectSelect/TemplateManager.h"
@@ -248,6 +249,9 @@ void EditorMain(int32_t argc, char** argv)
 
         // Tick profiling window to record frame time history
         GetProfilingWindow()->Tick();
+
+        // Tick CLI terminal panel: drains output buffer and advances session state
+        GetTerminalPanel()->Tick();
 
         if (GetEditorState()->mEndPieAtEndOfFrame)
         {

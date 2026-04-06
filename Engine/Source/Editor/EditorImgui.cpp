@@ -68,6 +68,7 @@
 #include "PlayerInputEditor.h"
 #include "PlayerInputDebugger.h"
 #include "DebugLog/DebugLogWindow.h"
+#include "CliTerminal/TerminalPanel.h"
 #include "ScriptEditor/ScriptEditorWindow.h"
 #include "ThemeEditor/ThemeEditorWindow.h"
 #include "Preferences/Appearance/Theme/CssThemeParser.h"
@@ -682,6 +683,23 @@ static void DrawDockspace()
     ImGui::EndDock();
     ImGui::PopStyleColor();
 
+    // --- CLI Terminal dock ---
+    {
+        ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, bg);
+    }
+    {
+        bool cliOpen = GetTerminalPanel()->mVisible;
+        if (ImGui::BeginDock(ICON_CONSOLE "  CLI Terminal", &cliOpen,
+                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+        {
+            GetTerminalPanel()->DrawContent();
+        }
+        ImGui::EndDock();
+        GetTerminalPanel()->mVisible = cliOpen;
+    }
+    ImGui::PopStyleColor();
+
     // --- Texture Atlas Viewer dock ---
     {
         ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
@@ -725,6 +743,7 @@ static void DrawDockspace()
             ImGui::DockTo("EditorDock", ICON_IC_BASELINE_SHARE "  Node Graph", ICON_ASSETS "  Assets", ImGuiDockSlot_Right, 0.5f);
             ImGui::DockTo("EditorDock", ICON_CURVEGRAPH "  Profiling", ICON_IC_BASELINE_SHARE "  Node Graph", ImGuiDockSlot_Tab);
             ImGui::DockTo("EditorDock", "Texture Atlas Viewer", ICON_CURVEGRAPH "  Profiling", ImGuiDockSlot_Tab);
+            ImGui::DockTo("EditorDock", ICON_CONSOLE "  CLI Terminal", ICON_STREAMLINE_LOG_SOLID "  Debug Log", ImGuiDockSlot_Tab);
 
             // Defer activating the Viewport tab — docks call setActive() on their
             // first BeginDock frame, so we need to wait a couple frames for all
@@ -8391,6 +8410,9 @@ static void DrawMainMenuBar()
             if (ImGui::MenuItem("Profiling"))
                 GetEditorState()->mShowProfilingPanel = !GetEditorState()->mShowProfilingPanel;
 
+            if (ImGui::MenuItem("CLI Terminal"))
+                GetTerminalPanel()->mVisible = !GetTerminalPanel()->mVisible;
+
             ImGui::Separator();
             if (ImGui::MenuItem("Reset Layout"))
                 sDockResetRequested = true;
@@ -11491,6 +11513,7 @@ void EditorImguiPreShutdown()
         ImGui::GetIO().IniFilename = nullptr;
     }
     GetScriptEditorWindow()->Shutdown();
+    GetTerminalPanel()->Shutdown();
     ImGui::ShutdownDock();
     UnregisterLogCallback(DebugLogWindow::LogCallback);
     ControllerServer::Destroy();
