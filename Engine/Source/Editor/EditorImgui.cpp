@@ -10975,13 +10975,24 @@ void EditorImguiDraw()
                 };
 
                 // Mode selection
-                ImGui::Text("Mode");
+                const char* brushTypeNames[] =
+                {
+                    "Raise",
+                    "Lower",
+                    "Flatten",
+                    "Smooth",
+                    "Paint Material"
+                };
+
                 int mode = (int)mgr->mOptions.mMode;
-                ImGui::RadioButton("Raise", &mode, 0); ImGui::SameLine();
-                ImGui::RadioButton("Lower", &mode, 1); ImGui::SameLine();
-                ImGui::RadioButton("Flatten", &mode, 2);
-                ImGui::RadioButton("Smooth", &mode, 3); ImGui::SameLine();
-                ImGui::RadioButton("Paint Mat", &mode, 4);
+                if (mode < 0 || mode >= (int)TerrainSculptMode::Count)
+                {
+                    mode = (int)TerrainSculptMode::Raise;
+                }
+
+                ImGui::Text("Brush");
+                ImGui::SetNextItemWidth(-1.0f);
+                ImGui::Combo("##BrushType", &mode, brushTypeNames, IM_ARRAYSIZE(brushTypeNames));
                 mgr->mOptions.mMode = (TerrainSculptMode)mode;
 
                 ImGui::Separator();
