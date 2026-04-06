@@ -52,6 +52,20 @@ public:
     bool mDebugSplatmap = false;         // When true, renders raw splatmap weights as vertex color
     TextureRef mBakedMapTexture;         // Saved baked map asset (persists across PIE/runtime)
 
+    // Auto-generation rules per material slot
+    struct SlotRule
+    {
+        float mHeightMin = 0.0f;    // Normalized height [0,1] where this slot starts
+        float mHeightMax = 1.0f;    // Normalized height [0,1] where this slot ends
+        float mSlopeMin = 0.0f;     // Min slope angle in degrees (0=flat)
+        float mSlopeMax = 90.0f;    // Max slope angle in degrees (90=vertical)
+        float mBlend = 0.1f;        // Blend falloff at rule edges [0,1]
+        float mStrength = 1.0f;     // Overall weight multiplier
+    };
+    SlotRule mSlotRules[MAX_MATERIAL_SLOTS];
+
+    void GenerateSplatmapFromRules();
+
     // Snapping
     float mSnapGridSize = 0.0f;  // 0 = no snapping
 

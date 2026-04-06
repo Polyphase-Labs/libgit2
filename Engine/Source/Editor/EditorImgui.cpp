@@ -10915,9 +10915,10 @@ void EditorImguiDraw()
         else if (paintMode == PaintMode::Terrain)
         {
             // Terrain sculpt panel
-            ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()));
-            ImGui::SetNextWindowSize(ImVec2(300.0f, 0.0f));
-            ImGui::Begin("Terrain Sculpt", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(340.0f, 500.0f), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f, 200.0f), ImVec2(600.0f, 1200.0f));
+            ImGui::Begin("Terrain Sculpt", nullptr, 0);
 
             TerrainSculptManager* mgr = GetEditorState()->mTerrainSculptManager;
 
@@ -10925,6 +10926,53 @@ void EditorImguiDraw()
             if (sel != nullptr && sel->GetType() == Terrain3D::GetStaticType())
             {
                 Terrain3D* terrain = static_cast<Terrain3D*>(sel);
+
+                // Get atlas ImTextureID for tile previews
+                static ImTextureID sTerrainAtlasTexId = 0;
+                static Texture* sLastTerrainAtlasTex = nullptr;
+                Texture* atlasTex = terrain->mAtlasTexture.Get<Texture>();
+                if (atlasTex != sLastTerrainAtlasTex)
+                {
+                    if (sTerrainAtlasTexId != 0)
+                    {
+                        ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)sTerrainAtlasTexId);
+                        sTerrainAtlasTexId = 0;
+                    }
+                    if (atlasTex != nullptr)
+                    {
+                        TextureResource* res = atlasTex->GetResource();
+                        if (res != nullptr && res->mImage != nullptr)
+                        {
+                            sTerrainAtlasTexId = (ImTextureID)ImGui_ImplVulkan_AddTexture(
+                                res->mImage->GetSampler(),
+                                res->mImage->GetView(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                        }
+                    }
+                    sLastTerrainAtlasTex = atlasTex;
+                }
+
+                uint32_t tilesX = terrain->mAtlasTilesX;
+                uint32_t tilesY = terrain->mAtlasTilesY;
+
+                // Lambda: draw a tile preview image for a given tile index
+                auto DrawSlotTilePreview = [&](int32_t tileIdx, float size)
+                {
+                    if (sTerrainAtlasTexId != 0 && tilesX > 0 && tilesY > 0 && tileIdx >= 0)
+                    {
+                        int col = tileIdx % tilesX;
+                        int row = tileIdx / tilesX;
+                        float u0 = float(col) / float(tilesX);
+                        float v0 = float(row) / float(tilesY);
+                        float u1 = float(col + 1) / float(tilesX);
+                        float v1 = float(row + 1) / float(tilesY);
+                        ImGui::Image(sTerrainAtlasTexId, ImVec2(size, size), ImVec2(u0, v0), ImVec2(u1, v1));
+                    }
+                    else
+                    {
+                        ImGui::Dummy(ImVec2(size, size));
+                    }
+                };
 
                 // Mode selection
                 ImGui::Text("Mode");
@@ -10971,10 +11019,173 @@ void EditorImguiDraw()
                 {
                     ImGui::Separator();
                     ImGui::Text("Material Slot");
-                    ImGui::RadioButton("Slot 0", &mgr->mOptions.mPaintSlot, 0); ImGui::SameLine();
-                    ImGui::RadioButton("Slot 1", &mgr->mOptions.mPaintSlot, 1); ImGui::SameLine();
-                    ImGui::RadioButton("Slot 2", &mgr->mOptions.mPaintSlot, 2); ImGui::SameLine();
-                    ImGui::RadioButton("Slot 3", &mgr->mOptions.mPaintSlot, 3);
+                    for (int32_t s = 0; s < Terrain3D::MAX_MATERIAL_SLOTS; ++s)
+                    {
+                        ImGui::PushID(s);
+                        DrawSlotTilePreview(terrain->mSlotAtlasTile[s], 24.0f);
+                        ImGui::SameLine();
+                        char label[16];
+                        snprintf(label, sizeof(label), "Slot %d", s);
+                        ImGui::RadioButton(label, &mgr->mOptions.mPaintSlot, s);
+                        if (s < Terrain3D::MAX_MATERIAL_SLOTS - 1) ImGui::SameLine();
+                        ImGui::PopID();
+                    }
+                }
+
+                // Slot tile assignment
+                if (terrain->mUseMaterialSlots && terrain->mEnableAtlasTexturing)
+                {
+                    ImGui::Separator();
+                    if (ImGui::CollapsingHeader("Material Slot Tiles", ImGuiTreeNodeFlags_DefaultOpen))
+                    {
+                        for (int32_t s = 0; s < Terrain3D::MAX_MATERIAL_SLOTS; ++s)
+                        {
+                            ImGui::PushID(s + 100);
+                            DrawSlotTilePreview(terrain->mSlotAtlasTile[s], 32.0f);
+                            ImGui::SameLine();
+                            char label[32];
+                            snprintf(label, sizeof(label), "Slot %d Tile", s);
+                            ImGui::SetNextItemWidth(80.0f);
+                            if (ImGui::InputInt(label, &terrain->mSlotAtlasTile[s], 1, 1))
+                            {
+                                int32_t maxTile = (int32_t)(tilesX * tilesY) - 1;
+                                if (terrain->mSlotAtlasTile[s] < 0) terrain->mSlotAtlasTile[s] = 0;
+                                if (terrain->mSlotAtlasTile[s] > maxTile) terrain->mSlotAtlasTile[s] = maxTile;
+                                terrain->MarkDirty();
+                            }
+                            ImGui::PopID();
+                        }
+                    }
+                }
+
+                // Auto-generate splatmap from elevation/slope rules
+                if (terrain->mUseMaterialSlots)
+                {
+                    ImGui::Separator();
+                    if (ImGui::CollapsingHeader("Auto-Generate Splatmap"))
+                    {
+                        const char* slotLabels[] = { "Slot 0", "Slot 1", "Slot 2", "Slot 3" };
+                        for (int32_t s = 0; s < Terrain3D::MAX_MATERIAL_SLOTS; ++s)
+                        {
+                            ImGui::PushID(s);
+                            DrawSlotTilePreview(terrain->mSlotAtlasTile[s], 20.0f);
+                            ImGui::SameLine();
+                            if (ImGui::TreeNode(slotLabels[s]))
+                            {
+                                Terrain3D::SlotRule& rule = terrain->mSlotRules[s];
+                                ImGui::SliderFloat("Height Min", &rule.mHeightMin, 0.0f, 1.0f);
+                                ImGui::SliderFloat("Height Max", &rule.mHeightMax, 0.0f, 1.0f);
+                                ImGui::SliderFloat("Slope Min", &rule.mSlopeMin, 0.0f, 90.0f, "%.0f deg");
+                                ImGui::SliderFloat("Slope Max", &rule.mSlopeMax, 0.0f, 90.0f, "%.0f deg");
+                                ImGui::SliderFloat("Blend", &rule.mBlend, 0.0f, 0.5f);
+                                ImGui::SliderFloat("Strength", &rule.mStrength, 0.0f, 2.0f);
+                                ImGui::TreePop();
+                            }
+                            ImGui::PopID();
+                        }
+
+                        if (ImGui::Button("Generate Splatmap"))
+                        {
+                            terrain->GenerateSplatmapFromRules();
+                            terrain->BakeAndSaveMap();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Generate (Preview)"))
+                        {
+                            terrain->GenerateSplatmapFromRules();
+                            if (terrain->mBakeSplatmap)
+                                terrain->BakeSplatmapTexture();
+                        }
+
+                        ImGui::TextWrapped("Height: 0=lowest, 1=highest. Slope: 0=flat, 90=cliff.");
+                    }
+                }
+
+                // Mountain preset generator
+                if (terrain->mUseMaterialSlots)
+                {
+                    if (ImGui::CollapsingHeader("Mountain Generate Splatmap"))
+                    {
+                        static int32_t mtSlotGround = 0;
+                        static int32_t mtSlotMountainSide = 1;
+                        static int32_t mtSlotMountainTop = 2;
+                        static int32_t mtSlotPeak = 3;
+
+                        static float mtGroundMax = 0.35f;
+                        static float mtSideMinSlope = 25.0f;
+                        static float mtTopMin = 0.55f;
+                        static float mtPeakMin = 0.8f;
+                        static float mtBlend = 0.12f;
+
+                        // Ground
+                        DrawSlotTilePreview(terrain->mSlotAtlasTile[mtSlotGround], 20.0f);
+                        ImGui::SameLine();
+                        if (ImGui::TreeNode("Ground (flat lowlands)"))
+                        {
+                            ImGui::SliderInt("Slot##Ground", &mtSlotGround, 0, 3);
+                            ImGui::SliderFloat("Max Height##Ground", &mtGroundMax, 0.0f, 1.0f);
+                            ImGui::TreePop();
+                        }
+
+                        // Mountain Side
+                        DrawSlotTilePreview(terrain->mSlotAtlasTile[mtSlotMountainSide], 20.0f);
+                        ImGui::SameLine();
+                        if (ImGui::TreeNode("Mountain Side (steep slopes)"))
+                        {
+                            ImGui::SliderInt("Slot##Side", &mtSlotMountainSide, 0, 3);
+                            ImGui::SliderFloat("Min Slope##Side", &mtSideMinSlope, 5.0f, 60.0f, "%.0f deg");
+                            ImGui::TreePop();
+                        }
+
+                        // Mountain Top
+                        DrawSlotTilePreview(terrain->mSlotAtlasTile[mtSlotMountainTop], 20.0f);
+                        ImGui::SameLine();
+                        if (ImGui::TreeNode("Mountain Top (high flat areas)"))
+                        {
+                            ImGui::SliderInt("Slot##Top", &mtSlotMountainTop, 0, 3);
+                            ImGui::SliderFloat("Min Height##Top", &mtTopMin, 0.2f, 1.0f);
+                            ImGui::TreePop();
+                        }
+
+                        // Peak
+                        DrawSlotTilePreview(terrain->mSlotAtlasTile[mtSlotPeak], 20.0f);
+                        ImGui::SameLine();
+                        if (ImGui::TreeNode("Peak (highest points)"))
+                        {
+                            ImGui::SliderInt("Slot##Peak", &mtSlotPeak, 0, 3);
+                            ImGui::SliderFloat("Min Height##Peak", &mtPeakMin, 0.5f, 1.0f);
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::SliderFloat("Blend##Mt", &mtBlend, 0.0f, 0.3f);
+
+                        if (ImGui::Button("Generate Mountain"))
+                        {
+                            // Ground: low elevation, flat
+                            terrain->mSlotRules[mtSlotGround] = { 0.0f, mtGroundMax, 0.0f, mtSideMinSlope, mtBlend, 1.0f };
+                            // Mountain Side: steep slopes at any elevation
+                            terrain->mSlotRules[mtSlotMountainSide] = { 0.0f, 1.0f, mtSideMinSlope, 90.0f, mtBlend, 1.2f };
+                            // Mountain Top: high elevation, moderate slopes
+                            terrain->mSlotRules[mtSlotMountainTop] = { mtTopMin, mtPeakMin, 0.0f, mtSideMinSlope + 10.0f, mtBlend, 1.0f };
+                            // Peak: highest points, any slope
+                            terrain->mSlotRules[mtSlotPeak] = { mtPeakMin, 1.0f, 0.0f, 90.0f, mtBlend, 1.5f };
+
+                            terrain->GenerateSplatmapFromRules();
+                            terrain->BakeAndSaveMap();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Preview Mountain"))
+                        {
+                            terrain->mSlotRules[mtSlotGround] = { 0.0f, mtGroundMax, 0.0f, mtSideMinSlope, mtBlend, 1.0f };
+                            terrain->mSlotRules[mtSlotMountainSide] = { 0.0f, 1.0f, mtSideMinSlope, 90.0f, mtBlend, 1.2f };
+                            terrain->mSlotRules[mtSlotMountainTop] = { mtTopMin, mtPeakMin, 0.0f, mtSideMinSlope + 10.0f, mtBlend, 1.0f };
+                            terrain->mSlotRules[mtSlotPeak] = { mtPeakMin, 1.0f, 0.0f, 90.0f, mtBlend, 1.5f };
+
+                            terrain->GenerateSplatmapFromRules();
+                            if (terrain->mBakeSplatmap)
+                                terrain->BakeSplatmapTexture();
+                        }
+                    }
                 }
 
                 // Terrain config

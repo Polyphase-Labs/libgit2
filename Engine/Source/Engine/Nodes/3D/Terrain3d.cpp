@@ -80,6 +80,12 @@ Terrain3D::Terrain3D()
     mBounds.mCenter = glm::vec3(0.0f);
     mBounds.mRadius = glm::length(glm::vec3(mWorldWidth, 0.0f, mWorldDepth)) * 0.5f;
 
+    // Default auto-gen rules: grass(flat low), rock(steep), snow(high), dirt(mid slopes)
+    mSlotRules[0] = { 0.0f, 0.55f,  0.0f, 30.0f, 0.1f, 1.0f };  // Slot 0: Grass — low flat areas
+    mSlotRules[1] = { 0.0f, 1.0f,  30.0f, 90.0f, 0.1f, 1.0f };  // Slot 1: Rock  — steep slopes
+    mSlotRules[2] = { 0.6f, 1.0f,   0.0f, 45.0f, 0.1f, 1.0f };  // Slot 2: Snow  — high elevation
+    mSlotRules[3] = { 0.3f, 0.7f,  10.0f, 40.0f, 0.1f, 0.5f };  // Slot 3: Dirt  — mid-elevation slopes
+
     MarkDirty();
 }
 
@@ -940,6 +946,105 @@ void Terrain3D::BakeAndSaveHeightmap(const std::string& savePath)
 
     SaveTextureAsset(res, res, pixels.data(), savePath);
 #endif
+}
+
+// Compute smooth blend: returns 1.0 inside range, fades to 0.0 at edges over blend distance
+static float ComputeRuleWeight(float value, float rangeMin, float rangeMax, float blend)
+{
+    if (blend <= 0.0f)
+        return (value >= rangeMin && value <= rangeMax) ? 1.0f : 0.0f;
+
+    float w = 1.0f;
+
+    // Fade in at bottom edge
+    if (value < rangeMin)
+        w = 0.0f;
+    else if (value < rangeMin + blend)
+        w = std::min(w, (value - rangeMin) / blend);
+
+    // Fade out at top edge
+    if (value > rangeMax)
+        w = 0.0f;
+    else if (value > rangeMax - blend)
+        w = std::min(w, (rangeMax - value) / blend);
+
+    return std::max(0.0f, w);
+}
+
+void Terrain3D::GenerateSplatmapFromRules()
+{
+    if (mHeightmap.empty() || mResolutionX < 2 || mResolutionZ < 2)
+        return;
+
+    float stepX = mWorldWidth / (mResolutionX - 1);
+    float stepZ = mWorldDepth / (mResolutionZ - 1);
+
+    // Find height range for normalization
+    float minH = mHeightmap[0], maxH = mHeightmap[0];
+    for (float h : mHeightmap)
+    {
+        if (h < minH) minH = h;
+        if (h > maxH) maxH = h;
+    }
+    float heightRange = maxH - minH;
+    if (heightRange < 0.0001f) heightRange = 1.0f;
+
+    for (int32_t iz = 0; iz < mResolutionZ; ++iz)
+    {
+        for (int32_t ix = 0; ix < mResolutionX; ++ix)
+        {
+            size_t idx = iz * mResolutionX + ix;
+
+            // Normalized height [0,1]
+            float h = (mHeightmap[idx] - minH) / heightRange;
+
+            // Compute slope angle from normal (central differences)
+            float hL = (ix > 0) ? mHeightmap[iz * mResolutionX + (ix - 1)] : mHeightmap[idx];
+            float hR = (ix < mResolutionX - 1) ? mHeightmap[iz * mResolutionX + (ix + 1)] : mHeightmap[idx];
+            float hD = (iz > 0) ? mHeightmap[(iz - 1) * mResolutionX + ix] : mHeightmap[idx];
+            float hU = (iz < mResolutionZ - 1) ? mHeightmap[(iz + 1) * mResolutionX + ix] : mHeightmap[idx];
+
+            glm::vec3 normal = glm::normalize(glm::vec3(
+                (hL - hR) * mHeightScale,
+                2.0f * stepX,
+                (hD - hU) * mHeightScale
+            ));
+
+            // Slope: 0° = flat (normal pointing up), 90° = vertical wall
+            float slopeDeg = glm::degrees(std::acos(std::max(0.0f, std::min(1.0f, normal.y))));
+
+            // Evaluate each slot's rule
+            float weights[MAX_MATERIAL_SLOTS] = {};
+            for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+            {
+                const SlotRule& rule = mSlotRules[s];
+                float heightW = ComputeRuleWeight(h, rule.mHeightMin, rule.mHeightMax, rule.mBlend);
+                float slopeW = ComputeRuleWeight(slopeDeg, rule.mSlopeMin, rule.mSlopeMax, rule.mBlend * 90.0f);
+                weights[s] = heightW * slopeW * rule.mStrength;
+            }
+
+            // Normalize weights to sum to 1
+            float total = 0.0f;
+            for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+                total += weights[s];
+
+            uint8_t packed[4] = {};
+            if (total > 0.0f)
+            {
+                for (int32_t s = 0; s < MAX_MATERIAL_SLOTS; ++s)
+                    packed[s] = (uint8_t)((weights[s] / total) * 255.0f);
+            }
+            else
+            {
+                packed[0] = 255; // Default to slot 0
+            }
+
+            mSplatmap[idx] = packed[0] | (packed[1] << 8) | (packed[2] << 16) | (packed[3] << 24);
+        }
+    }
+
+    MarkDirty();
+    LogDebug("GenerateSplatmapFromRules: Generated splatmap from elevation/slope rules");
 }
 
 void Terrain3D::MarkDirty()
