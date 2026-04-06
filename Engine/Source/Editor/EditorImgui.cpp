@@ -11002,16 +11002,152 @@ void EditorImguiDraw()
                 Texture* maskTex = mgr->mOptions.mBrushMask.Get<Texture>();
                 if (maskTex != nullptr)
                 {
+                    // Show preview of the mask texture
+                    static ImTextureID sBrushMaskTexId = 0;
+                    static Texture* sLastBrushMaskTex = nullptr;
+                    if (maskTex != sLastBrushMaskTex)
+                    {
+                        if (sBrushMaskTexId != 0)
+                        {
+                            ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)sBrushMaskTexId);
+                            sBrushMaskTexId = 0;
+                        }
+                        TextureResource* res = maskTex->GetResource();
+                        if (res != nullptr && res->mImage != nullptr)
+                        {
+                            sBrushMaskTexId = (ImTextureID)ImGui_ImplVulkan_AddTexture(
+                                res->mImage->GetSampler(),
+                                res->mImage->GetView(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                        }
+                        sLastBrushMaskTex = maskTex;
+                    }
+
+                    if (sBrushMaskTexId != 0)
+                    {
+                        ImGui::Image(sBrushMaskTexId, ImVec2(48, 48));
+                        ImGui::SameLine();
+                    }
+                    ImGui::BeginGroup();
                     ImGui::Text("%s", maskTex->GetName().c_str());
-                    ImGui::SameLine();
                     if (ImGui::Button("Clear##BrushMask"))
                     {
                         mgr->mOptions.mBrushMask = nullptr;
+                        if (sBrushMaskTexId != 0)
+                        {
+                            ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)sBrushMaskTexId);
+                            sBrushMaskTexId = 0;
+                        }
+                        sLastBrushMaskTex = nullptr;
                     }
+                    ImGui::EndGroup();
                 }
                 else
                 {
                     ImGui::Text("(circular falloff)");
+                }
+
+                // Drop target: drag a Texture asset from the Assets panel onto this area
+                ImGui::Button("Drop Brush Mask Here##BrushMaskDrop", ImVec2(-1, 0));
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAGDROP_ASSET))
+                    {
+                        AssetStub* droppedStub = *(AssetStub**)payload->Data;
+                        if (droppedStub != nullptr && droppedStub->mType == Texture::GetStaticType())
+                        {
+                            Texture* droppedTex = static_cast<Texture*>(LoadAsset(droppedStub->mName));
+                            if (droppedTex != nullptr)
+                            {
+                                mgr->mOptions.mBrushMask = droppedTex;
+                            }
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
+                // Stamp brush mask onto entire terrain as heightmap
+                if (maskTex != nullptr)
+                {
+                    if (ImGui::Button("Stamp as Height"))
+                    {
+                        terrain->SetHeightFromTexture(maskTex);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Add Height"))
+                    {
+                        // Additively blend the mask texture onto existing heights
+                        if (!maskTex->GetPixels().empty())
+                        {
+                            uint32_t texW = maskTex->GetWidth();
+                            uint32_t texH = maskTex->GetHeight();
+                            float strength = mgr->mOptions.mBrushStrength;
+                            for (int32_t iz = 0; iz < terrain->mResolutionZ; ++iz)
+                            {
+                                for (int32_t ix = 0; ix < terrain->mResolutionX; ++ix)
+                                {
+                                    float u = (float)ix / (terrain->mResolutionX - 1);
+                                    float v = (float)iz / (terrain->mResolutionZ - 1);
+                                    uint32_t px = std::min((uint32_t)(u * (texW - 1)), texW - 1);
+                                    uint32_t py = std::min((uint32_t)(v * (texH - 1)), texH - 1);
+                                    uint32_t idx = (py * texW + px) * 4;
+                                    if (idx < maskTex->GetPixels().size())
+                                    {
+                                        float texVal = maskTex->GetPixels()[idx] / 255.0f;
+                                        float curH = terrain->GetHeight(ix, iz);
+                                        terrain->SetHeight(ix, iz, curH + texVal * strength);
+                                    }
+                                }
+                            }
+                            terrain->MarkDirty();
+                        }
+                    }
+                    if (terrain->mUseMaterialSlots)
+                    {
+                        ImGui::SameLine();
+                        if (ImGui::Button("Stamp as Splat"))
+                        {
+                            // Stamp the mask as splatmap weight for the active paint slot
+                            if (!maskTex->GetPixels().empty())
+                            {
+                                uint32_t texW = maskTex->GetWidth();
+                                uint32_t texH = maskTex->GetHeight();
+                                int32_t slot = mgr->mOptions.mPaintSlot;
+                                for (int32_t iz = 0; iz < terrain->mResolutionZ; ++iz)
+                                {
+                                    for (int32_t ix = 0; ix < terrain->mResolutionX; ++ix)
+                                    {
+                                        float u = (float)ix / (terrain->mResolutionX - 1);
+                                        float v = (float)iz / (terrain->mResolutionZ - 1);
+                                        uint32_t px = std::min((uint32_t)(u * (texW - 1)), texW - 1);
+                                        uint32_t py = std::min((uint32_t)(v * (texH - 1)), texH - 1);
+                                        uint32_t idx = (py * texW + px) * 4;
+                                        if (idx < maskTex->GetPixels().size())
+                                        {
+                                            float texVal = maskTex->GetPixels()[idx] / 255.0f;
+                                            if (texVal > 0.01f)
+                                            {
+                                                terrain->SetMaterialWeight(ix, iz, slot, texVal);
+                                                // Normalize other slots
+                                                float totalOther = 0.0f;
+                                                for (int32_t s = 0; s < Terrain3D::MAX_MATERIAL_SLOTS; ++s)
+                                                    if (s != slot) totalOther += terrain->GetMaterialWeight(ix, iz, s);
+                                                if (totalOther > 0.0f)
+                                                {
+                                                    float scale = (1.0f - texVal) / totalOther;
+                                                    for (int32_t s = 0; s < Terrain3D::MAX_MATERIAL_SLOTS; ++s)
+                                                        if (s != slot)
+                                                            terrain->SetMaterialWeight(ix, iz, s, terrain->GetMaterialWeight(ix, iz, s) * scale);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                terrain->MarkDirty();
+                                terrain->BakeAndSaveMap();
+                            }
+                        }
+                    }
                 }
 
                 // Material painting options
