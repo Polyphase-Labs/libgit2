@@ -105,7 +105,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lvulkan -lxcb -lasound -lpthread -lm -ldl
+LIBS	:=	-lvulkan -lxcb -lasound -lpthread -lm -ldl -lutil
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

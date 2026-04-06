@@ -7,6 +7,7 @@
 #include "TerminalProcess_WindowsConPTY.h"
 #elif PLATFORM_LINUX
 #include "TerminalProcess_Posix.h"
+#include "TerminalProcess_LinuxPty.h"
 #endif
 
 ITerminalProcess* CreateTerminalProcess()
@@ -22,15 +23,20 @@ ITerminalProcess* CreateTerminalProcess()
 
 ITerminalProcess* CreateTerminalProcessConPTY()
 {
+    // Returns the TTY-capable backend for the current platform:
+    //   - Windows: ConPTY-based (CreatePseudoConsole)
+    //   - Linux:   forkpty-based
+    // Returns nullptr if no TTY backend is available so the caller can fall
+    // back to the pipe-based backend via CreateTerminalProcess().
 #if PLATFORM_WINDOWS
     if (!TerminalProcess_WindowsConPTY::IsConPtyAvailable())
     {
         return nullptr;
     }
     return new TerminalProcess_WindowsConPTY();
+#elif PLATFORM_LINUX
+    return new TerminalProcess_LinuxPty();
 #else
-    // POSIX TTY support (forkpty/openpty) is not yet implemented; caller
-    // should fall back to CreateTerminalProcess().
     return nullptr;
 #endif
 }

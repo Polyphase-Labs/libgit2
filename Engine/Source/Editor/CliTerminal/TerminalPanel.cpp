@@ -11,6 +11,7 @@
 
 #include <cstring>
 #include <string>
+#include <EditorIcons.h>
 
 static TerminalPanel sTerminalPanel;
 
@@ -147,8 +148,13 @@ void TerminalPanel::Shutdown()
 
 void TerminalPanel::DrawContent()
 {
+    // Top padding so the toolbar buttons aren't flush against the dock
+    // tab bar / title strip.
+    ImGui::Dummy(ImVec2(0.0f, 4.0f));
     DrawToolbar();
+    ImGui::Spacing();
     DrawTuiKeys();
+    ImGui::Spacing();
     ImGui::Separator();
     DrawOutput();
     ImGui::Separator();
@@ -162,6 +168,22 @@ void TerminalPanel::DrawTuiKeys()
     // Only useful when the session is running and connected to a real TTY,
     // but we render them whenever the session is running so the user can
     // also use them with pipe-mode shells if desired.
+
+    // Labeled header so users know what these icon buttons do. Tooltip on
+    // hover gives a longer explanation.
+    ImGui::TextDisabled("Send Key:");
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip(
+            "Sends a single keystroke directly to the running program.\n"
+            "Useful for navigating interactive TUI prompts (claude, vim,\n"
+            "lazygit, etc.) when the input box below isn't appropriate.\n\n"
+            "You can also click into the output area above and type\n"
+            "directly — the keyboard is forwarded to the child process\n"
+            "in real time when the session is in TTY mode.");
+    }
+    ImGui::SameLine();
+
     bool running = (mSession.GetState() == TerminalSessionState::Running);
     if (!running) ImGui::BeginDisabled();
 
@@ -170,27 +192,45 @@ void TerminalPanel::DrawTuiKeys()
         mScrollToBottom = true;
     };
 
-    if (ImGui::SmallButton("Up"))    sendKey("\x1b[A", 3);
+    auto tip = [](const char* text) {
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("%s", text);
+        }
+    };
+
+    if (ImGui::SmallButton(ICON_DASHICONS_ARROW_UP))    sendKey("\x1b[A", 3);
+    tip("Up arrow  (\\x1b[A)");
     ImGui::SameLine();
-    if (ImGui::SmallButton("Down"))  sendKey("\x1b[B", 3);
+    if (ImGui::SmallButton(ICON_DASHICONS_ARROW_DOWN))  sendKey("\x1b[B", 3);
+    tip("Down arrow  (\\x1b[B)");
     ImGui::SameLine();
-    if (ImGui::SmallButton("Left"))  sendKey("\x1b[D", 3);
+    if (ImGui::SmallButton(ICON_MATERIAL_SYMBOLS_ARROW_LEFT))  sendKey("\x1b[D", 3);
+    tip("Left arrow  (\\x1b[D)");
     ImGui::SameLine();
-    if (ImGui::SmallButton("Right")) sendKey("\x1b[C", 3);
+    if (ImGui::SmallButton(ICON_MATERIAL_SYMBOLS_ARROW_RIGHT)) sendKey("\x1b[C", 3);
+    tip("Right arrow  (\\x1b[C)");
     ImGui::SameLine();
     if (ImGui::SmallButton("Enter")) sendKey("\r", 1);
+    tip("Enter / Return  (\\r)");
     ImGui::SameLine();
     if (ImGui::SmallButton("Tab"))   sendKey("\t", 1);
+    tip("Tab  (\\t)");
     ImGui::SameLine();
     if (ImGui::SmallButton("Esc"))   sendKey("\x1b", 1);
+    tip("Escape  (\\x1b)");
     ImGui::SameLine();
     if (ImGui::SmallButton("Space")) sendKey(" ", 1);
+    tip("Space");
     ImGui::SameLine();
-    if (ImGui::SmallButton("^C"))    sendKey("\x03", 1);
+    if (ImGui::SmallButton(ICON_MATERIAL_SYMBOLS_POWER_SETTINGS_CIRCLE))    sendKey("\x03", 1);
+    tip("Ctrl+C  (\\x03) — interrupt the running program");
     ImGui::SameLine();
-    if (ImGui::SmallButton("y"))     sendKey("y", 1);
+    if (ImGui::SmallButton(ICON_MDI_THUMBS_UP "  : Y"))     sendKey("y", 1);
+    tip("Send 'y' — answer yes to a single-key prompt");
     ImGui::SameLine();
-    if (ImGui::SmallButton("n"))     sendKey("n", 1);
+    if (ImGui::SmallButton(ICON_MDI_THUMBS_DOWN "  : N"))     sendKey("n", 1);
+    tip("Send 'n' — answer no to a single-key prompt");
 
     if (!running) ImGui::EndDisabled();
 }
@@ -202,7 +242,7 @@ void TerminalPanel::DrawToolbar()
     bool canStop  = (state == TerminalSessionState::Running);
 
     if (!canStart) ImGui::BeginDisabled();
-    if (ImGui::Button("Start"))
+    if (ImGui::Button(ICON_MATERIAL_SYMBOLS_ROCKET_LAUNCH))
     {
         mSession.Start();
         // In TTY mode the output area is the keyboard target so interactive
@@ -221,26 +261,26 @@ void TerminalPanel::DrawToolbar()
 
     ImGui::SameLine();
     if (!canStop) ImGui::BeginDisabled();
-    if (ImGui::Button("Stop"))
+    if (ImGui::Button(ICON_IC_BASELINE_STOP))
     {
         mSession.Stop();
     }
     if (!canStop) ImGui::EndDisabled();
 
     ImGui::SameLine();
-    if (ImGui::Button("Restart"))
+    if (ImGui::Button(ICON_UNDO))
     {
         mSession.Restart();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Clear"))
+    if (ImGui::Button(ICON_ZONDICONS_TRASH))
     {
         mSession.Clear();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Copy All"))
+    if (ImGui::Button(ICON_MATERIAL_SYMBOLS_FILE_COPY_SHARP))
     {
         std::string all;
         const auto& entries = mSession.GetBuffer().GetEntries();
