@@ -977,7 +977,6 @@ void Terrain3D::GenerateSplatmapFromRules()
         return;
 
     float stepX = mWorldWidth / (mResolutionX - 1);
-    float stepZ = mWorldDepth / (mResolutionZ - 1);
 
     // Find height range for normalization
     float minH = mHeightmap[0], maxH = mHeightmap[0];
