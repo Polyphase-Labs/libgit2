@@ -4,6 +4,7 @@
 #include "Nodes/Widgets/ProgressBar.h"
 #include "Nodes/Widgets/Quad.h"
 
+#include "Engine.h"
 #include "System/System.h"
 
 #include <cstdio>
@@ -134,17 +135,50 @@ void DebugResourcesWidget::Tick(float deltaTime)
     if (mLayoutDirty)
         RebuildLayout();
 
-    // Accumulate FPS samples every frame
-    if (deltaTime > 0.0f)
+    UpdateMetrics(deltaTime);
+    Canvas::Tick(deltaTime);
+}
+
+void DebugResourcesWidget::EditorTick(float deltaTime)
+{
+    if (mLayoutDirty)
+        RebuildLayout();
+
+    UpdateMetrics(deltaTime);
+    Canvas::EditorTick(deltaTime);
+}
+
+void DebugResourcesWidget::PreRender()
+{
+    // Runtime safety net: some packaged targets can present/render while
+    // game delta time is effectively zero, so force a refresh from real delta.
+    if (GetLastTickedFrame() != GetEngineState()->mFrameNumber)
     {
-        mFpsAccum += 1.0f / deltaTime;
+        UpdateMetrics(GetEngineState()->mRealDeltaTime);
+    }
+
+    Canvas::PreRender();
+}
+
+void DebugResourcesWidget::UpdateMetrics(float deltaTime)
+{
+    float effectiveDelta = deltaTime;
+    if (effectiveDelta <= 0.0f)
+    {
+        effectiveDelta = GetEngineState()->mRealDeltaTime;
+    }
+
+    // Accumulate FPS samples every frame
+    if (effectiveDelta > 0.0f)
+    {
+        mFpsAccum += 1.0f / effectiveDelta;
         mFpsSamples++;
     }
 
-    mUpdateTimer += deltaTime;
+    mUpdateTimer += effectiveDelta;
     if (mUpdateTimer >= sUpdateInterval)
     {
-        mUpdateTimer = 0.0f;
+        mUpdateTimer -= sUpdateInterval;
 
         float ram = SYS_GetRAMUsage();
         float vram = SYS_GetVRAMUsage();
@@ -171,13 +205,6 @@ void DebugResourcesWidget::Tick(float deltaTime)
         UpdateRow(mRAM2Row, ram2, ram2Max, "MB");
         UpdateRow(mFPSRow, fps, 60.0f, "FPS");
     }
-
-    Canvas::Tick(deltaTime);
-}
-
-void DebugResourcesWidget::EditorTick(float deltaTime)
-{
-    Tick(deltaTime);
 }
 
 void DebugResourcesWidget::SetShowMultipleRAM(bool show)
