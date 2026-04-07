@@ -139,7 +139,11 @@ void Viewport3D::HandleDefaultControls()
         const bool altDown = IsAltDown();
         const bool cmdKeyDown = (controlDown || shiftDown || altDown);
 
-        if (IsMouseButtonJustDown(MOUSE_RIGHT))
+        // Tile paint mode locks camera rotation — Pilot mode would let the
+        // user mouse-look + WASD around, breaking the top-down framing.
+        const bool tilePaintLocksRotation = (GetEditorState()->GetPaintMode() == PaintMode::TilePaint);
+
+        if (IsMouseButtonJustDown(MOUSE_RIGHT) && !tilePaintLocksRotation)
         {
             GetEditorState()->SetControlMode(ControlMode::Pilot);
         }
@@ -685,8 +689,10 @@ void Viewport3D::HandleDefaultControls()
             {
                 GetEditorState()->SetControlMode(ControlMode::Pan);
             }
-            else
+            else if (!tilePaintLocksRotation)
             {
+                // Tile paint locks orbit (which rotates the view). Pan with
+                // shift+middle still works for moving across the map.
                 GetEditorState()->SetControlMode(ControlMode::Orbit);
             }
         }

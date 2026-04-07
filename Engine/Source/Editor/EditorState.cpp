@@ -248,13 +248,72 @@ void EditorState::SetPaintMode(PaintMode paintMode)
 {
     if (mPaintMode != paintMode)
     {
+        PaintMode previousMode = mPaintMode;
         mPaintMode = paintMode;
 
         if (mPaintMode == PaintMode::None)
         {
-            // Make sure cursor is visible and unlocked 
+            // Make sure cursor is visible and unlocked
             INP_ShowCursor(true);
             INP_LockCursor(false);
+        }
+
+        // Tile-paint mode forces an orthographic top-down editor camera so
+        // tiles align cleanly with the cursor. The previous projection AND
+        // camera transform are stashed and restored when the user leaves
+        // tile paint.
+        if (paintMode == PaintMode::TilePaint && previousMode != PaintMode::TilePaint)
+        {
+            if (mEditorCamera != nullptr)
+            {
+                mTilePaintPrevWasPerspective =
+                    (mEditorCamera->GetProjectionMode() == ProjectionMode::PERSPECTIVE);
+                mTilePaintProjectionStashed = true;
+
+                // Stash the existing transform so we can put it back on exit.
+                mTilePaintPrevCameraPosition = mEditorCamera->GetWorldPosition();
+                mTilePaintPrevCameraRotation = mEditorCamera->GetWorldRotationQuat();
+                mTilePaintTransformStashed = true;
+
+                if (mTilePaintPrevWasPerspective)
+                {
+                    mEditorCamera->SetProjectionMode(ProjectionMode::ORTHOGRAPHIC);
+                    ApplyEditorCameraSettings();
+                }
+
+                // Snap to a top-down view above the currently-selected
+                // TileMap2D so the user immediately sees the tilemap from
+                // above. Default editor camera forward is -Z (Polyphase
+                // convention), so a zero-rotation transform with the camera
+                // at +Z above the tilemap is a clean top-down view.
+                Node* sel = GetSelectedNode();
+                glm::vec3 anchor = { 0.0f, 0.0f, 0.0f };
+                if (sel != nullptr && sel->IsNode3D())
+                {
+                    Node3D* selNode3D = static_cast<Node3D*>(sel);
+                    anchor = selNode3D->GetWorldPosition();
+                }
+                mEditorCamera->SetWorldPosition(glm::vec3(anchor.x, anchor.y, anchor.z + 50.0f));
+                mEditorCamera->SetWorldRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+            }
+        }
+        else if (previousMode == PaintMode::TilePaint && paintMode != PaintMode::TilePaint)
+        {
+            if (mEditorCamera != nullptr)
+            {
+                if (mTilePaintProjectionStashed && mTilePaintPrevWasPerspective)
+                {
+                    mEditorCamera->SetProjectionMode(ProjectionMode::PERSPECTIVE);
+                    ApplyEditorCameraSettings();
+                }
+                if (mTilePaintTransformStashed)
+                {
+                    mEditorCamera->SetWorldPosition(mTilePaintPrevCameraPosition);
+                    mEditorCamera->SetWorldRotation(mTilePaintPrevCameraRotation);
+                }
+            }
+            mTilePaintProjectionStashed = false;
+            mTilePaintTransformStashed = false;
         }
     }
 }

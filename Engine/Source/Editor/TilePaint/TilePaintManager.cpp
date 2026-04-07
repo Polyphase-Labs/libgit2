@@ -96,12 +96,32 @@ void TilePaintManager::UpdateHover()
     int32_t mouseX, mouseY;
     INP_GetMousePosition(mouseX, mouseY);
 
-    glm::vec3 rayOrigin = camera->GetWorldPosition();
-    glm::vec3 rayTarget = camera->ScreenToWorldPosition(mouseX, mouseY);
-    glm::vec3 rayDir = rayTarget - rayOrigin;
-    if (glm::length(rayDir) < 1e-6f)
-        return;
-    rayDir = glm::normalize(rayDir);
+    // Build the cursor ray. The math is different for perspective vs ortho
+    // cameras: a perspective camera fires every ray from a single origin
+    // (camera position) in the direction of the screen pixel; an orthographic
+    // camera fires PARALLEL rays — each one originates at the cursor's
+    // screen-to-world point and travels along the camera's forward vector.
+    // Treating the ortho case like perspective gives a near-zero parallax
+    // ray that hits the wrong cell (effectively pinned near the camera).
+    glm::vec3 rayOrigin;
+    glm::vec3 rayDir;
+    glm::vec3 screenWorld = camera->ScreenToWorldPosition(mouseX, mouseY);
+    if (camera->GetProjectionMode() == ProjectionMode::ORTHOGRAPHIC)
+    {
+        rayOrigin = screenWorld;
+        rayDir = camera->GetForwardVector();
+        if (glm::length(rayDir) < 1e-6f)
+            return;
+        rayDir = glm::normalize(rayDir);
+    }
+    else
+    {
+        rayOrigin = camera->GetWorldPosition();
+        rayDir = screenWorld - rayOrigin;
+        if (glm::length(rayDir) < 1e-6f)
+            return;
+        rayDir = glm::normalize(rayDir);
+    }
 
     TileMap* tileMap = tileMapNode->GetTileMap();
     int32_t layerIndex = mOptions.mActiveLayer;
@@ -152,15 +172,20 @@ void TilePaintManager::DrawCursor()
     DrawGridOverlay();
 
     // Persistent selection outline — also independent of mouse hover.
-    glm::vec4 selOutlineColor(0.9f, 0.9f, 0.2f, 0.4f);
+    glm::vec4 selOutlineColor(0.9f, 0.9f, 0.2f, 0.7f);
     auto drawCellCubeColored = [&](glm::ivec2 cell, const glm::vec4& col)
     {
         glm::vec2 worldXY = tileMapNode->CellCenterToWorld(cell);
+        // Place the cursor cube SLIGHTLY ABOVE the tile mesh in Z so it's
+        // always visible from a top-down ortho view (otherwise the tile mesh
+        // depth-fights the cursor cube and the cursor disappears). Z scale is
+        // tiny so we're effectively rendering a flat colored quad.
+        float baseZ = tileMapNode->GetWorldPosition().z + 0.05f;
         DebugDraw d;
         d.mMesh = LoadAsset<StaticMesh>("SM_Cube");
         d.mTransform =
-            glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, tileMapNode->GetWorldPosition().z)) *
-            glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 1.0f));
+            glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, baseZ)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 0.02f));
         d.mColor = col;
         d.mLife = 0.0f;
         Renderer::Get()->AddDebugDraw(d);
@@ -277,8 +302,8 @@ void TilePaintManager::DrawOverlays()
                 DebugDraw d;
                 d.mMesh = LoadAsset<StaticMesh>("SM_Cube");
                 d.mTransform =
-                    glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, tileMapNode->GetWorldPosition().z + 0.005f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 1.0f));
+                    glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, tileMapNode->GetWorldPosition().z + 0.04f)) *
+                    glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 0.02f));
                 d.mColor = drawCollision ? collisionColor : tagColor;
                 d.mLife = 0.0f;
                 Renderer::Get()->AddDebugDraw(d);
