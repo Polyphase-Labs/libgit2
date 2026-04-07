@@ -12,10 +12,12 @@
 #include "General/GeneralModule.h"
 #include "Appearance/AppearanceModule.h"
 #include "Appearance/Viewport/ViewportModule.h"
+#include "Appearance/Viewport/TilemapGrid/TilemapGridModule.h"
 #include "Appearance/Theme/ThemeModule.h"
 #include "External/ExternalModule.h"
 #include "External/LaunchersModule.h"
 #include "External/EditorsModule.h"
+#include "External/CliModule.h"
 #include "Packaging/PackagingModule.h"
 #include "Packaging/DockerModule.h"
 #include "Network/NetworkModule.h"
@@ -36,13 +38,18 @@ void PreferencesManager::Create()
     // Appearance module with sub-modules
     AppearanceModule* appearance = new AppearanceModule();
     appearance->AddSubModule(new ThemeModule());
-    appearance->AddSubModule(new ViewportModule());
+    {
+        ViewportModule* viewport = new ViewportModule();
+        viewport->AddSubModule(new TilemapGridModule());
+        appearance->AddSubModule(viewport);
+    }
     sInstance->RegisterModule(appearance);
 
     // External module with sub-modules
     ExternalModule* external = new ExternalModule();
     external->AddSubModule(new LaunchersModule());
     external->AddSubModule(new EditorsModule());
+    external->AddSubModule(new CliModule());
     sInstance->RegisterModule(external);
 
     // Packaging module with sub-modules

@@ -444,6 +444,29 @@ void GFX_DrawTerrain3D(Terrain3D* terrain)
     DrawTerrain3D(terrain);
 }
 
+void GFX_CreateTileMap2DResource(TileMap2D* tileMap)
+{
+    if (IsHeadless()) return;
+    CreateTileMap2DResource(tileMap);
+}
+
+void GFX_DestroyTileMap2DResource(TileMap2D* tileMap)
+{
+    if (IsHeadless()) return;
+    DestroyTileMap2DResource(tileMap);
+}
+
+void GFX_UpdateTileMap2DResource(TileMap2D* tileMap, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    if (IsHeadless()) return;
+    UpdateTileMap2DResource(tileMap, vertices, indices);
+}
+
+void GFX_DrawTileMap2D(TileMap2D* tileMap)
+{
+    DrawTileMap2D(tileMap);
+}
+
 void GFX_CreateParticleCompResource(Particle3D* particleComp)
 {
     if (IsHeadless()) return;

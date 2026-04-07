@@ -55,6 +55,9 @@
 
 #include "Nodes/3D/Voxel3d.h"
 #include "Nodes/3D/Terrain3d.h"
+#include "Nodes/3D/TileMap2d.h"
+#include "Assets/TileMap.h"
+#include "TilePaint/TilePaintManager.h"
 #include "TerrainSculpt/TerrainSculptManager.h"
 #include "Nodes/3D/Mesh3d.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
@@ -6544,6 +6547,47 @@ void ActionSetTerrainHeights::Reverse()
 void ActionManager::EXE_SetTerrainHeights(Terrain3D* terrain, const std::vector<TerrainHeightChange>& changes)
 {
     ActionSetTerrainHeights* action = new ActionSetTerrainHeights(terrain, changes);
+    ActionManager::Get()->ExecuteAction(action);
+}
+
+// ---------------------------------------------------------------------------
+// ActionPaintTiles
+// ---------------------------------------------------------------------------
+
+ActionPaintTiles::ActionPaintTiles(TileMap2D* tileMapNode, const std::vector<TilePaintChange>& changes)
+    : mTarget(tileMapNode), mChanges(changes)
+{
+}
+
+void ActionPaintTiles::Execute()
+{
+    if (mTarget == nullptr) return;
+    TileMap* tileMap = mTarget->GetTileMap();
+    if (tileMap == nullptr) return;
+
+    for (const auto& c : mChanges)
+    {
+        tileMap->SetCell(c.mCellX, c.mCellY, c.mNewCell, c.mLayer);
+    }
+    mTarget->MarkDirty();
+}
+
+void ActionPaintTiles::Reverse()
+{
+    if (mTarget == nullptr) return;
+    TileMap* tileMap = mTarget->GetTileMap();
+    if (tileMap == nullptr) return;
+
+    for (const auto& c : mChanges)
+    {
+        tileMap->SetCell(c.mCellX, c.mCellY, c.mOldCell, c.mLayer);
+    }
+    mTarget->MarkDirty();
+}
+
+void ActionManager::EXE_PaintTiles(TileMap2D* tileMapNode, const std::vector<TilePaintChange>& changes)
+{
+    ActionPaintTiles* action = new ActionPaintTiles(tileMapNode, changes);
     ActionManager::Get()->ExecuteAction(action);
 }
 

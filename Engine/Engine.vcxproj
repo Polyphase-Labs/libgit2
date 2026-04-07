@@ -713,6 +713,7 @@
     <ClCompile Include="Source\Editor\Preferences\General\GeneralModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\AppearanceModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Viewport\ViewportModule.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\Appearance\Viewport\TilemapGrid\TilemapGridModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Theme\EditorTheme.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Theme\ThemeModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Theme\CssThemeParser.cpp" />
@@ -746,6 +747,20 @@
     <ClCompile Include="Source\Editor\Preferences\External\ExternalModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\External\LaunchersModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\External\EditorsModule.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\External\CliModule.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalOutputBuffer.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\CommandHistory.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\ShellPresets.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Windows.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_WindowsConPTY.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_Posix.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcess_LinuxPty.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalProcessFactory.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalParserRegistry.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\ClaudeCodeParser.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\AnsiStripper.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalSession.cpp" />
+    <ClCompile Include="Source\Editor\CliTerminal\TerminalPanel.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Packaging\DockerModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Packaging\PackagingModule.cpp" />
     <ClCompile Include="Source\Editor\Timeline\TimelinePanel.cpp" />
@@ -756,6 +771,8 @@
     <ClCompile Include="Source\Editor\TextureCrop\TextureCropEditor.cpp" />
     <ClCompile Include="Source\Editor\VoxelSculpt\VoxelSculptManager.cpp" />
     <ClCompile Include="Source\Editor\TerrainSculpt\TerrainSculptManager.cpp" />
+    <ClCompile Include="Source\Editor\TilePaint\TilePaintManager.cpp" />
+    <ClCompile Include="Source\Editor\TilePaint\TilePicker.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\ThemeEditorWindow.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\CssGenerator.cpp" />
     <ClCompile Include="Source\Plugins\RuntimePluginManager.cpp" />
@@ -776,6 +793,8 @@
     <ClCompile Include="Source\Engine\Assets\SoundWave.cpp" />
     <ClCompile Include="Source\Engine\Assets\StaticMesh.cpp" />
     <ClCompile Include="Source\Engine\Assets\Texture.cpp" />
+    <ClCompile Include="Source\Engine\Assets\TileSet.cpp" />
+    <ClCompile Include="Source\Engine\Assets\TileMap.cpp" />
     <ClCompile Include="Source\Engine\Assets\TinyLLMAsset.cpp" />
     <ClCompile Include="Source\Engine\Assets\TinyLLMTokenizerAsset.cpp" />
     <ClCompile Include="Source\Engine\Assets\Timeline.cpp" />
@@ -821,6 +840,7 @@
     <ClCompile Include="Source\Engine\Nodes\3D\TextMesh3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\Voxel3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\Terrain3d.cpp" />
+    <ClCompile Include="Source\Engine\Nodes\3D\TileMap2d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\3D\Node3d.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Node.cpp" />
     <ClCompile Include="Source\Engine\Nodes\Widgets\ArrayWidget.cpp" />
@@ -1028,6 +1048,7 @@
     <ClCompile Include="Source\LuaBindings\TextMesh3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Terrain3d_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\TileMap2d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Texture_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Text_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TimerManager_Lua.cpp" />
@@ -1100,6 +1121,21 @@
     <ClInclude Include="Source\Editor\BuildCache.h" />
     <ClInclude Include="Source\Editor\CustomImgui.h" />
     <ClInclude Include="Source\Editor\DebugLog\DebugLogWindow.h" />
+    <ClInclude Include="Source\Editor\Preferences\External\CliModule.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\ITerminalProcess.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalOutputBuffer.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\CommandHistory.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\ShellPresets.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Windows.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_WindowsConPTY.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_Posix.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalProcess_LinuxPty.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\ITerminalOutputParser.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalParserRegistry.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\ClaudeCodeParser.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\AnsiStripper.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalSession.h" />
+    <ClInclude Include="Source\Editor\CliTerminal\TerminalPanel.h" />
     <ClInclude Include="Source\Editor\SecondScreenPreview\SecondScreenPreview.h" />
     <ClInclude Include="Source\Editor\GamePreview\GamePreview.h" />
     <ClInclude Include="Source\Editor\EditorConstants.h" />
@@ -1122,6 +1158,7 @@
     <ClInclude Include="Source\Editor\Preferences\General\GeneralModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\AppearanceModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Viewport\ViewportModule.h" />
+    <ClInclude Include="Source\Editor\Preferences\Appearance\Viewport\TilemapGrid\TilemapGridModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Theme\EditorTheme.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Theme\ThemeModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Theme\CssThemeParser.h" />
@@ -1167,6 +1204,8 @@
     <ClInclude Include="Source\Editor\TextureCrop\TextureCropEditor.h" />
     <ClInclude Include="Source\Editor\VoxelSculpt\VoxelSculptManager.h" />
     <ClInclude Include="Source\Editor\TerrainSculpt\TerrainSculptManager.h" />
+    <ClInclude Include="Source\Editor\TilePaint\TilePaintManager.h" />
+    <ClInclude Include="Source\Editor\TilePaint\TilePicker.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\ThemeEditorWindow.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\CssGenerator.h" />
     <ClInclude Include="Source\Plugins\EditorUIHooks.h" />
@@ -1192,6 +1231,8 @@
     <ClInclude Include="Source\Engine\Assets\SoundWave.h" />
     <ClInclude Include="Source\Engine\Assets\StaticMesh.h" />
     <ClInclude Include="Source\Engine\Assets\Texture.h" />
+    <ClInclude Include="Source\Engine\Assets\TileSet.h" />
+    <ClInclude Include="Source\Engine\Assets\TileMap.h" />
     <ClInclude Include="Source\Engine\Assets\TinyLLMAsset.h" />
     <ClInclude Include="Source\Engine\Assets\TinyLLMTokenizerAsset.h" />
     <ClInclude Include="Source\Engine\Assets\Timeline.h" />
@@ -1242,6 +1283,7 @@
     <ClInclude Include="Source\Engine\Nodes\3D\TextMesh3d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\Voxel3d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\Terrain3d.h" />
+    <ClInclude Include="Source\Engine\Nodes\3D\TileMap2d.h" />
     <ClInclude Include="Source\Engine\Nodes\3D\Node3d.h" />
     <ClInclude Include="Source\Engine\Nodes\Node.h" />
     <ClInclude Include="Source\Engine\Nodes\Widgets\ArrayWidget.h" />
@@ -1453,6 +1495,7 @@
     <ClInclude Include="Source\LuaBindings\TextMesh3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Terrain3d_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\TileMap2d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Texture_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Text_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TinyLLM_Lua.h" />

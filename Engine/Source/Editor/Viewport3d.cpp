@@ -24,6 +24,7 @@
 #include "PaintManager.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
 #include "TerrainSculpt/TerrainSculptManager.h"
+#include "TilePaint/TilePaintManager.h"
 #include "Nodes/3D/StaticMesh3d.h"
 #include "Nodes/3D/PointLight3d.h"
 #include "Nodes/3D/DirectionalLight3d.h"
@@ -90,6 +91,10 @@ void Viewport3D::Update(float deltaTime)
         {
             GetEditorState()->mTerrainSculptManager->Update();
         }
+        else if (GetEditorState()->GetPaintMode() == PaintMode::TilePaint)
+        {
+            GetEditorState()->mTilePaintManager->Update();
+        }
         else
         {
             GetEditorState()->mPaintManager->Update();
@@ -134,7 +139,11 @@ void Viewport3D::HandleDefaultControls()
         const bool altDown = IsAltDown();
         const bool cmdKeyDown = (controlDown || shiftDown || altDown);
 
-        if (IsMouseButtonJustDown(MOUSE_RIGHT))
+        // Tile paint mode locks camera rotation — Pilot mode would let the
+        // user mouse-look + WASD around, breaking the top-down framing.
+        const bool tilePaintLocksRotation = (GetEditorState()->GetPaintMode() == PaintMode::TilePaint);
+
+        if (IsMouseButtonJustDown(MOUSE_RIGHT) && !tilePaintLocksRotation)
         {
             GetEditorState()->SetControlMode(ControlMode::Pilot);
         }
@@ -155,7 +164,11 @@ void Viewport3D::HandleDefaultControls()
             }
             else
             {
-                if (shiftDown || controlDown)
+                // Tile paint owns the Shift/Ctrl modifiers for additive /
+                // subtractive freeform selection. Skip the editor's multi-
+                // select toggle in tile paint mode so the click drops
+                // through to the paint manager.
+                if ((shiftDown || controlDown) && GetEditorState()->GetPaintMode() == PaintMode::None)
                 {
                     if (selectNode != nullptr)
                     {
@@ -680,8 +693,10 @@ void Viewport3D::HandleDefaultControls()
             {
                 GetEditorState()->SetControlMode(ControlMode::Pan);
             }
-            else
+            else if (!tilePaintLocksRotation)
             {
+                // Tile paint locks orbit (which rotates the view). Pan with
+                // shift+middle still works for moving across the map.
                 GetEditorState()->SetControlMode(ControlMode::Orbit);
             }
         }

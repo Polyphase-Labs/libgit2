@@ -29,6 +29,7 @@ class InstancedMesh3D;
 class TextMesh3D;
 class Voxel3D;
 class Terrain3D;
+class TileMap2D;
 class Particle3D;
 class Primitive3D;
 class Node3D;
@@ -163,6 +164,13 @@ void DestroyTerrain3DResource(Terrain3D* terrain);
 void UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
 void DrawTerrain3D(Terrain3D* terrain);
 void BindGeometryDescriptorSet(Terrain3D* terrain);
+
+// TileMap2D
+void CreateTileMap2DResource(TileMap2D* tileMap);
+void DestroyTileMap2DResource(TileMap2D* tileMap);
+void UpdateTileMap2DResource(TileMap2D* tileMap, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
+void DrawTileMap2D(TileMap2D* tileMap);
+void BindGeometryDescriptorSet(TileMap2D* tileMap);
 
 // ParticleComp
 void DestroyParticleCompResource(Particle3D* particleComp);

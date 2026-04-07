@@ -19,6 +19,7 @@
 #include "Nodes/3D/TextMesh3d.h"
 #include "Nodes/3D/Voxel3d.h"
 #include "Nodes/3D/Terrain3d.h"
+#include "Nodes/3D/TileMap2d.h"
 #include "Nodes/3D/Particle3d.h"
 #include "Nodes/Widgets/Quad.h"
 #include "Nodes/Widgets/Text.h"
@@ -2317,6 +2318,119 @@ void BindGeometryDescriptorSet(Terrain3D* terrain)
 }
 
 // --- End Terrain3D ---
+
+// --- TileMap2D ---
+
+void CreateTileMap2DResource(TileMap2D* tileMap)
+{
+    // Resource will be created on first upload
+}
+
+void DestroyTileMap2DResource(TileMap2D* tileMap)
+{
+    TileMap2DResource* resource = tileMap->GetResource();
+
+    if (resource->mVertexBuffer != nullptr)
+    {
+        GetDestroyQueue()->Destroy(resource->mVertexBuffer);
+        resource->mVertexBuffer = nullptr;
+    }
+
+    if (resource->mIndexBuffer != nullptr)
+    {
+        GetDestroyQueue()->Destroy(resource->mIndexBuffer);
+        resource->mIndexBuffer = nullptr;
+    }
+}
+
+void UpdateTileMap2DResource(TileMap2D* tileMap, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+    TileMap2DResource* resource = tileMap->GetResource();
+
+    size_t vertexSize = vertices.size() * sizeof(VertexColor);
+    if (resource->mVertexBuffer != nullptr && resource->mVertexBuffer->GetSize() < vertexSize)
+    {
+        GetDestroyQueue()->Destroy(resource->mVertexBuffer);
+        resource->mVertexBuffer = nullptr;
+    }
+
+    if (resource->mVertexBuffer == nullptr && vertexSize > 0)
+    {
+        resource->mVertexBuffer = new Buffer(BufferType::Vertex, vertexSize, "TileMap2D Vertices");
+    }
+
+    if (resource->mVertexBuffer != nullptr && vertices.size() > 0)
+    {
+        resource->mVertexBuffer->Update(vertices.data(), vertexSize, 0);
+    }
+
+    size_t indexSize = indices.size() * sizeof(IndexType);
+    if (resource->mIndexBuffer != nullptr && resource->mIndexBuffer->GetSize() < indexSize)
+    {
+        GetDestroyQueue()->Destroy(resource->mIndexBuffer);
+        resource->mIndexBuffer = nullptr;
+    }
+
+    if (resource->mIndexBuffer == nullptr && indexSize > 0)
+    {
+        resource->mIndexBuffer = new Buffer(BufferType::Index, indexSize, "TileMap2D Indices");
+    }
+
+    if (resource->mIndexBuffer != nullptr && indices.size() > 0)
+    {
+        resource->mIndexBuffer->Update(indices.data(), indexSize, 0);
+    }
+}
+
+void DrawTileMap2D(TileMap2D* tileMap)
+{
+    TileMap2DResource* resource = tileMap->GetResource();
+    if (resource->mVertexBuffer == nullptr || resource->mIndexBuffer == nullptr || tileMap->GetNumIndices() == 0)
+        return;
+
+    VkCommandBuffer cb = GetCommandBuffer();
+
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = resource->mVertexBuffer->Get();
+    vkCmdBindVertexBuffers(cb, 0, 1, &vertexBuffer, &offset);
+    vkCmdBindIndexBuffer(cb, resource->mIndexBuffer->Get(), 0, VK_INDEX_TYPE_UINT32);
+
+    Material* material = nullptr;
+
+    if (GetVulkanContext()->AreMaterialsEnabled())
+    {
+        material = tileMap->GetMaterial();
+        material = material ? material : Renderer::Get()->GetDefaultMaterial();
+    }
+
+    BindForwardVertexType(VertexType::VertexColor, material);
+    BindMaterialResource(material);
+    GetVulkanContext()->CommitPipeline();
+
+    BindGeometryDescriptorSet(tileMap);
+    BindMaterialDescriptorSet(material);
+
+    vkCmdDrawIndexed(cb, tileMap->GetNumIndices(), 1, 0, 0, 0);
+}
+
+void BindGeometryDescriptorSet(TileMap2D* tileMap)
+{
+    VkCommandBuffer cb = GetCommandBuffer();
+
+    World* world = tileMap->GetWorld();
+    GeometryData ubo = {};
+
+    WriteGeometryUniformData(ubo, world, tileMap, tileMap->GetRenderTransform());
+    GatherGeometryLightUniformData(ubo, tileMap, tileMap->GetMaterial(), false);
+
+    UniformBlock uniformBlock = WriteUniformBlock(&ubo, sizeof(ubo));
+    DescriptorSet::Begin("TileMap2D DS")
+        .WriteUniformBuffer(GD_UNIFORM_BUFFER, uniformBlock)
+        .Build()
+        .Bind(cb, 1);
+}
+
+// --- End TileMap2D ---
 
 void DestroyParticleCompResource(Particle3D* particleComp)
 {
