@@ -797,6 +797,9 @@
     <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp">
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
+    <ClCompile Include="Source\LuaBindings\TileMap2d_Lua.cpp">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClCompile>
     <ClCompile Include="Source\LuaBindings\Terrain3d_Lua.cpp">
       <Filter>Source Files\LuaBindings</Filter>
     </ClCompile>
@@ -1317,6 +1320,9 @@
       <Filter>Source Files\Editor\TerrainSculpt</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\TilePaint\TilePaintManager.cpp">
+      <Filter>Source Files\Editor\TilePaint</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\TilePaint\TilePicker.cpp">
       <Filter>Source Files\Editor\TilePaint</Filter>
     </ClCompile>
     <ClCompile Include="Source\Engine\Assets\NodeGraphAsset.cpp">
@@ -2094,6 +2100,9 @@
     <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h">
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
+    <ClInclude Include="Source\LuaBindings\TileMap2d_Lua.h">
+      <Filter>Source Files\LuaBindings</Filter>
+    </ClInclude>
     <ClInclude Include="Source\LuaBindings\Terrain3d_Lua.h">
       <Filter>Source Files\LuaBindings</Filter>
     </ClInclude>
@@ -2578,6 +2587,9 @@
       <Filter>Source Files\Editor\TerrainSculpt</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\TilePaint\TilePaintManager.h">
+      <Filter>Source Files\Editor\TilePaint</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\TilePaint\TilePicker.h">
       <Filter>Source Files\Editor\TilePaint</Filter>
     </ClInclude>
     <ClInclude Include="Source\Engine\Assets\NodeGraphAsset.h">

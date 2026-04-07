@@ -82,6 +82,7 @@
 #include "VoxelSculpt/VoxelSculptManager.h"
 #include "TerrainSculpt/TerrainSculptManager.h"
 #include "TilePaint/TilePaintManager.h"
+#include "TilePaint/TilePicker.h"
 #include "Preferences/General/GeneralModule.h"
 #include "Preferences/PreferencesManager.h"
 #include "Preferences/External/LaunchersModule.h"
@@ -11539,10 +11540,11 @@ void EditorImguiDraw()
         }
         else if (paintMode == PaintMode::TilePaint)
         {
-            // Tile paint panel
+            // Tile paint panel — Phase 2: tile palette grid, layer panel, fill tools, tag editing.
             ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(320.0f, 0.0f), ImGuiCond_FirstUseEver);
-            ImGui::Begin("Tile Paint", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::SetNextWindowSize(ImVec2(360.0f, 720.0f), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSizeConstraints(ImVec2(320.0f, 400.0f), ImVec2(720.0f, 1600.0f));
+            ImGui::Begin("Tile Paint", nullptr, 0);
 
             TilePaintManager* mgr = GetEditorState()->mTilePaintManager;
             Node* sel = GetEditorState()->GetSelectedNode();
@@ -11553,62 +11555,258 @@ void EditorImguiDraw()
                 TileSet* tileSet = (tileMap != nullptr) ? tileMap->GetTileSet() : nullptr;
 
                 // Tool selection
+                ImGui::TextUnformatted("Tool:");
                 int mode = int(mgr->mOptions.mMode);
-                ImGui::RadioButton("Pencil", &mode, 0); ImGui::SameLine();
-                ImGui::RadioButton("Eraser", &mode, 1); ImGui::SameLine();
-                ImGui::RadioButton("Picker", &mode, 2);
+                if (ImGui::RadioButton("Pencil",     &mode, int(TileSculptMode::Pencil)))     {}
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Eraser",     &mode, int(TileSculptMode::Eraser)))     {}
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Picker",     &mode, int(TileSculptMode::Picker)))     {}
+                if (ImGui::RadioButton("Rect Fill",  &mode, int(TileSculptMode::RectFill)))   {}
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Flood Fill", &mode, int(TileSculptMode::FloodFill))) {}
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Line",       &mode, int(TileSculptMode::Line)))       {}
+                if (ImGui::RadioButton("9-Box",      &mode, int(TileSculptMode::NineBox)))    {}
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Select",     &mode, int(TileSculptMode::Select)))     {}
                 mgr->mOptions.mMode = TileSculptMode(mode);
 
-                // Selected tile
-                int tileIdx = mgr->mOptions.mSelectedTileIndex;
-                int maxTile = (tileSet != nullptr) ? tileSet->GetNumTiles() - 1 : 0;
-                if (maxTile < 0) maxTile = 0;
-                ImGui::SliderInt("Tile Index", &tileIdx, 0, maxTile);
-                if (tileIdx < 0) tileIdx = 0;
-                mgr->mOptions.mSelectedTileIndex = tileIdx;
+                // Cache the atlas descriptor via the shared TilePicker helper
+                Texture* atlasTex = (tileSet != nullptr) ? tileSet->GetTexture() : nullptr;
+                void* atlasImId = TilePicker::GetOrCreateImTextureID("TilePaintPanel", atlasTex);
+                int32_t tilesX = (tileSet != nullptr) ? tileSet->GetAtlasGridSize().x : 0;
+                int32_t tilesY = (tileSet != nullptr) ? tileSet->GetAtlasGridSize().y : 0;
 
-                // Tile preview using the bound atlas texture
-                if (tileSet != nullptr && tileSet->GetTexture() != nullptr)
+                // Selected tile preview
+                ImGui::Separator();
+                ImGui::Text("Selected Tile: %d", mgr->mOptions.mSelectedTileIndex);
+                ImGui::SameLine();
+                TilePicker::DrawTileButton("##SelTilePreview", atlasImId,
+                    mgr->mOptions.mSelectedTileIndex, tilesX, tilesY, 32.0f);
+
+                // Tile palette grid
+                if (ImGui::CollapsingHeader("Tile Palette", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    static ImTextureID sAtlasId = 0;
-                    static Texture* sLastAtlas = nullptr;
-                    Texture* atlas = tileSet->GetTexture();
-                    if (atlas != sLastAtlas)
+                    int32_t pickedIdx = mgr->mOptions.mSelectedTileIndex;
+                    if (TilePicker::DrawInlineTileGrid("##TilePalette", atlasImId,
+                            tilesX, tilesY, pickedIdx, 22.0f, 720.0f, 240.0f))
                     {
-                        if (sAtlasId != 0)
-                        {
-                            ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)sAtlasId);
-                            sAtlasId = 0;
-                        }
-                        TextureResource* res = atlas->GetResource();
-                        if (res != nullptr && res->mImage != nullptr)
-                        {
-                            sAtlasId = (ImTextureID)ImGui_ImplVulkan_AddTexture(
-                                res->mImage->GetSampler(),
-                                res->mImage->GetView(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-                        }
-                        sLastAtlas = atlas;
-                    }
-
-                    glm::vec2 uv0, uv1;
-                    if (sAtlasId != 0 && tileSet->GetTileUVs(mgr->mOptions.mSelectedTileIndex, uv0, uv1))
-                    {
-                        ImGui::Text("Selected:");
-                        ImGui::SameLine();
-                        ImGui::Image(sAtlasId, ImVec2(48, 48), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y));
+                        mgr->mOptions.mSelectedTileIndex = pickedIdx;
                     }
                 }
 
-                // Layer selector
-                if (tileMap != nullptr)
+                // Layer panel
+                if (tileMap != nullptr && ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    int layer = mgr->mOptions.mActiveLayer;
-                    int maxLayer = tileMap->GetNumLayers() - 1;
-                    if (maxLayer < 0) maxLayer = 0;
-                    ImGui::SliderInt("Layer", &layer, 0, maxLayer);
-                    if (layer < 0) layer = 0;
-                    mgr->mOptions.mActiveLayer = layer;
+                    int32_t numLayers = tileMap->GetNumLayers();
+                    if (mgr->mOptions.mActiveLayer >= numLayers)
+                        mgr->mOptions.mActiveLayer = numLayers - 1;
+                    if (mgr->mOptions.mActiveLayer < 0)
+                        mgr->mOptions.mActiveLayer = 0;
+
+                    for (int32_t li = 0; li < numLayers; ++li)
+                    {
+                        TileMapLayer* layer = tileMap->GetLayer(li);
+                        if (layer == nullptr) continue;
+
+                        ImGui::PushID(li);
+
+                        bool isActive = (mgr->mOptions.mActiveLayer == li);
+                        if (ImGui::RadioButton("##Active", isActive))
+                        {
+                            mgr->mOptions.mActiveLayer = li;
+                        }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Active layer");
+                        ImGui::SameLine();
+
+                        bool visible = layer->mVisible;
+                        if (ImGui::Checkbox("##Vis", &visible))
+                        {
+                            layer->mVisible = visible;
+                            tileMapNode->MarkDirty();
+                        }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Visible");
+                        ImGui::SameLine();
+
+                        bool locked = layer->mLocked;
+                        if (ImGui::Checkbox("##Lock", &locked))
+                        {
+                            layer->mLocked = locked;
+                        }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Locked");
+                        ImGui::SameLine();
+
+                        char nameBuf[64];
+                        strncpy(nameBuf, layer->mName.c_str(), sizeof(nameBuf) - 1);
+                        nameBuf[sizeof(nameBuf) - 1] = '\0';
+                        ImGui::SetNextItemWidth(140.0f);
+                        if (ImGui::InputText("##Name", nameBuf, sizeof(nameBuf)))
+                        {
+                            layer->mName = nameBuf;
+                        }
+                        ImGui::SameLine();
+
+                        if (ImGui::SmallButton("X") && numLayers > 1)
+                        {
+                            // We need a public way to remove layers from the asset.
+                            // For now, just hide it; full delete lands when layer
+                            // remove API is added to the asset.
+                            layer->mVisible = false;
+                        }
+
+                        ImGui::PopID();
+                    }
+
+                    if (ImGui::Button("+ Add Layer"))
+                    {
+                        // Cheap version: append by setting a far-future cell index
+                        // through the EnsureLayer pathway. Replace with a public
+                        // AddLayer() API once metadata authoring lands.
+                        TileCell empty;
+                        tileMap->SetCell(0, 0, empty, numLayers);
+                        tileMapNode->MarkDirty();
+                    }
+                }
+
+                // 9-Box Brushes (Phase 3)
+                if (tileSet != nullptr && ImGui::CollapsingHeader("9-Box Brushes"))
+                {
+                    auto& brushes = tileSet->GetNineBoxBrushesMutable();
+
+                    if (ImGui::Button("+ New Brush"))
+                    {
+                        int32_t newIdx = tileSet->AddNineBoxBrush("Brush");
+                        mgr->mOptions.mActiveNineBoxIndex = newIdx;
+                        tileSet->SetDirtyFlag();
+                    }
+                    ImGui::SameLine();
+                    ImGui::Text("(%d defined)", int(brushes.size()));
+
+                    int32_t removeBrushIdx = -1;
+                    for (size_t bi = 0; bi < brushes.size(); ++bi)
+                    {
+                        NineBoxBrushDef& brush = brushes[bi];
+                        ImGui::PushID(int(bi));
+
+                        bool active = (mgr->mOptions.mActiveNineBoxIndex == int32_t(bi));
+                        if (ImGui::RadioButton("##ActiveBrush", active))
+                        {
+                            mgr->mOptions.mActiveNineBoxIndex = int32_t(bi);
+                        }
+                        ImGui::SameLine();
+
+                        char nameBuf[64];
+                        strncpy(nameBuf, brush.mName.c_str(), sizeof(nameBuf) - 1);
+                        nameBuf[sizeof(nameBuf) - 1] = '\0';
+                        ImGui::SetNextItemWidth(140.0f);
+                        if (ImGui::InputText("##BrushName", nameBuf, sizeof(nameBuf)))
+                        {
+                            brush.mName = nameBuf;
+                            tileSet->SetDirtyFlag();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("X")) removeBrushIdx = int32_t(bi);
+
+                        // 3x3 grid of slot pickers
+                        int32_t* slots[9] = {
+                            &brush.mTopLeft, &brush.mTop, &brush.mTopRight,
+                            &brush.mLeft,    &brush.mCenter, &brush.mRight,
+                            &brush.mBottomLeft, &brush.mBottom, &brush.mBottomRight
+                        };
+                        const char* slotPopupIds[9] = {
+                            "##PickTL", "##PickTM", "##PickTR",
+                            "##PickML", "##PickMM", "##PickMR",
+                            "##PickBL", "##PickBM", "##PickBR"
+                        };
+
+                        for (int32_t row = 0; row < 3; ++row)
+                        {
+                            for (int32_t col = 0; col < 3; ++col)
+                            {
+                                int32_t slotIdx = row * 3 + col;
+                                ImGui::PushID(slotIdx);
+                                if (TilePicker::DrawTileButton("##slot", atlasImId,
+                                        *slots[slotIdx], tilesX, tilesY, 28.0f))
+                                {
+                                    ImGui::OpenPopup(slotPopupIds[slotIdx]);
+                                }
+                                int32_t pickedSlot = *slots[slotIdx];
+                                TilePicker::DrawTilePickerPopup(slotPopupIds[slotIdx],
+                                    atlasImId, tilesX, tilesY, pickedSlot);
+                                if (pickedSlot != *slots[slotIdx])
+                                {
+                                    *slots[slotIdx] = pickedSlot;
+                                    tileSet->SetDirtyFlag();
+                                }
+                                ImGui::PopID();
+                                if (col < 2) ImGui::SameLine();
+                            }
+                        }
+
+                        ImGui::PopID();
+                        ImGui::Separator();
+                    }
+
+                    if (removeBrushIdx >= 0)
+                    {
+                        tileSet->RemoveNineBoxBrush(removeBrushIdx);
+                        if (mgr->mOptions.mActiveNineBoxIndex >= int32_t(brushes.size()))
+                            mgr->mOptions.mActiveNineBoxIndex = int32_t(brushes.size()) - 1;
+                        tileSet->SetDirtyFlag();
+                    }
+
+                }
+
+                // Selection / Clipboard / Transforms (Phase 3)
+                if (ImGui::CollapsingHeader("Selection & Clipboard"))
+                {
+                    if (mgr->HasSelection())
+                    {
+                        glm::ivec2 mn = mgr->GetSelectionMin();
+                        glm::ivec2 mx = mgr->GetSelectionMax();
+                        ImGui::Text("Selection: (%d,%d) -> (%d,%d)", mn.x, mn.y, mx.x, mx.y);
+                    }
+                    else
+                    {
+                        ImGui::TextDisabled("No selection. Use Select tool to drag a rect.");
+                    }
+
+                    if (ImGui::Button("Copy"))     mgr->DoCopy();
+                    ImGui::SameLine();
+                    if (ImGui::Button("Cut"))      mgr->DoCut();
+                    ImGui::SameLine();
+                    if (ImGui::Button("Paste"))    mgr->DoPasteAtCursor();
+                    ImGui::SameLine();
+                    if (ImGui::Button("Clear"))    mgr->ClearSelection();
+
+                    bool hasClip = mgr->HasClipboard();
+                    if (!hasClip) ImGui::BeginDisabled();
+                    if (ImGui::Button("Flip X"))   mgr->DoFlipClipboardX();
+                    ImGui::SameLine();
+                    if (ImGui::Button("Flip Y"))   mgr->DoFlipClipboardY();
+                    ImGui::SameLine();
+                    if (ImGui::Button("Rotate 90")) mgr->DoRotateClipboard90();
+                    if (!hasClip) ImGui::EndDisabled();
+
+                    ImGui::TextDisabled(hasClip ? "Clipboard ready (paste at cursor)." : "Clipboard empty.");
+                }
+
+                // View overlays (Phase 3)
+                if (ImGui::CollapsingHeader("View"))
+                {
+                    ImGui::Checkbox("Collision Overlay", &mgr->mOptions.mShowCollisionOverlay);
+                    ImGui::Checkbox("Tag Overlay",       &mgr->mOptions.mShowTagOverlay);
+                    if (mgr->mOptions.mShowTagOverlay)
+                    {
+                        char tagBuf[64];
+                        strncpy(tagBuf, mgr->mOptions.mTagOverlayName.c_str(), sizeof(tagBuf) - 1);
+                        tagBuf[sizeof(tagBuf) - 1] = '\0';
+                        if (ImGui::InputText("Highlight Tag", tagBuf, sizeof(tagBuf)))
+                        {
+                            mgr->mOptions.mTagOverlayName = tagBuf;
+                        }
+                    }
                 }
 
                 // Status / hover info
@@ -11628,6 +11826,92 @@ void EditorImguiDraw()
                 else
                 {
                     ImGui::TextDisabled("Hover over the tile map to begin painting.");
+                }
+
+                // Selected-tile metadata editor (Phase 2: tags + collision flag)
+                if (tileSet != nullptr && mgr->mOptions.mSelectedTileIndex >= 0 &&
+                    mgr->mOptions.mSelectedTileIndex < tileSet->GetNumTiles() &&
+                    ImGui::CollapsingHeader("Tile Metadata"))
+                {
+                    TileDefinition* def = tileSet->GetTileDefMutable(mgr->mOptions.mSelectedTileIndex);
+                    if (def != nullptr)
+                    {
+                        // Find All Uses (Phase 3)
+                        if (ImGui::Button("Find All Uses"))
+                        {
+                            if (tileMap != nullptr)
+                            {
+                                int32_t count = tileMap->CountTileUses(
+                                    mgr->mOptions.mSelectedTileIndex,
+                                    mgr->mOptions.mActiveLayer);
+                                LogDebug("Tile %d is used by %d cells on layer %d",
+                                    mgr->mOptions.mSelectedTileIndex,
+                                    count,
+                                    mgr->mOptions.mActiveLayer);
+                            }
+                        }
+
+                        char nameBuf[64];
+                        strncpy(nameBuf, def->mName.c_str(), sizeof(nameBuf) - 1);
+                        nameBuf[sizeof(nameBuf) - 1] = '\0';
+                        if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+                        {
+                            def->mName = nameBuf;
+                            tileSet->SetDirtyFlag();
+                        }
+
+                        bool hasCol = def->mHasCollision;
+                        if (ImGui::Checkbox("Has Collision", &hasCol))
+                        {
+                            def->mHasCollision = hasCol;
+                            if (hasCol && def->mCollisionType == TileCollisionType::None)
+                                def->mCollisionType = TileCollisionType::FullSolid;
+                            tileSet->SetDirtyFlag();
+                        }
+
+                        if (def->mHasCollision)
+                        {
+                            const char* colTypeNames[] = { "None", "Full Solid", "Box", "Boxes", "Slope", "Polygon" };
+                            int colType = int(def->mCollisionType);
+                            if (ImGui::Combo("Type", &colType, colTypeNames, IM_ARRAYSIZE(colTypeNames)))
+                            {
+                                def->mCollisionType = TileCollisionType(colType);
+                                tileSet->SetDirtyFlag();
+                            }
+                        }
+
+                        ImGui::TextUnformatted("Tags:");
+                        int32_t removeIdx = -1;
+                        for (size_t t = 0; t < def->mTags.size(); ++t)
+                        {
+                            ImGui::PushID(int(t));
+                            char tagBuf[64];
+                            strncpy(tagBuf, def->mTags[t].c_str(), sizeof(tagBuf) - 1);
+                            tagBuf[sizeof(tagBuf) - 1] = '\0';
+                            ImGui::SetNextItemWidth(180.0f);
+                            if (ImGui::InputText("##Tag", tagBuf, sizeof(tagBuf)))
+                            {
+                                def->mTags[t] = tagBuf;
+                                tileSet->SetDirtyFlag();
+                            }
+                            ImGui::SameLine();
+                            if (ImGui::SmallButton("X"))
+                            {
+                                removeIdx = int32_t(t);
+                            }
+                            ImGui::PopID();
+                        }
+                        if (removeIdx >= 0)
+                        {
+                            def->mTags.erase(def->mTags.begin() + removeIdx);
+                            tileSet->SetDirtyFlag();
+                        }
+                        if (ImGui::Button("+ Add Tag"))
+                        {
+                            def->mTags.push_back("");
+                            tileSet->SetDirtyFlag();
+                        }
+                    }
                 }
 
                 if (tileSet == nullptr)

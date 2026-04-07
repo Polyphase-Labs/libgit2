@@ -236,6 +236,74 @@ void TileMap::SetTile(int32_t cellX, int32_t cellY, int32_t tileIndex, int32_t l
     SetCell(cellX, cellY, cell, layerIndex);
 }
 
+int32_t TileMap::ReplaceTile(int32_t oldIndex, int32_t newIndex, int32_t layerIndex)
+{
+    TileMapLayer* layer = GetLayer(layerIndex);
+    if (layer == nullptr) return 0;
+
+    int32_t count = 0;
+    for (auto& kv : layer->mChunks)
+    {
+        for (int32_t i = 0; i < kTileChunkSize * kTileChunkSize; ++i)
+        {
+            TileCell& cell = kv.second.mCells[i];
+            if (cell.mTileIndex == oldIndex)
+            {
+                cell.mTileIndex = newIndex;
+                ++count;
+            }
+        }
+        if (count > 0)
+            mDirtyChunks.insert(kv.first);
+    }
+    return count;
+}
+
+int32_t TileMap::ReplaceTilesWithTag(const std::string& tag, int32_t newIndex, int32_t layerIndex)
+{
+    TileMapLayer* layer = GetLayer(layerIndex);
+    if (layer == nullptr) return 0;
+
+    TileSet* tileSet = GetTileSet();
+    if (tileSet == nullptr) return 0;
+
+    int32_t count = 0;
+    for (auto& kv : layer->mChunks)
+    {
+        bool chunkDirty = false;
+        for (int32_t i = 0; i < kTileChunkSize * kTileChunkSize; ++i)
+        {
+            TileCell& cell = kv.second.mCells[i];
+            if (cell.mTileIndex >= 0 && tileSet->HasTileTag(cell.mTileIndex, tag))
+            {
+                cell.mTileIndex = newIndex;
+                ++count;
+                chunkDirty = true;
+            }
+        }
+        if (chunkDirty)
+            mDirtyChunks.insert(kv.first);
+    }
+    return count;
+}
+
+int32_t TileMap::CountTileUses(int32_t tileIndex, int32_t layerIndex) const
+{
+    const TileMapLayer* layer = GetLayer(layerIndex);
+    if (layer == nullptr) return 0;
+
+    int32_t count = 0;
+    for (const auto& kv : layer->mChunks)
+    {
+        for (int32_t i = 0; i < kTileChunkSize * kTileChunkSize; ++i)
+        {
+            if (kv.second.mCells[i].mTileIndex == tileIndex)
+                ++count;
+        }
+    }
+    return count;
+}
+
 void TileMap::MarkAllDirty()
 {
     for (const TileMapLayer& layer : mLayers)

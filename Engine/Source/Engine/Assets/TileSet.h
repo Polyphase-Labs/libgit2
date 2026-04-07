@@ -115,6 +115,12 @@ public:
 
     const std::vector<TileDefinition>& GetTiles() const { return mTiles; }
 
+    // 9-box brush accessors (Phase 3)
+    const std::vector<NineBoxBrushDef>& GetNineBoxBrushes() const { return mNineBoxBrushes; }
+    std::vector<NineBoxBrushDef>& GetNineBoxBrushesMutable() { return mNineBoxBrushes; }
+    int32_t AddNineBoxBrush(const std::string& name);
+    void RemoveNineBoxBrush(int32_t index);
+
     static bool HandlePropChange(class Datum* datum, uint32_t index, const void* newValue);
 
 protected:

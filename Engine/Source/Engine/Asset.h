@@ -49,7 +49,8 @@ class AssetDir;
 #define ASSET_VERSION_TERRAIN3D_BAKEDMAP 27
 #define ASSET_VERSION_TILESET_BASE 28
 #define ASSET_VERSION_TILEMAP_BASE 29
-#define ASSET_VERSION_CURRENT 29
+#define ASSET_VERSION_TILESET_METADATA 30
+#define ASSET_VERSION_CURRENT 30
 // ----------------------------------------------------
 
 #define DECLARE_ASSET(Base, Parent) DECLARE_FACTORY(Base, Asset); DECLARE_OBJECT(Base, Parent);

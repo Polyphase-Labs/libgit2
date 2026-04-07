@@ -95,6 +95,13 @@ public:
     int32_t GetTile(int32_t cellX, int32_t cellY, int32_t layerIndex = 0) const;
     void SetTile(int32_t cellX, int32_t cellY, int32_t tileIndex, int32_t layerIndex = 0);
 
+    // Bulk replace helpers (Phase 3). Returns the number of cells modified.
+    // ReplaceTile swaps every cell whose mTileIndex equals oldIndex.
+    // ReplaceTilesWithTag uses the bound TileSet to match cells whose tile carries the tag.
+    int32_t ReplaceTile(int32_t oldIndex, int32_t newIndex, int32_t layerIndex = 0);
+    int32_t ReplaceTilesWithTag(const std::string& tag, int32_t newIndex, int32_t layerIndex = 0);
+    int32_t CountTileUses(int32_t tileIndex, int32_t layerIndex = 0) const;
+
     // Used-area bookkeeping. Updated by SetCell so the renderer can build a
     // tight AABB without scanning every chunk.
     glm::ivec2 GetMinUsed() const { return mMinUsed; }

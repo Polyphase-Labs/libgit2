@@ -13,12 +13,56 @@ bool TileSet::HandlePropChange(Datum* datum, uint32_t index, const void* newValu
     OCT_ASSERT(prop != nullptr);
     TileSet* tileSet = static_cast<TileSet*>(prop->mOwner);
 
-    // The Datum already wrote the new value into the underlying member by the
-    // time HandlePropChange runs. We just need to update derived state.
+    // Datum::SetXxx invokes the change handler BEFORE writing the new value
+    // into the underlying member, and only writes if the handler returns
+    // false. RebuildTileGrid() reads mTileWidth/mTileHeight/etc., so we have
+    // to commit the new value ourselves first or the rebuild uses stale
+    // dimensions and the atlas grid stays at the OLD slicing.
+    bool handled = false;
+    if (prop->mName == "Texture")
+    {
+        Asset** newAsset = (Asset**)newValue;
+        tileSet->mTexture = (newAsset != nullptr) ? *newAsset : nullptr;
+        handled = true;
+    }
+    else if (prop->mName == "Atlas Tile Width")
+    {
+        tileSet->mTileWidth = *(const int32_t*)newValue;
+        handled = true;
+    }
+    else if (prop->mName == "Atlas Tile Height")
+    {
+        tileSet->mTileHeight = *(const int32_t*)newValue;
+        handled = true;
+    }
+    else if (prop->mName == "Atlas Margin X")
+    {
+        tileSet->mMarginX = *(const int32_t*)newValue;
+        handled = true;
+    }
+    else if (prop->mName == "Atlas Margin Y")
+    {
+        tileSet->mMarginY = *(const int32_t*)newValue;
+        handled = true;
+    }
+    else if (prop->mName == "Atlas Spacing X")
+    {
+        tileSet->mSpacingX = *(const int32_t*)newValue;
+        handled = true;
+    }
+    else if (prop->mName == "Atlas Spacing Y")
+    {
+        tileSet->mSpacingY = *(const int32_t*)newValue;
+        handled = true;
+    }
+
     tileSet->RebuildTileGrid();
 
     HandleAssetPropChange(datum, index, newValue);
-    return false;
+
+    // Returning true tells the Datum framework "I already wrote the value,
+    // don't overwrite it." This matches Texture::HandlePropChange's pattern.
+    return handled;
 }
 
 TileSet::TileSet()
@@ -180,6 +224,21 @@ bool TileSet::IsTileSolid(int32_t tileIndex) const
     return def != nullptr && def->mHasCollision && def->mCollisionType != TileCollisionType::None;
 }
 
+int32_t TileSet::AddNineBoxBrush(const std::string& name)
+{
+    NineBoxBrushDef brush;
+    brush.mName = name.empty() ? std::string("Brush ") + std::to_string(mNineBoxBrushes.size()) : name;
+    mNineBoxBrushes.push_back(std::move(brush));
+    return int32_t(mNineBoxBrushes.size() - 1);
+}
+
+void TileSet::RemoveNineBoxBrush(int32_t index)
+{
+    if (index < 0 || index >= int32_t(mNineBoxBrushes.size()))
+        return;
+    mNineBoxBrushes.erase(mNineBoxBrushes.begin() + index);
+}
+
 bool TileSet::HasTileTag(int32_t tileIndex, const std::string& tag) const
 {
     const TileDefinition* def = GetTileDef(tileIndex);
@@ -208,9 +267,9 @@ void TileSet::SaveStream(Stream& stream, Platform platform)
     stream.WriteInt32(mAtlasColumns);
     stream.WriteInt32(mAtlasRows);
 
-    // Tile definitions. Phase 1 only persists the lean fields; the rich
-    // metadata (tags, collision rects, animation) lands in Phase 2 with a new
-    // version constant.
+    // Tile definitions. Phase 2 (ASSET_VERSION_TILESET_METADATA) persists
+    // tags, collision rects, and animation frames in addition to the Phase 1
+    // base fields.
     uint32_t numTiles = uint32_t(mTiles.size());
     stream.WriteUint32(numTiles);
     for (uint32_t i = 0; i < numTiles; ++i)
@@ -222,6 +281,29 @@ void TileSet::SaveStream(Stream& stream, Platform platform)
         stream.WriteString(def.mName);
         stream.WriteBool(def.mHasCollision);
         stream.WriteUint8(uint8_t(def.mCollisionType));
+
+        // Phase 2 metadata.
+        uint32_t numTags = uint32_t(def.mTags.size());
+        stream.WriteUint32(numTags);
+        for (uint32_t t = 0; t < numTags; ++t)
+            stream.WriteString(def.mTags[t]);
+
+        uint32_t numColRects = uint32_t(def.mCollisionRects.size());
+        stream.WriteUint32(numColRects);
+        for (uint32_t r = 0; r < numColRects; ++r)
+            stream.WriteVec4(def.mCollisionRects[r]);
+
+        uint32_t numColPoly = uint32_t(def.mCollisionPoly.size());
+        stream.WriteUint32(numColPoly);
+        for (uint32_t p = 0; p < numColPoly; ++p)
+            stream.WriteVec2(def.mCollisionPoly[p]);
+
+        stream.WriteBool(def.mIsAnimated);
+        uint32_t numFrames = uint32_t(def.mAnimFrames.size());
+        stream.WriteUint32(numFrames);
+        for (uint32_t f = 0; f < numFrames; ++f)
+            stream.WriteInt32(def.mAnimFrames[f]);
+        stream.WriteFloat(def.mAnimFps);
     }
 
     // Nine-box brushes. Empty in Phase 1.
@@ -274,6 +356,31 @@ void TileSet::LoadStream(Stream& stream, Platform platform)
         stream.ReadString(def.mName);
         def.mHasCollision = stream.ReadBool();
         def.mCollisionType = TileCollisionType(stream.ReadUint8());
+
+        if (mVersion >= ASSET_VERSION_TILESET_METADATA)
+        {
+            uint32_t numTags = stream.ReadUint32();
+            def.mTags.resize(numTags);
+            for (uint32_t t = 0; t < numTags; ++t)
+                stream.ReadString(def.mTags[t]);
+
+            uint32_t numColRects = stream.ReadUint32();
+            def.mCollisionRects.resize(numColRects);
+            for (uint32_t r = 0; r < numColRects; ++r)
+                def.mCollisionRects[r] = stream.ReadVec4();
+
+            uint32_t numColPoly = stream.ReadUint32();
+            def.mCollisionPoly.resize(numColPoly);
+            for (uint32_t p = 0; p < numColPoly; ++p)
+                def.mCollisionPoly[p] = stream.ReadVec2();
+
+            def.mIsAnimated = stream.ReadBool();
+            uint32_t numFrames = stream.ReadUint32();
+            def.mAnimFrames.resize(numFrames);
+            for (uint32_t f = 0; f < numFrames; ++f)
+                def.mAnimFrames[f] = stream.ReadInt32();
+            def.mAnimFps = stream.ReadFloat();
+        }
     }
 
     uint32_t numBrushes = stream.ReadUint32();

@@ -771,6 +771,7 @@
     <ClCompile Include="Source\Editor\VoxelSculpt\VoxelSculptManager.cpp" />
     <ClCompile Include="Source\Editor\TerrainSculpt\TerrainSculptManager.cpp" />
     <ClCompile Include="Source\Editor\TilePaint\TilePaintManager.cpp" />
+    <ClCompile Include="Source\Editor\TilePaint\TilePicker.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\ThemeEditorWindow.cpp" />
     <ClCompile Include="Source\Editor\ThemeEditor\CssGenerator.cpp" />
     <ClCompile Include="Source\Plugins\RuntimePluginManager.cpp" />
@@ -1046,6 +1047,7 @@
     <ClCompile Include="Source\LuaBindings\TextMesh3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Voxel3d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Terrain3d_Lua.cpp" />
+    <ClCompile Include="Source\LuaBindings\TileMap2d_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Texture_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\Text_Lua.cpp" />
     <ClCompile Include="Source\LuaBindings\TimerManager_Lua.cpp" />
@@ -1201,6 +1203,7 @@
     <ClInclude Include="Source\Editor\VoxelSculpt\VoxelSculptManager.h" />
     <ClInclude Include="Source\Editor\TerrainSculpt\TerrainSculptManager.h" />
     <ClInclude Include="Source\Editor\TilePaint\TilePaintManager.h" />
+    <ClInclude Include="Source\Editor\TilePaint\TilePicker.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\ThemeEditorWindow.h" />
     <ClInclude Include="Source\Editor\ThemeEditor\CssGenerator.h" />
     <ClInclude Include="Source\Plugins\EditorUIHooks.h" />
@@ -1490,6 +1493,7 @@
     <ClInclude Include="Source\LuaBindings\TextMesh3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Voxel3d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Terrain3d_Lua.h" />
+    <ClInclude Include="Source\LuaBindings\TileMap2d_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Texture_Lua.h" />
     <ClInclude Include="Source\LuaBindings\Text_Lua.h" />
     <ClInclude Include="Source\LuaBindings\TinyLLM_Lua.h" />
