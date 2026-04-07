@@ -80,6 +80,9 @@ void TileMap::SetTileSet(TileSet* tileSet)
 {
     mTileSet = tileSet;
     MarkAllDirty();
+#if EDITOR
+    SetDirtyFlag();
+#endif
 }
 
 TileMapLayer* TileMap::GetLayer(int32_t layerIndex)
@@ -193,6 +196,13 @@ void TileMap::SetCell(int32_t cellX, int32_t cellY, const TileCell& cell, int32_
     existing = cell;
     mDirtyChunks.insert(key);
 
+#if EDITOR
+    // Mark the asset as having unsaved changes so it shows up with a *
+    // prefix in the asset browser and surfaces in the shutdown unsaved-check
+    // popup. Without this, paint strokes silently disappear on editor close.
+    SetDirtyFlag();
+#endif
+
     // Used-bounds tracking. Only grow the AABB; clearing cells doesn't shrink
     // it (RecomputeUsedBounds is the catch-all for that path).
     if (cell.mTileIndex >= 0)
@@ -256,6 +266,9 @@ int32_t TileMap::ReplaceTile(int32_t oldIndex, int32_t newIndex, int32_t layerIn
         if (count > 0)
             mDirtyChunks.insert(kv.first);
     }
+#if EDITOR
+    if (count > 0) SetDirtyFlag();
+#endif
     return count;
 }
 
@@ -284,6 +297,9 @@ int32_t TileMap::ReplaceTilesWithTag(const std::string& tag, int32_t newIndex, i
         if (chunkDirty)
             mDirtyChunks.insert(kv.first);
     }
+#if EDITOR
+    if (count > 0) SetDirtyFlag();
+#endif
     return count;
 }
 

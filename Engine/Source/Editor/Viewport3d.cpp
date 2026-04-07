@@ -164,7 +164,11 @@ void Viewport3D::HandleDefaultControls()
             }
             else
             {
-                if (shiftDown || controlDown)
+                // Tile paint owns the Shift/Ctrl modifiers for additive /
+                // subtractive freeform selection. Skip the editor's multi-
+                // select toggle in tile paint mode so the click drops
+                // through to the paint manager.
+                if ((shiftDown || controlDown) && GetEditorState()->GetPaintMode() == PaintMode::None)
                 {
                     if (selectNode != nullptr)
                     {

@@ -88,10 +88,38 @@ public:
     bool mPreviewActive = false;
     glm::ivec2 mDragStartCell = { 0, 0 };
 
-    // Active marquee selection (separate from a stroke in progress).
+    // Per-frame interpolation state for free-stroke pencil/eraser drags.
+    // Reset when a new stroke starts, updated each tick the user holds the
+    // mouse and moves between cells. The panel uses this to ghost-preview
+    // the cells the pencil is filling in along the way.
+    bool mStrokeActive = false;
+    bool mLastStrokeCellValid = false;
+    glm::ivec2 mLastStrokeCell = { 0, 0 };
+
+    // Active marquee / freeform selection. mSelectedCells is the source of
+    // truth — it stores every cell coordinate currently selected, packed as
+    // (uint32_t(x) | (uint64_t(uint32_t(y)) << 32)). The min/max bounding
+    // rect is recomputed from the set whenever it changes so the existing
+    // copy/cut/paste paths and the 4-corner outline still work.
     bool mHasSelection = false;
     glm::ivec2 mSelectionMin = { 0, 0 };
     glm::ivec2 mSelectionMax = { 0, 0 };
+    std::set<int64_t> mSelectedCells;
+
+    static int64_t SelectionCellKey(int32_t cellX, int32_t cellY)
+    {
+        return int64_t(uint32_t(cellX)) | (int64_t(uint32_t(cellY)) << 32);
+    }
+    static void DecodeSelectionCellKey(int64_t key, int32_t& outX, int32_t& outY)
+    {
+        outX = int32_t(uint32_t(key & 0xFFFFFFFFu));
+        outY = int32_t(uint32_t((key >> 32) & 0xFFFFFFFFu));
+    }
+    bool IsCellSelected(int32_t cellX, int32_t cellY) const
+    {
+        return mSelectedCells.count(SelectionCellKey(cellX, cellY)) > 0;
+    }
+    void RecomputeSelectionBounds();
 
     // Public API the panel calls for clipboard / transform operations.
     void DoCopy();
@@ -101,11 +129,14 @@ public:
     void DoFlipClipboardX();
     void DoFlipClipboardY();
     void DoRotateClipboard90();
+    // Apply the active 9-box brush to the current marquee selection — every
+    // cell in the selection gets the appropriate corner/edge/center tile.
+    void DoApply9BoxToSelection();
     bool HasClipboard() const { return mClipboard.IsValid(); }
     bool HasSelection() const { return mHasSelection; }
     glm::ivec2 GetSelectionMin() const { return mSelectionMin; }
     glm::ivec2 GetSelectionMax() const { return mSelectionMax; }
-    void ClearSelection() { mHasSelection = false; }
+    void ClearSelection() { mHasSelection = false; mSelectedCells.clear(); }
 
 private:
 
@@ -118,6 +149,7 @@ private:
     void DrawGridOverlay();
     void DrawSelectionOutline();
     void ApplyPencilOrEraser(TileMap2D* node, glm::ivec2 cell);
+    void StrokePencilOrEraserInterp(TileMap2D* node, glm::ivec2 from, glm::ivec2 to);
     void CommitRectFill(TileMap2D* node, glm::ivec2 a, glm::ivec2 b);
     void CommitLine(TileMap2D* node, glm::ivec2 a, glm::ivec2 b);
     void CommitFloodFill(TileMap2D* node, glm::ivec2 origin);
@@ -138,7 +170,6 @@ private:
 
     static int64_t CellKey(int32_t cellX, int32_t cellY, int32_t layer);
 
-    bool mStrokeActive = false;
     TileMap2D* mPendingTarget = nullptr;
     std::vector<TilePaintChange> mPendingChanges;
     std::set<int64_t> mModifiedSet;

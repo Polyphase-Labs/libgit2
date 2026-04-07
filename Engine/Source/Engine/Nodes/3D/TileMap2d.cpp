@@ -120,10 +120,18 @@ void TileMap2D::TickCommon(float deltaTime)
 
     // Drain the asset's dirty-chunk set. In Phase 1 we just rebuild the entire
     // mesh on any change; per-chunk rebuilds are a Phase 4 optimization.
+    //
+    // CRITICAL: must call MarkDirty() (not just set mMeshDirty) so the
+    // per-frame mUploadDirty[] flags are also set. RebuildMeshInternal only
+    // touches the CPU vertex array — without flagging the upload, the new
+    // vertex data sits in CPU memory and the GPU keeps drawing the previous
+    // mesh. Symptom: live pencil drag-paint stays invisible until mouse-up,
+    // because the action's Execute path calls MarkDirty() which then triggers
+    // the long-overdue upload.
     TileMap* tileMap = mTileMap.Get<TileMap>();
     if (tileMap != nullptr && !tileMap->GetDirtyChunks().empty())
     {
-        mMeshDirty = true;
+        MarkDirty();
         const_cast<TileMap*>(tileMap)->ClearDirtyChunks();
     }
 

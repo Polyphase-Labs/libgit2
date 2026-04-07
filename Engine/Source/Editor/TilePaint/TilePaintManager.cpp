@@ -12,6 +12,8 @@
 #include "AssetManager.h"
 #include "Log.h"
 
+#include "imgui.h"
+
 #include "Nodes/3D/Camera3d.h"
 #include "Nodes/3D/TileMap2d.h"
 #include "Assets/TileMap.h"
@@ -86,15 +88,26 @@ void TilePaintManager::UpdateHover()
 
     TileMap2D* tileMapNode = static_cast<TileMap2D*>(selected);
 
-    if (!GetEditorState()->GetViewport3D()->ShouldHandleInput())
+    // The viewport-hovered check guards entry, but during an active stroke we
+    // want to keep updating the hover cell even if the cursor briefly drifts
+    // over a floating panel. Otherwise the drag-paint trail freezes the moment
+    // ImGui reports the Tile Paint panel as hovered.
+    if (!mStrokeActive && !GetEditorState()->GetViewport3D()->ShouldHandleInput())
         return;
 
     Camera3D* camera = GetWorld(0)->GetActiveCamera();
     if (camera == nullptr)
         return;
 
-    int32_t mouseX, mouseY;
-    INP_GetMousePosition(mouseX, mouseY);
+    // Read the live mouse position straight from ImGui's IO. The engine's
+    // INP_GetMousePosition routes through WM_MOUSEMOVE, but ImGui's Win32
+    // backend handler claims those messages first (and only updates the
+    // engine's mPointerX/mPointerY occasionally), so during a held-button
+    // drag the engine sees a frozen cursor. ImGui's IO always reports the
+    // live position because the backend updates it every frame.
+    ImVec2 imguiMouse = ImGui::GetIO().MousePos;
+    int32_t mouseX = int32_t(imguiMouse.x);
+    int32_t mouseY = int32_t(imguiMouse.y);
 
     // Build the cursor ray. The math is different for perspective vs ortho
     // cameras: a perspective camera fires every ray from a single origin
@@ -180,12 +193,14 @@ void TilePaintManager::DrawCursor()
         // always visible from a top-down ortho view (otherwise the tile mesh
         // depth-fights the cursor cube and the cursor disappears). Z scale is
         // tiny so we're effectively rendering a flat colored quad.
+        // SM_Cube vertices are at ±1 (a 2-unit cube), so scale by half the
+        // tile size to make the highlight cover exactly one cell.
         float baseZ = tileMapNode->GetWorldPosition().z + 0.05f;
         DebugDraw d;
         d.mMesh = LoadAsset<StaticMesh>("SM_Cube");
         d.mTransform =
             glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, baseZ)) *
-            glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 0.02f));
+            glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x) * 0.5f, float(tileSize.y) * 0.5f, 0.02f));
         d.mColor = col;
         d.mLife = 0.0f;
         Renderer::Get()->AddDebugDraw(d);
@@ -193,10 +208,18 @@ void TilePaintManager::DrawCursor()
 
     if (mHasSelection)
     {
-        drawCellCubeColored({ mSelectionMin.x, mSelectionMin.y }, selOutlineColor);
-        drawCellCubeColored({ mSelectionMax.x, mSelectionMin.y }, selOutlineColor);
-        drawCellCubeColored({ mSelectionMin.x, mSelectionMax.y }, selOutlineColor);
-        drawCellCubeColored({ mSelectionMax.x, mSelectionMax.y }, selOutlineColor);
+        // Highlight every cell in the (possibly freeform) selection. Capped
+        // to keep the debug-draw count manageable on huge selections.
+        constexpr size_t kMaxSelectionDraws = 2048;
+        size_t drawn = 0;
+        for (int64_t key : mSelectedCells)
+        {
+            if (drawn >= kMaxSelectionDraws) break;
+            int32_t cx, cy;
+            DecodeSelectionCellKey(key, cx, cy);
+            drawCellCubeColored({ cx, cy }, selOutlineColor);
+            ++drawn;
+        }
     }
 
     // Hover-dependent visuals: cursor cube and drag preview corners.
@@ -301,9 +324,10 @@ void TilePaintManager::DrawOverlays()
                 glm::vec2 worldXY = tileMapNode->CellCenterToWorld(worldCell);
                 DebugDraw d;
                 d.mMesh = LoadAsset<StaticMesh>("SM_Cube");
+                // SM_Cube extents are ±1, so half-tile scale gives a one-cell quad.
                 d.mTransform =
                     glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, tileMapNode->GetWorldPosition().z + 0.04f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 0.02f));
+                    glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x) * 0.5f, float(tileSize.y) * 0.5f, 0.02f));
                 d.mColor = drawCollision ? collisionColor : tagColor;
                 d.mLife = 0.0f;
                 Renderer::Get()->AddDebugDraw(d);
@@ -315,7 +339,13 @@ void TilePaintManager::DrawOverlays()
 
 void TilePaintManager::UpdateStroke()
 {
-    if (!GetEditorState()->GetViewport3D()->ShouldHandleInput())
+    // Allow an in-progress stroke to keep running even when the viewport
+    // isn't "hovered" by ImGui's metric — otherwise dragging the cursor
+    // anywhere near the floating Tile Paint panel kills the stroke
+    // mid-motion. New strokes still gate on ShouldHandleInput via the
+    // IsMouseButtonJustDown branch below (the click that starts a stroke
+    // must happen while the viewport is active).
+    if (!mStrokeActive && !GetEditorState()->GetViewport3D()->ShouldHandleInput())
         return;
 
     Node* selected = GetEditorState()->GetSelectedNode();
@@ -382,6 +412,8 @@ void TilePaintManager::UpdateStroke()
                 mPendingTarget = tileMapNode;
                 mPendingChanges.clear();
                 mModifiedSet.clear();
+                mLastStrokeCell = mHoverCell;
+                mLastStrokeCellValid = true;
                 ApplyPencilOrEraser(tileMapNode, mHoverCell);
                 return;
             }
@@ -396,7 +428,19 @@ void TilePaintManager::UpdateStroke()
         if (mOptions.mMode == TileSculptMode::Pencil ||
             mOptions.mMode == TileSculptMode::Eraser)
         {
-            ApplyPencilOrEraser(tileMapNode, mHoverCell);
+            // Interpolate cells between the previous frame's cell and the
+            // current cell so fast drags don't leave gaps. Falls back to a
+            // single-cell paint when the cursor stays put.
+            if (mLastStrokeCellValid)
+            {
+                StrokePencilOrEraserInterp(tileMapNode, mLastStrokeCell, mHoverCell);
+            }
+            else
+            {
+                ApplyPencilOrEraser(tileMapNode, mHoverCell);
+            }
+            mLastStrokeCell = mHoverCell;
+            mLastStrokeCellValid = true;
         }
         else if (mOptions.mMode == TileSculptMode::Autotile)
         {
@@ -422,14 +466,36 @@ void TilePaintManager::UpdateStroke()
                     break;
                 case TileSculptMode::Select:
                 {
-                    // Selection only updates the marquee state — no cell mutation.
+                    // Freeform selection. Plain drag REPLACES the selection,
+                    // Shift+drag ADDS to it, Ctrl+drag REMOVES from it. Each
+                    // commit pushes every cell within the drag rectangle into
+                    // (or out of) mSelectedCells, then derives the bounding
+                    // rect for downstream code that still works in rect terms.
                     int32_t minX = std::min(mDragStartCell.x, mHoverCell.x);
                     int32_t maxX = std::max(mDragStartCell.x, mHoverCell.x);
                     int32_t minY = std::min(mDragStartCell.y, mHoverCell.y);
                     int32_t maxY = std::max(mDragStartCell.y, mHoverCell.y);
-                    mSelectionMin = { minX, minY };
-                    mSelectionMax = { maxX, maxY };
-                    mHasSelection = true;
+
+                    bool shiftDown = IsShiftDown();
+                    bool ctrlDown  = IsControlDown();
+
+                    if (!shiftDown && !ctrlDown)
+                        mSelectedCells.clear();
+
+                    if (ctrlDown)
+                    {
+                        for (int32_t cy = minY; cy <= maxY; ++cy)
+                            for (int32_t cx = minX; cx <= maxX; ++cx)
+                                mSelectedCells.erase(SelectionCellKey(cx, cy));
+                    }
+                    else
+                    {
+                        for (int32_t cy = minY; cy <= maxY; ++cy)
+                            for (int32_t cx = minX; cx <= maxX; ++cx)
+                                mSelectedCells.insert(SelectionCellKey(cx, cy));
+                    }
+
+                    RecomputeSelectionBounds();
                     break;
                 }
                 default:
@@ -494,6 +560,32 @@ void TilePaintManager::ApplyPencilOrEraser(TileMap2D* node, glm::ivec2 cell)
     TileCell oldCell = tileMap->GetCell(cell.x, cell.y, layer);
     TileCell newCell = BuildBrushCell(oldCell);
     StageCellChange(cell.x, cell.y, layer, oldCell, newCell);
+}
+
+void TilePaintManager::StrokePencilOrEraserInterp(TileMap2D* node, glm::ivec2 from, glm::ivec2 to)
+{
+    // Bresenham line walk between cells. Paints every cell along the path,
+    // including both endpoints. Used during pencil/eraser drag so a fast
+    // mouse drag still produces a contiguous stroke instead of skipping
+    // cells based on per-frame mouse positions.
+    int32_t x0 = from.x, y0 = from.y;
+    int32_t x1 = to.x,   y1 = to.y;
+    int32_t dx = std::abs(x1 - x0);
+    int32_t dy = -std::abs(y1 - y0);
+    int32_t sx = (x0 < x1) ? 1 : -1;
+    int32_t sy = (y0 < y1) ? 1 : -1;
+    int32_t err = dx + dy;
+
+    constexpr int32_t kMaxInterpCells = 4096;
+    int32_t safety = 0;
+    while (safety++ < kMaxInterpCells)
+    {
+        ApplyPencilOrEraser(node, { x0, y0 });
+        if (x0 == x1 && y0 == y1) break;
+        int32_t e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+    }
 }
 
 void TilePaintManager::CommitRectFill(TileMap2D* node, glm::ivec2 a, glm::ivec2 b)
@@ -641,6 +733,7 @@ void TilePaintManager::CommitStroke()
     mModifiedSet.clear();
     mStrokeActive = false;
     mPreviewActive = false;
+    mLastStrokeCellValid = false;
     mPendingTarget = nullptr;
 }
 
@@ -650,6 +743,7 @@ void TilePaintManager::CancelStroke()
     mModifiedSet.clear();
     mStrokeActive = false;
     mPreviewActive = false;
+    mLastStrokeCellValid = false;
     mPendingTarget = nullptr;
 }
 
@@ -709,6 +803,107 @@ int32_t TilePaintManager::PickNineBoxSlot(int32_t cx, int32_t cy,
     if (isLeft) return brush.mLeft;
     if (isRight) return brush.mRight;
     return brush.mCenter;
+}
+
+void TilePaintManager::RecomputeSelectionBounds()
+{
+    if (mSelectedCells.empty())
+    {
+        mHasSelection = false;
+        return;
+    }
+
+    bool first = true;
+    int32_t minX = 0, maxX = 0, minY = 0, maxY = 0;
+    for (int64_t key : mSelectedCells)
+    {
+        int32_t cx, cy;
+        DecodeSelectionCellKey(key, cx, cy);
+        if (first)
+        {
+            minX = maxX = cx;
+            minY = maxY = cy;
+            first = false;
+        }
+        else
+        {
+            minX = std::min(minX, cx);
+            maxX = std::max(maxX, cx);
+            minY = std::min(minY, cy);
+            maxY = std::max(maxY, cy);
+        }
+    }
+    mSelectionMin = { minX, minY };
+    mSelectionMax = { maxX, maxY };
+    mHasSelection = true;
+}
+
+void TilePaintManager::DoApply9BoxToSelection()
+{
+    if (!mHasSelection || mSelectedCells.empty()) return;
+
+    Node* selected = GetEditorState()->GetSelectedNode();
+    if (selected == nullptr || selected->GetType() != TileMap2D::GetStaticType())
+        return;
+    TileMap2D* node = static_cast<TileMap2D*>(selected);
+    TileMap* tileMap = node->GetTileMap();
+    TileSet* tileSet = (tileMap != nullptr) ? tileMap->GetTileSet() : nullptr;
+    if (tileMap == nullptr || tileSet == nullptr) return;
+
+    int32_t brushIdx = mOptions.mActiveNineBoxIndex;
+    const auto& brushes = tileSet->GetNineBoxBrushes();
+    if (brushIdx < 0 || brushIdx >= int32_t(brushes.size()))
+    {
+        LogWarning("9-Box Fill needs an active 9-box brush in the panel.");
+        return;
+    }
+    const NineBoxBrushDef& brush = brushes[brushIdx];
+
+    // Freeform 9-box classification: each selected cell looks at its 4
+    // cardinal neighbors. The cell is on a "side" if the corresponding
+    // neighbor isn't part of the selection, on a "corner" if both an
+    // adjacent vertical AND horizontal side are missing, and in the
+    // center otherwise. This produces correct corner/edge/center tiles
+    // for any selection shape — works for rectangles, L-shapes,
+    // S-curves, isolated regions, etc.
+    auto pickSlot = [&](int32_t cx, int32_t cy) -> int32_t
+    {
+        bool hasTop   = IsCellSelected(cx,     cy + 1);  // +Y is up
+        bool hasBot   = IsCellSelected(cx,     cy - 1);
+        bool hasLeft  = IsCellSelected(cx - 1, cy    );
+        bool hasRight = IsCellSelected(cx + 1, cy    );
+
+        if (!hasTop && !hasLeft)  return brush.mTopLeft;
+        if (!hasTop && !hasRight) return brush.mTopRight;
+        if (!hasBot && !hasLeft)  return brush.mBottomLeft;
+        if (!hasBot && !hasRight) return brush.mBottomRight;
+        if (!hasTop)              return brush.mTop;
+        if (!hasBot)              return brush.mBottom;
+        if (!hasLeft)             return brush.mLeft;
+        if (!hasRight)            return brush.mRight;
+        return brush.mCenter;
+    };
+
+    int32_t layer = mOptions.mActiveLayer;
+    mStrokeActive = true;
+    mPendingTarget = node;
+    mPendingChanges.clear();
+    mModifiedSet.clear();
+
+    for (int64_t key : mSelectedCells)
+    {
+        int32_t cx, cy;
+        DecodeSelectionCellKey(key, cx, cy);
+        int32_t slotTile = pickSlot(cx, cy);
+        if (slotTile < 0) continue;  // empty brush slot — leave the cell alone
+
+        TileCell oldCell = tileMap->GetCell(cx, cy, layer);
+        TileCell newCell = oldCell;
+        newCell.mTileIndex = slotTile;
+        StageCellChange(cx, cy, layer, oldCell, newCell);
+    }
+
+    CommitStroke();
 }
 
 void TilePaintManager::CommitNineBox(TileMap2D* node, glm::ivec2 a, glm::ivec2 b)

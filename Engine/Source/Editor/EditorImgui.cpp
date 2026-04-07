@@ -11627,6 +11627,7 @@ void EditorImguiDraw()
                         {
                             layer->mVisible = visible;
                             tileMapNode->MarkDirty();
+                            tileMap->SetDirtyFlag();
                         }
                         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Visible");
                         ImGui::SameLine();
@@ -11635,6 +11636,7 @@ void EditorImguiDraw()
                         if (ImGui::Checkbox("##Lock", &locked))
                         {
                             layer->mLocked = locked;
+                            tileMap->SetDirtyFlag();
                         }
                         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Locked");
                         ImGui::SameLine();
@@ -11646,6 +11648,7 @@ void EditorImguiDraw()
                         if (ImGui::InputText("##Name", nameBuf, sizeof(nameBuf)))
                         {
                             layer->mName = nameBuf;
+                            tileMap->SetDirtyFlag();
                         }
                         ImGui::SameLine();
 
@@ -11668,6 +11671,7 @@ void EditorImguiDraw()
                         TileCell empty;
                         tileMap->SetCell(0, 0, empty, numLayers);
                         tileMapNode->MarkDirty();
+                        tileMap->SetDirtyFlag();
                     }
                 }
 
@@ -11932,12 +11936,14 @@ void EditorImguiDraw()
                     {
                         glm::ivec2 mn = mgr->GetSelectionMin();
                         glm::ivec2 mx = mgr->GetSelectionMax();
-                        ImGui::Text("Selection: (%d,%d) -> (%d,%d)", mn.x, mn.y, mx.x, mx.y);
+                        ImGui::Text("Selection: (%d,%d) -> (%d,%d)  (%d cells)",
+                            mn.x, mn.y, mx.x, mx.y, int(mgr->mSelectedCells.size()));
                     }
                     else
                     {
                         ImGui::TextDisabled("No selection. Use Select tool to drag a rect.");
                     }
+                    ImGui::TextDisabled("Shift+drag = add to selection. Ctrl+drag = remove.");
 
                     if (ImGui::Button("Copy"))     mgr->DoCopy();
                     ImGui::SameLine();
@@ -11957,6 +11963,30 @@ void EditorImguiDraw()
                     if (!hasClip) ImGui::EndDisabled();
 
                     ImGui::TextDisabled(hasClip ? "Clipboard ready (paste at cursor)." : "Clipboard empty.");
+
+                    // 9-Box Fill — apply the active 9-box brush to the
+                    // currently-selected rectangle. Requires both an active
+                    // selection AND an active 9-box brush in the panel.
+                    ImGui::Spacing();
+                    bool canApply9Box = mgr->HasSelection() &&
+                                        tileSet != nullptr &&
+                                        mgr->mOptions.mActiveNineBoxIndex >= 0 &&
+                                        mgr->mOptions.mActiveNineBoxIndex < int32_t(tileSet->GetNineBoxBrushes().size());
+                    if (!canApply9Box) ImGui::BeginDisabled();
+                    if (ImGui::Button("Fill Selection With 9-Box Brush"))
+                    {
+                        mgr->DoApply9BoxToSelection();
+                    }
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Replace every cell in the (possibly freeform) selection with the appropriate corner/edge/center tile from the active 9-box brush.\nWorks on rectangles, L-shapes, paths, and other irregular shapes.");
+                    if (!canApply9Box) ImGui::EndDisabled();
+                    if (!canApply9Box)
+                    {
+                        if (!mgr->HasSelection())
+                            ImGui::TextDisabled("Need a marquee selection (use Select tool).");
+                        else
+                            ImGui::TextDisabled("Need an active 9-box brush (in 9-Box Brushes panel).");
+                    }
                 }
 
                 // View overlays (Phase 3 + Phase 4 cell grid)
@@ -12088,6 +12118,179 @@ void EditorImguiDraw()
                     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.7f, 0.2f, 1.0f));
                     ImGui::TextWrapped("This TileMap2D has no TileSet bound. Assign a TileMap asset whose TileSet has a Texture.");
                     ImGui::PopStyleColor();
+                }
+
+                // ----- Tile preview overlay (Phase 4) ----------------------
+                // Draw the selected tile as a semi-transparent ImGui sprite
+                // at every cell that would be painted, so the user can see
+                // exactly what their stroke will produce before committing.
+                if (mgr->mHoverValid && tileSet != nullptr && atlasImId != 0)
+                {
+                    Camera3D* cam = GetWorld(0)->GetActiveCamera();
+                    if (cam != nullptr)
+                    {
+                        glm::vec2 uv0, uv1;
+                        bool haveUVs = tileSet->GetTileUVs(mgr->mOptions.mSelectedTileIndex, uv0, uv1);
+
+                        // Project the 4 corners of a cell to screen space and
+                        // call ImDrawList::AddImageQuad. Returns whether all 4
+                        // corners are in front of the camera.
+                        auto drawCellSprite = [&](int32_t cx, int32_t cy, ImU32 tint)
+                        {
+                            if (!haveUVs) return;
+
+                            glm::vec2 bl = tileMapNode->CellToWorld({ cx,     cy     });
+                            glm::vec2 tr = tileMapNode->CellToWorld({ cx + 1, cy + 1 });
+                            float z = tileMapNode->GetWorldPosition().z;
+
+                            glm::vec3 sBL = cam->WorldToScreenPosition(glm::vec3(bl.x, bl.y, z));
+                            glm::vec3 sBR = cam->WorldToScreenPosition(glm::vec3(tr.x, bl.y, z));
+                            glm::vec3 sTR = cam->WorldToScreenPosition(glm::vec3(tr.x, tr.y, z));
+                            glm::vec3 sTL = cam->WorldToScreenPosition(glm::vec3(bl.x, tr.y, z));
+
+                            // Reject corners behind the camera (z component <= 0).
+                            if (sBL.z <= 0.0f || sBR.z <= 0.0f || sTR.z <= 0.0f || sTL.z <= 0.0f)
+                                return;
+
+                            ImDrawList* dl = ImGui::GetForegroundDrawList();
+                            dl->AddImageQuad(
+                                (ImTextureID)atlasImId,
+                                ImVec2(sTL.x, sTL.y),
+                                ImVec2(sTR.x, sTR.y),
+                                ImVec2(sBR.x, sBR.y),
+                                ImVec2(sBL.x, sBL.y),
+                                ImVec2(uv0.x, uv0.y),
+                                ImVec2(uv1.x, uv0.y),
+                                ImVec2(uv1.x, uv1.y),
+                                ImVec2(uv0.x, uv1.y),
+                                tint);
+                        };
+
+                        ImU32 ghostTint = IM_COL32(255, 255, 255, 170);
+                        TileSculptMode m = mgr->mOptions.mMode;
+
+                        // Single-cell preview at the hover for any "draw a tile" tool.
+                        if (m == TileSculptMode::Pencil ||
+                            m == TileSculptMode::Eraser ||
+                            m == TileSculptMode::FloodFill ||
+                            m == TileSculptMode::RectFill ||
+                            m == TileSculptMode::Line ||
+                            m == TileSculptMode::NineBox ||
+                            m == TileSculptMode::Autotile)
+                        {
+                            // Eraser shows a faint red instead of the tile sprite.
+                            if (m == TileSculptMode::Eraser)
+                            {
+                                ImDrawList* dl = ImGui::GetForegroundDrawList();
+                                glm::vec2 bl = tileMapNode->CellToWorld({ mgr->mHoverCell.x,     mgr->mHoverCell.y     });
+                                glm::vec2 tr = tileMapNode->CellToWorld({ mgr->mHoverCell.x + 1, mgr->mHoverCell.y + 1 });
+                                float z = tileMapNode->GetWorldPosition().z;
+                                glm::vec3 sBL = cam->WorldToScreenPosition(glm::vec3(bl.x, bl.y, z));
+                                glm::vec3 sTR = cam->WorldToScreenPosition(glm::vec3(tr.x, tr.y, z));
+                                if (sBL.z > 0.0f && sTR.z > 0.0f)
+                                {
+                                    dl->AddRectFilled(
+                                        ImVec2(std::min(sBL.x, sTR.x), std::min(sBL.y, sTR.y)),
+                                        ImVec2(std::max(sBL.x, sTR.x), std::max(sBL.y, sTR.y)),
+                                        IM_COL32(255, 80, 80, 90));
+                                }
+                            }
+                            else
+                            {
+                                drawCellSprite(mgr->mHoverCell.x, mgr->mHoverCell.y, ghostTint);
+                            }
+                        }
+
+                        // Drag-preview for RectFill: ghost-fill the entire rect.
+                        if (mgr->mPreviewActive && m == TileSculptMode::RectFill)
+                        {
+                            int32_t minX = std::min(mgr->mDragStartCell.x, mgr->mHoverCell.x);
+                            int32_t maxX = std::max(mgr->mDragStartCell.x, mgr->mHoverCell.x);
+                            int32_t minY = std::min(mgr->mDragStartCell.y, mgr->mHoverCell.y);
+                            int32_t maxY = std::max(mgr->mDragStartCell.y, mgr->mHoverCell.y);
+                            int32_t cellCount = (maxX - minX + 1) * (maxY - minY + 1);
+                            if (cellCount <= 1024)  // bound the preview cost
+                            {
+                                for (int32_t cy = minY; cy <= maxY; ++cy)
+                                    for (int32_t cx = minX; cx <= maxX; ++cx)
+                                        drawCellSprite(cx, cy, ghostTint);
+                            }
+                        }
+
+                        // Drag-preview for Line: Bresenham trace.
+                        if (mgr->mPreviewActive && m == TileSculptMode::Line)
+                        {
+                            int32_t x0 = mgr->mDragStartCell.x;
+                            int32_t y0 = mgr->mDragStartCell.y;
+                            int32_t x1 = mgr->mHoverCell.x;
+                            int32_t y1 = mgr->mHoverCell.y;
+                            int32_t dx = std::abs(x1 - x0);
+                            int32_t dy = -std::abs(y1 - y0);
+                            int32_t sx = (x0 < x1) ? 1 : -1;
+                            int32_t sy = (y0 < y1) ? 1 : -1;
+                            int32_t err = dx + dy;
+                            int32_t safety = 0;
+                            while (safety++ < 1024)
+                            {
+                                drawCellSprite(x0, y0, ghostTint);
+                                if (x0 == x1 && y0 == y1) break;
+                                int32_t e2 = 2 * err;
+                                if (e2 >= dy) { err += dy; x0 += sx; }
+                                if (e2 <= dx) { err += dx; y0 += sy; }
+                            }
+                        }
+
+                        // Pencil/Eraser drag-paint: ghost the interpolated
+                        // path from the previous frame's cell to the current
+                        // hover cell. The actual paint is committed by
+                        // TilePaintManager via the same Bresenham trace, so
+                        // the preview overlays the cells that will be
+                        // painted on this frame for clear visual feedback.
+                        if (mgr->mStrokeActive && mgr->mLastStrokeCellValid &&
+                            (m == TileSculptMode::Pencil || m == TileSculptMode::Eraser))
+                        {
+                            int32_t x0 = mgr->mLastStrokeCell.x;
+                            int32_t y0 = mgr->mLastStrokeCell.y;
+                            int32_t x1 = mgr->mHoverCell.x;
+                            int32_t y1 = mgr->mHoverCell.y;
+                            int32_t dx = std::abs(x1 - x0);
+                            int32_t dy = -std::abs(y1 - y0);
+                            int32_t sx = (x0 < x1) ? 1 : -1;
+                            int32_t sy = (y0 < y1) ? 1 : -1;
+                            int32_t err = dx + dy;
+                            int32_t safety = 0;
+                            ImU32 dragTint = (m == TileSculptMode::Eraser)
+                                ? IM_COL32(255, 80, 80, 140)
+                                : IM_COL32(255, 255, 255, 200);
+                            while (safety++ < 256)
+                            {
+                                if (m == TileSculptMode::Eraser)
+                                {
+                                    ImDrawList* dl = ImGui::GetForegroundDrawList();
+                                    glm::vec2 bl = tileMapNode->CellToWorld({ x0,     y0     });
+                                    glm::vec2 tr = tileMapNode->CellToWorld({ x0 + 1, y0 + 1 });
+                                    float z = tileMapNode->GetWorldPosition().z;
+                                    glm::vec3 sBL = cam->WorldToScreenPosition(glm::vec3(bl.x, bl.y, z));
+                                    glm::vec3 sTR = cam->WorldToScreenPosition(glm::vec3(tr.x, tr.y, z));
+                                    if (sBL.z > 0.0f && sTR.z > 0.0f)
+                                    {
+                                        dl->AddRectFilled(
+                                            ImVec2(std::min(sBL.x, sTR.x), std::min(sBL.y, sTR.y)),
+                                            ImVec2(std::max(sBL.x, sTR.x), std::max(sBL.y, sTR.y)),
+                                            dragTint);
+                                    }
+                                }
+                                else
+                                {
+                                    drawCellSprite(x0, y0, dragTint);
+                                }
+                                if (x0 == x1 && y0 == y1) break;
+                                int32_t e2 = 2 * err;
+                                if (e2 >= dy) { err += dy; x0 += sx; }
+                                if (e2 <= dx) { err += dx; y0 += sy; }
+                            }
+                        }
+                    }
                 }
             }
             else
