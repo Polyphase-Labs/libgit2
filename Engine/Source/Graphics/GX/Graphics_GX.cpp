@@ -27,6 +27,7 @@
 #include "Nodes/3D/TextMesh3d.h"
 #include "Nodes/3D/Voxel3d.h"
 #include "Nodes/3D/Terrain3d.h"
+#include "Nodes/3D/TileMap2d.h"
 
 #include "Assertion.h"
 #include <stdlib.h>
@@ -1280,6 +1281,24 @@ void GFX_DrawTerrain3D(Terrain3D* terrain)
         GX_SetTevSwapMode(1, GX_TEV_SWAP0, GX_TEV_SWAP0);
         GX_SetTevSwapMode(2, GX_TEV_SWAP0, GX_TEV_SWAP0);
     }
+}
+
+// TileMap2D — Phase 1 stubs. The XY-plane render path will land in a later
+// phase that's tuned for the GX fixed-function pipeline.
+void GFX_CreateTileMap2DResource(TileMap2D* tileMap)
+{
+}
+
+void GFX_DestroyTileMap2DResource(TileMap2D* tileMap)
+{
+}
+
+void GFX_UpdateTileMap2DResource(TileMap2D* tileMap, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices)
+{
+}
+
+void GFX_DrawTileMap2D(TileMap2D* tileMap)
+{
 }
 
 // ParticleComp

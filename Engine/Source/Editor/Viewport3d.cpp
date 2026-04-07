@@ -24,6 +24,7 @@
 #include "PaintManager.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
 #include "TerrainSculpt/TerrainSculptManager.h"
+#include "TilePaint/TilePaintManager.h"
 #include "Nodes/3D/StaticMesh3d.h"
 #include "Nodes/3D/PointLight3d.h"
 #include "Nodes/3D/DirectionalLight3d.h"
@@ -89,6 +90,10 @@ void Viewport3D::Update(float deltaTime)
         else if (GetEditorState()->GetPaintMode() == PaintMode::Terrain)
         {
             GetEditorState()->mTerrainSculptManager->Update();
+        }
+        else if (GetEditorState()->GetPaintMode() == PaintMode::TilePaint)
+        {
+            GetEditorState()->mTilePaintManager->Update();
         }
         else
         {

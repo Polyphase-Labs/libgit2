@@ -33,6 +33,9 @@
 #include "Nodes/3D/TextMesh3d.h"
 #include "Nodes/3D/Voxel3d.h"
 #include "Nodes/3D/Terrain3d.h"
+#include "Nodes/3D/TileMap2d.h"
+#include "Assets/TileMap.h"
+#include "Assets/TileSet.h"
 #include "World.h"
 
 #include "Assets/Scene.h"
@@ -78,6 +81,7 @@
 #include "TextureAtlas/TextureAtlasViewer.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
 #include "TerrainSculpt/TerrainSculptManager.h"
+#include "TilePaint/TilePaintManager.h"
 #include "Preferences/General/GeneralModule.h"
 #include "Preferences/PreferencesManager.h"
 #include "Preferences/External/LaunchersModule.h"
@@ -5609,6 +5613,16 @@ static void DrawAssetsContextPopup(AssetStub* stub, AssetDir* dir)
                 sNewAssetType = ParticleSystem::GetStaticType();
                 showPopup = true;
             }
+            if (ImGui::Selectable("Tile Set", false, ImGuiSelectableFlags_DontClosePopups))
+            {
+                sNewAssetType = TileSet::GetStaticType();
+                showPopup = true;
+            }
+            if (ImGui::Selectable("Tile Map", false, ImGuiSelectableFlags_DontClosePopups))
+            {
+                sNewAssetType = TileMap::GetStaticType();
+                showPopup = true;
+            }
             bool showScenePopup = false;
             if (ImGui::Selectable("Scene", false, ImGuiSelectableFlags_DontClosePopups))
             {
@@ -5894,6 +5908,10 @@ static void DrawAssetsContextPopup(AssetStub* stub, AssetDir* dir)
                     assetName = "MI_Material";
                 else if (sNewAssetType == ParticleSystem::GetStaticType())
                     assetName = "P_Particle";
+                else if (sNewAssetType == TileSet::GetStaticType())
+                    assetName = "TS_TileSet";
+                else if (sNewAssetType == TileMap::GetStaticType())
+                    assetName = "TM_TileMap";
                 else if (sNewAssetType == Timeline::GetStaticType())
                     assetName = "TL_Timeline";
                 else if (sNewAssetType == NodeGraphAsset::GetStaticType())
@@ -7332,6 +7350,18 @@ static void DrawPropertiesPanel()
                         }
                     }
                 }
+                else if (obj->As<TileMap2D>())
+                {
+                    if (GetEditorState()->mPaintMode != PaintMode::TilePaint)
+                    {
+                        ImGui::NewLine();
+                        if (ImGui::Button("Open In Tile Paint"))
+                        {
+                            GetEditorState()->SetEditorMode(EditorMode::Scene3D);
+                            GetEditorState()->SetPaintMode(PaintMode::TilePaint);
+                        }
+                    }
+                }
             }
 
             ImGui::EndTabItem();
@@ -8765,9 +8795,9 @@ static void DrawMainMenuBar()
             curMode = int(EditorMode::Count) + int(paintMode) - 1;
         }
 
-        const char* modeStrings[] = { "Scene", "2D", "3D", "Paint Colors", "Paint Instances", "Voxel Sculpt", "Terrain Sculpt"};
+        const char* modeStrings[] = { "Scene", "2D", "3D", "Paint Colors", "Paint Instances", "Voxel Sculpt", "Terrain Sculpt", "Tile Paint" };
         ImGui::SetNextItemWidth(80);
-        ImGui::Combo("##EditorMode", &curMode, modeStrings, 7);
+        ImGui::Combo("##EditorMode", &curMode, modeStrings, 8);
 
         if (curMode == 3)
         {
@@ -8788,6 +8818,11 @@ static void DrawMainMenuBar()
         {
             curMode = (int)EditorMode::Scene3D;
             paintMode = PaintMode::Terrain;
+        }
+        else if (curMode == 7)
+        {
+            curMode = (int)EditorMode::Scene3D;
+            paintMode = PaintMode::TilePaint;
         }
         else
         {
@@ -11498,6 +11533,114 @@ void EditorImguiDraw()
             else
             {
                 ImGui::TextWrapped("Select a Terrain3D node to begin sculpting.");
+            }
+
+            ImGui::End();
+        }
+        else if (paintMode == PaintMode::TilePaint)
+        {
+            // Tile paint panel
+            ImGui::SetNextWindowPos(ImVec2(210.0f, GetTopBarHeight()), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(320.0f, 0.0f), ImGuiCond_FirstUseEver);
+            ImGui::Begin("Tile Paint", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+            TilePaintManager* mgr = GetEditorState()->mTilePaintManager;
+            Node* sel = GetEditorState()->GetSelectedNode();
+            if (sel != nullptr && sel->GetType() == TileMap2D::GetStaticType())
+            {
+                TileMap2D* tileMapNode = static_cast<TileMap2D*>(sel);
+                TileMap* tileMap = tileMapNode->GetTileMap();
+                TileSet* tileSet = (tileMap != nullptr) ? tileMap->GetTileSet() : nullptr;
+
+                // Tool selection
+                int mode = int(mgr->mOptions.mMode);
+                ImGui::RadioButton("Pencil", &mode, 0); ImGui::SameLine();
+                ImGui::RadioButton("Eraser", &mode, 1); ImGui::SameLine();
+                ImGui::RadioButton("Picker", &mode, 2);
+                mgr->mOptions.mMode = TileSculptMode(mode);
+
+                // Selected tile
+                int tileIdx = mgr->mOptions.mSelectedTileIndex;
+                int maxTile = (tileSet != nullptr) ? tileSet->GetNumTiles() - 1 : 0;
+                if (maxTile < 0) maxTile = 0;
+                ImGui::SliderInt("Tile Index", &tileIdx, 0, maxTile);
+                if (tileIdx < 0) tileIdx = 0;
+                mgr->mOptions.mSelectedTileIndex = tileIdx;
+
+                // Tile preview using the bound atlas texture
+                if (tileSet != nullptr && tileSet->GetTexture() != nullptr)
+                {
+                    static ImTextureID sAtlasId = 0;
+                    static Texture* sLastAtlas = nullptr;
+                    Texture* atlas = tileSet->GetTexture();
+                    if (atlas != sLastAtlas)
+                    {
+                        if (sAtlasId != 0)
+                        {
+                            ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)sAtlasId);
+                            sAtlasId = 0;
+                        }
+                        TextureResource* res = atlas->GetResource();
+                        if (res != nullptr && res->mImage != nullptr)
+                        {
+                            sAtlasId = (ImTextureID)ImGui_ImplVulkan_AddTexture(
+                                res->mImage->GetSampler(),
+                                res->mImage->GetView(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                        }
+                        sLastAtlas = atlas;
+                    }
+
+                    glm::vec2 uv0, uv1;
+                    if (sAtlasId != 0 && tileSet->GetTileUVs(mgr->mOptions.mSelectedTileIndex, uv0, uv1))
+                    {
+                        ImGui::Text("Selected:");
+                        ImGui::SameLine();
+                        ImGui::Image(sAtlasId, ImVec2(48, 48), ImVec2(uv0.x, uv0.y), ImVec2(uv1.x, uv1.y));
+                    }
+                }
+
+                // Layer selector
+                if (tileMap != nullptr)
+                {
+                    int layer = mgr->mOptions.mActiveLayer;
+                    int maxLayer = tileMap->GetNumLayers() - 1;
+                    if (maxLayer < 0) maxLayer = 0;
+                    ImGui::SliderInt("Layer", &layer, 0, maxLayer);
+                    if (layer < 0) layer = 0;
+                    mgr->mOptions.mActiveLayer = layer;
+                }
+
+                // Status / hover info
+                ImGui::Separator();
+                if (mgr->mHoverValid)
+                {
+                    ImGui::Text("Cell: %d, %d", mgr->mHoverCell.x, mgr->mHoverCell.y);
+                    int32_t cx = TileMap::FloorDivChunk(mgr->mHoverCell.x);
+                    int32_t cy = TileMap::FloorDivChunk(mgr->mHoverCell.y);
+                    ImGui::Text("Chunk: %d, %d", cx, cy);
+                    if (tileMap != nullptr)
+                    {
+                        int32_t hoverTile = tileMap->GetTile(mgr->mHoverCell.x, mgr->mHoverCell.y, mgr->mOptions.mActiveLayer);
+                        ImGui::Text("Tile under cursor: %d", hoverTile);
+                    }
+                }
+                else
+                {
+                    ImGui::TextDisabled("Hover over the tile map to begin painting.");
+                }
+
+                if (tileSet == nullptr)
+                {
+                    ImGui::Separator();
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.7f, 0.2f, 1.0f));
+                    ImGui::TextWrapped("This TileMap2D has no TileSet bound. Assign a TileMap asset whose TileSet has a Texture.");
+                    ImGui::PopStyleColor();
+                }
+            }
+            else
+            {
+                ImGui::TextWrapped("Select a TileMap2D node to begin painting.");
             }
 
             ImGui::End();

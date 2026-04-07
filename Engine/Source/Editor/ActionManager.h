@@ -172,6 +172,7 @@ public:
     void EXE_SetInstanceColors(const std::vector<ActionSetInstanceColorsData>& data);
     void EXE_SetVoxels(class Voxel3D* voxel, const std::vector<struct VoxelChange>& changes);
     void EXE_SetTerrainHeights(class Terrain3D* terrain, const std::vector<struct TerrainHeightChange>& changes);
+    void EXE_PaintTiles(class TileMap2D* tileMapNode, const std::vector<struct TilePaintChange>& changes);
     void EXE_SetInstanceData(InstancedMesh3D* instMesh, int32_t startIndex, const std::vector<MeshInstanceData>& data);
 
     /**
@@ -652,4 +653,18 @@ public:
 protected:
     Terrain3D* mTerrain = nullptr;
     std::vector<TerrainHeightChange> mChanges;
+};
+
+struct TilePaintChange;
+class TileMap2D;
+
+class ActionPaintTiles : public Action
+{
+public:
+    DECLARE_ACTION_INTERFACE(PaintTiles);
+    ActionPaintTiles(TileMap2D* tileMapNode, const std::vector<TilePaintChange>& changes);
+
+protected:
+    TileMap2D* mTarget = nullptr;
+    std::vector<TilePaintChange> mChanges;
 };

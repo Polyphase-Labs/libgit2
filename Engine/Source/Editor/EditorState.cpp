@@ -37,6 +37,7 @@
 #include "PaintManager.h"
 #include "VoxelSculpt/VoxelSculptManager.h"
 #include "TerrainSculpt/TerrainSculptManager.h"
+#include "TilePaint/TilePaintManager.h"
 #include "Script.h"
 #include "Addons/AddonCreator.h"
 #include "Input/Input.h"
@@ -70,6 +71,7 @@ void EditorState::Init()
     mPaintManager = new PaintManager();
     mVoxelSculptManager = new VoxelSculptManager();
     mTerrainSculptManager = new TerrainSculptManager();
+    mTilePaintManager = new TilePaintManager();
 
     mOverlayText = Node::Construct<Text>();
     mOverlayText->SetName("Overlay Text");
@@ -112,6 +114,9 @@ void EditorState::Shutdown()
 
     delete mTerrainSculptManager;
     mTerrainSculptManager = nullptr;
+
+    delete mTilePaintManager;
+    mTilePaintManager = nullptr;
 
     if (mTimelinePreviewInstance != nullptr)
     {
@@ -442,6 +447,11 @@ void EditorState::HandleNodeDestroy(Node* node)
     if (mTerrainSculptManager)
     {
         mTerrainSculptManager->HandleNodeDestroy(node);
+    }
+
+    if (mTilePaintManager)
+    {
+        mTilePaintManager->HandleNodeDestroy(node);
     }
 }
 

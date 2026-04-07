@@ -28,6 +28,7 @@ class Viewport3D;
 class Viewport2D;
 class PaintManager;
 class VoxelSculptManager;
+class TilePaintManager;
 struct SubSceneOverride;
 
 enum class ControlMode
@@ -69,6 +70,7 @@ enum class PaintMode
     Instance,
     Voxel,
     Terrain,
+    TilePaint,
 
     Count
 };
@@ -169,6 +171,7 @@ struct EditorState
     PaintManager* mPaintManager = nullptr;
     VoxelSculptManager* mVoxelSculptManager = nullptr;
     class TerrainSculptManager* mTerrainSculptManager = nullptr;
+    TilePaintManager* mTilePaintManager = nullptr;
     bool mNodePropertySelect = false;
     int32_t mNodePropertySelectIndex = 0;
     std::string mNodePropertySelectName = "";
