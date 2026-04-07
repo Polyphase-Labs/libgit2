@@ -63,6 +63,41 @@ struct NineBoxBrushDef
     std::vector<std::string> mTags;
 };
 
+// Phase 4 — autotile / terrain rules.
+//
+// An autotile rule pattern-matches against the 8 neighbors of a cell. Each
+// neighbor slot is one of three states:
+//   DontCare       — neighbor is irrelevant
+//   MustBeSelf     — neighbor MUST be a member of this autotile group
+//   MustNotBeSelf  — neighbor MUST NOT be a member of this autotile group
+//
+// Slot indices follow a 3x3 grid (with +Y up) skipping the center:
+//   [0]=NW [1]=N [2]=NE
+//   [3]=W       [4]=E
+//   [5]=SW [6]=S [7]=SE
+enum class AutotileNeighborState : uint8_t
+{
+    DontCare = 0,
+    MustBeSelf,
+    MustNotBeSelf,
+
+    Count
+};
+
+struct AutotileRule
+{
+    AutotileNeighborState mNeighbors[8] = {};
+    std::vector<int32_t> mResultTiles;  // pick one (first for now; random in a follow-up)
+};
+
+struct AutotileSet
+{
+    std::string mName;
+    std::vector<std::string> mMemberTags;     // a tile is "self" if it has any of these tags
+    std::vector<int32_t> mMemberTileIndices;  // ...or its index appears in this list
+    std::vector<AutotileRule> mRules;
+};
+
 class POLYPHASE_API TileSet : public Asset
 {
 public:
@@ -121,6 +156,22 @@ public:
     int32_t AddNineBoxBrush(const std::string& name);
     void RemoveNineBoxBrush(int32_t index);
 
+    // Autotile accessors (Phase 4)
+    const std::vector<AutotileSet>& GetAutotileSets() const { return mAutotileSets; }
+    std::vector<AutotileSet>& GetAutotileSetsMutable() { return mAutotileSets; }
+    int32_t AddAutotileSet(const std::string& name);
+    void RemoveAutotileSet(int32_t index);
+
+    // Returns true if the given tile index belongs to the autotile group
+    // (matches one of its mMemberTileIndices or mMemberTags entries).
+    bool IsTileMemberOfAutotile(int32_t autotileIndex, int32_t tileIndex) const;
+
+    // Walk the autotile rules in order and return the first matching tile
+    // index for the given 8-neighbor mask. The mask uses a single bit per
+    // neighbor slot (1 = neighbor is self, 0 = neighbor is not self), in the
+    // same slot order as AutotileRule::mNeighbors. Returns -1 if no rule matches.
+    int32_t MatchAutotileRule(int32_t autotileIndex, uint8_t selfMask) const;
+
     static bool HandlePropChange(class Datum* datum, uint32_t index, const void* newValue);
 
 protected:
@@ -138,4 +189,5 @@ protected:
 
     std::vector<TileDefinition> mTiles;
     std::vector<NineBoxBrushDef> mNineBoxBrushes;
+    std::vector<AutotileSet> mAutotileSets;
 };

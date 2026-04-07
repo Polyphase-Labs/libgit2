@@ -11570,6 +11570,8 @@ void EditorImguiDraw()
                 if (ImGui::RadioButton("9-Box",      &mode, int(TileSculptMode::NineBox)))    {}
                 ImGui::SameLine();
                 if (ImGui::RadioButton("Select",     &mode, int(TileSculptMode::Select)))     {}
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Autotile",   &mode, int(TileSculptMode::Autotile)))   {}
                 mgr->mOptions.mMode = TileSculptMode(mode);
 
                 // Cache the atlas descriptor via the shared TilePicker helper
@@ -11758,6 +11760,171 @@ void EditorImguiDraw()
 
                 }
 
+                // Autotile Brushes (Phase 4)
+                if (tileSet != nullptr && ImGui::CollapsingHeader("Autotile Brushes"))
+                {
+                    auto& sets = tileSet->GetAutotileSetsMutable();
+                    if (ImGui::Button("+ New Autotile"))
+                    {
+                        int32_t newIdx = tileSet->AddAutotileSet("Autotile");
+                        mgr->mOptions.mActiveAutotileIndex = newIdx;
+                        tileSet->SetDirtyFlag();
+                    }
+                    ImGui::SameLine();
+                    ImGui::Text("(%d defined)", int(sets.size()));
+
+                    int32_t removeAutoIdx = -1;
+                    for (size_t ai = 0; ai < sets.size(); ++ai)
+                    {
+                        AutotileSet& set = sets[ai];
+                        ImGui::PushID(int(ai));
+
+                        bool active = (mgr->mOptions.mActiveAutotileIndex == int32_t(ai));
+                        if (ImGui::RadioButton("##ActiveAuto", active))
+                            mgr->mOptions.mActiveAutotileIndex = int32_t(ai);
+                        ImGui::SameLine();
+
+                        char nameBuf[64];
+                        strncpy(nameBuf, set.mName.c_str(), sizeof(nameBuf) - 1);
+                        nameBuf[sizeof(nameBuf) - 1] = '\0';
+                        ImGui::SetNextItemWidth(140.0f);
+                        if (ImGui::InputText("##AutoName", nameBuf, sizeof(nameBuf)))
+                        {
+                            set.mName = nameBuf;
+                            tileSet->SetDirtyFlag();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("X")) removeAutoIdx = int32_t(ai);
+
+                        // Member tags
+                        ImGui::TextUnformatted("Member Tags:");
+                        int32_t removeMemberTag = -1;
+                        for (size_t t = 0; t < set.mMemberTags.size(); ++t)
+                        {
+                            ImGui::PushID(int(t) + 1000);
+                            char tagBuf[64];
+                            strncpy(tagBuf, set.mMemberTags[t].c_str(), sizeof(tagBuf) - 1);
+                            tagBuf[sizeof(tagBuf) - 1] = '\0';
+                            ImGui::SetNextItemWidth(160.0f);
+                            if (ImGui::InputText("##MemTag", tagBuf, sizeof(tagBuf)))
+                            {
+                                set.mMemberTags[t] = tagBuf;
+                                tileSet->SetDirtyFlag();
+                            }
+                            ImGui::SameLine();
+                            if (ImGui::SmallButton("X")) removeMemberTag = int32_t(t);
+                            ImGui::PopID();
+                        }
+                        if (removeMemberTag >= 0)
+                        {
+                            set.mMemberTags.erase(set.mMemberTags.begin() + removeMemberTag);
+                            tileSet->SetDirtyFlag();
+                        }
+                        if (ImGui::Button("+ Add Member Tag"))
+                        {
+                            set.mMemberTags.push_back("");
+                            tileSet->SetDirtyFlag();
+                        }
+
+                        // Rules
+                        ImGui::TextUnformatted("Rules:");
+                        int32_t removeRuleIdx = -1;
+                        for (size_t ri = 0; ri < set.mRules.size(); ++ri)
+                        {
+                            AutotileRule& rule = set.mRules[ri];
+                            ImGui::PushID(int(ri) + 2000);
+
+                            // 3x3 tri-state grid. Slot indices in the layout
+                            // skip the center cell entirely.
+                            //   slot[0]=NW slot[1]=N slot[2]=NE
+                            //   slot[3]=W   center  slot[4]=E
+                            //   slot[5]=SW slot[6]=S slot[7]=SE
+                            const int32_t kSlotForGrid[9] = { 0, 1, 2, 3, -1, 4, 5, 6, 7 };
+                            const char* kStateLabel[3] = { "?", "1", "0" }; // DontCare, MustBe, MustNot
+
+                            for (int32_t row = 0; row < 3; ++row)
+                            {
+                                for (int32_t col = 0; col < 3; ++col)
+                                {
+                                    int32_t gridIdx = row * 3 + col;
+                                    int32_t slot = kSlotForGrid[gridIdx];
+                                    ImGui::PushID(gridIdx);
+                                    if (slot < 0)
+                                    {
+                                        ImGui::Button("*", ImVec2(28, 28));
+                                    }
+                                    else
+                                    {
+                                        AutotileNeighborState st = rule.mNeighbors[slot];
+                                        if (ImGui::Button(kStateLabel[int(st)], ImVec2(28, 28)))
+                                        {
+                                            int next = (int(st) + 1) % int(AutotileNeighborState::Count);
+                                            rule.mNeighbors[slot] = AutotileNeighborState(next);
+                                            tileSet->SetDirtyFlag();
+                                        }
+                                        if (ImGui::IsItemHovered())
+                                        {
+                                            const char* tip = (st == AutotileNeighborState::DontCare) ? "Don't care"
+                                                              : (st == AutotileNeighborState::MustBeSelf) ? "Must be self"
+                                                              : "Must NOT be self";
+                                            ImGui::SetTooltip("%s", tip);
+                                        }
+                                    }
+                                    ImGui::PopID();
+                                    if (col < 2) ImGui::SameLine();
+                                }
+                            }
+
+                            // Result tile
+                            int32_t resultTile = rule.mResultTiles.empty() ? -1 : rule.mResultTiles[0];
+                            ImGui::Text("Result:");
+                            ImGui::SameLine();
+                            if (TilePicker::DrawTileButton("##RuleResult", atlasImId,
+                                    resultTile, tilesX, tilesY, 32.0f))
+                            {
+                                ImGui::OpenPopup("##PickRuleResult");
+                            }
+                            int32_t pickedResult = resultTile;
+                            TilePicker::DrawTilePickerPopup("##PickRuleResult", atlasImId,
+                                tilesX, tilesY, pickedResult);
+                            if (pickedResult != resultTile)
+                            {
+                                if (rule.mResultTiles.empty())
+                                    rule.mResultTiles.push_back(pickedResult);
+                                else
+                                    rule.mResultTiles[0] = pickedResult;
+                                tileSet->SetDirtyFlag();
+                            }
+
+                            ImGui::SameLine();
+                            if (ImGui::SmallButton("X##RemoveRule")) removeRuleIdx = int32_t(ri);
+
+                            ImGui::PopID();
+                            ImGui::Separator();
+                        }
+                        if (removeRuleIdx >= 0)
+                        {
+                            set.mRules.erase(set.mRules.begin() + removeRuleIdx);
+                            tileSet->SetDirtyFlag();
+                        }
+                        if (ImGui::Button("+ Add Rule"))
+                        {
+                            set.mRules.push_back(AutotileRule{});
+                            tileSet->SetDirtyFlag();
+                        }
+
+                        ImGui::PopID();
+                        ImGui::Separator();
+                    }
+                    if (removeAutoIdx >= 0)
+                    {
+                        tileSet->RemoveAutotileSet(removeAutoIdx);
+                        if (mgr->mOptions.mActiveAutotileIndex >= int32_t(sets.size()))
+                            mgr->mOptions.mActiveAutotileIndex = int32_t(sets.size()) - 1;
+                        tileSet->SetDirtyFlag();
+                    }
+                }
+
                 // Selection / Clipboard / Transforms (Phase 3)
                 if (ImGui::CollapsingHeader("Selection & Clipboard"))
                 {
@@ -11792,9 +11959,10 @@ void EditorImguiDraw()
                     ImGui::TextDisabled(hasClip ? "Clipboard ready (paste at cursor)." : "Clipboard empty.");
                 }
 
-                // View overlays (Phase 3)
+                // View overlays (Phase 3 + Phase 4 cell grid)
                 if (ImGui::CollapsingHeader("View"))
                 {
+                    ImGui::Checkbox("Cell Grid",         &mgr->mOptions.mShowCellGrid);
                     ImGui::Checkbox("Collision Overlay", &mgr->mOptions.mShowCollisionOverlay);
                     ImGui::Checkbox("Tag Overlay",       &mgr->mOptions.mShowTagOverlay);
                     if (mgr->mOptions.mShowTagOverlay)

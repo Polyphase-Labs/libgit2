@@ -6,6 +6,8 @@
 #include "Viewport3d.h"
 #include "Renderer.h"
 #include "World.h"
+#include "Line.h"
+#include "Preferences/Appearance/Viewport/TilemapGrid/TilemapGridModule.h"
 #include "InputDevices.h"
 #include "AssetManager.h"
 #include "Log.h"
@@ -130,9 +132,6 @@ void TilePaintManager::UpdateHover()
 
 void TilePaintManager::DrawCursor()
 {
-    if (!mHoverValid)
-        return;
-
     Node* selected = GetEditorState()->GetSelectedNode();
     if (selected == nullptr || selected->GetType() != TileMap2D::GetStaticType())
         return;
@@ -146,6 +145,39 @@ void TilePaintManager::DrawCursor()
     if (tileSize.x <= 0 || tileSize.y <= 0)
         return;
 
+    // The grid + collision/tag overlays should be visible whenever their
+    // toggles are on, even if the mouse isn't over the viewport. Only the
+    // hover-cell cursor cube and the drag preview depend on a valid hover.
+    DrawOverlays();
+    DrawGridOverlay();
+
+    // Persistent selection outline — also independent of mouse hover.
+    glm::vec4 selOutlineColor(0.9f, 0.9f, 0.2f, 0.4f);
+    auto drawCellCubeColored = [&](glm::ivec2 cell, const glm::vec4& col)
+    {
+        glm::vec2 worldXY = tileMapNode->CellCenterToWorld(cell);
+        DebugDraw d;
+        d.mMesh = LoadAsset<StaticMesh>("SM_Cube");
+        d.mTransform =
+            glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, tileMapNode->GetWorldPosition().z)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 1.0f));
+        d.mColor = col;
+        d.mLife = 0.0f;
+        Renderer::Get()->AddDebugDraw(d);
+    };
+
+    if (mHasSelection)
+    {
+        drawCellCubeColored({ mSelectionMin.x, mSelectionMin.y }, selOutlineColor);
+        drawCellCubeColored({ mSelectionMax.x, mSelectionMin.y }, selOutlineColor);
+        drawCellCubeColored({ mSelectionMin.x, mSelectionMax.y }, selOutlineColor);
+        drawCellCubeColored({ mSelectionMax.x, mSelectionMax.y }, selOutlineColor);
+    }
+
+    // Hover-dependent visuals: cursor cube and drag preview corners.
+    if (!mHoverValid)
+        return;
+
     glm::vec4 color;
     switch (mOptions.mMode)
     {
@@ -157,26 +189,12 @@ void TilePaintManager::DrawCursor()
         case TileSculptMode::Line:      color = glm::vec4(0.9f, 0.4f, 0.9f, 0.5f); break;
         case TileSculptMode::NineBox:   color = glm::vec4(0.5f, 0.9f, 0.4f, 0.5f); break;
         case TileSculptMode::Select:    color = glm::vec4(0.9f, 0.9f, 0.9f, 0.5f); break;
+        case TileSculptMode::Autotile:  color = glm::vec4(0.4f, 0.6f, 1.0f, 0.5f); break;
         default:                        color = glm::vec4(1.0f); break;
     }
 
-    auto drawCellCube = [&](glm::ivec2 cell)
-    {
-        glm::vec2 worldXY = tileMapNode->CellCenterToWorld(cell);
-        DebugDraw d;
-        d.mMesh = LoadAsset<StaticMesh>("SM_Cube");
-        d.mTransform =
-            glm::translate(glm::mat4(1.0f), glm::vec3(worldXY.x, worldXY.y, tileMapNode->GetWorldPosition().z)) *
-            glm::scale(glm::mat4(1.0f), glm::vec3(float(tileSize.x), float(tileSize.y), 1.0f));
-        d.mColor = color;
-        d.mLife = 0.0f;
-        Renderer::Get()->AddDebugDraw(d);
-    };
+    drawCellCubeColored(mHoverCell, color);
 
-    // Always draw the hover cell.
-    drawCellCube(mHoverCell);
-
-    // For drag-based tools mid-stroke, also outline the rect/line preview.
     if (mPreviewActive && mPendingTarget == tileMapNode)
     {
         if (mOptions.mMode == TileSculptMode::RectFill ||
@@ -188,33 +206,16 @@ void TilePaintManager::DrawCursor()
             int32_t minY = std::min(mDragStartCell.y, mHoverCell.y);
             int32_t maxY = std::max(mDragStartCell.y, mHoverCell.y);
 
-            // Draw corners only to keep DebugDraw count manageable for huge rects.
-            drawCellCube({ minX, minY });
-            drawCellCube({ maxX, minY });
-            drawCellCube({ minX, maxY });
-            drawCellCube({ maxX, maxY });
+            drawCellCubeColored({ minX, minY }, color);
+            drawCellCubeColored({ maxX, minY }, color);
+            drawCellCubeColored({ minX, maxY }, color);
+            drawCellCubeColored({ maxX, maxY }, color);
         }
         else if (mOptions.mMode == TileSculptMode::Line)
         {
-            drawCellCube(mDragStartCell);
+            drawCellCubeColored(mDragStartCell, color);
         }
     }
-
-    // Persistent selection outline (drawn whenever a selection exists, not just during drag).
-    if (mHasSelection)
-    {
-        glm::vec4 selColor(0.9f, 0.9f, 0.2f, 0.4f);
-        glm::vec4 saved = color;
-        color = selColor;
-        drawCellCube({ mSelectionMin.x, mSelectionMin.y });
-        drawCellCube({ mSelectionMax.x, mSelectionMin.y });
-        drawCellCube({ mSelectionMin.x, mSelectionMax.y });
-        drawCellCube({ mSelectionMax.x, mSelectionMax.y });
-        color = saved;
-    }
-
-    // Phase 3 overlays — collision and tag highlights.
-    DrawOverlays();
 }
 
 void TilePaintManager::DrawOverlays()
@@ -321,6 +322,19 @@ void TilePaintManager::UpdateStroke()
                 return;
             }
 
+            case TileSculptMode::Autotile:
+            {
+                // Drag-paint autotile. Each cell touched paints itself + its
+                // 8 neighbors via the active autotile rules. The whole stroke
+                // commits as a single undoable action.
+                mStrokeActive = true;
+                mPendingTarget = tileMapNode;
+                mPendingChanges.clear();
+                mModifiedSet.clear();
+                CommitAutotileAt(tileMapNode, mHoverCell);
+                return;
+            }
+
             case TileSculptMode::RectFill:
             case TileSculptMode::Line:
             case TileSculptMode::NineBox:
@@ -349,14 +363,19 @@ void TilePaintManager::UpdateStroke()
         }
     }
 
-    // Mouse held: continue freehand strokes for pencil/eraser. Rect/Line just
-    // update their preview via DrawCursor and apply at mouse-up.
+    // Mouse held: continue freehand strokes for pencil/eraser/autotile.
+    // Rect/Line/9-Box/Select just update their preview via DrawCursor and
+    // apply at mouse-up.
     if (IsMouseButtonDown(MOUSE_LEFT) && mStrokeActive && mHoverValid && mPendingTarget == tileMapNode)
     {
         if (mOptions.mMode == TileSculptMode::Pencil ||
             mOptions.mMode == TileSculptMode::Eraser)
         {
             ApplyPencilOrEraser(tileMapNode, mHoverCell);
+        }
+        else if (mOptions.mMode == TileSculptMode::Autotile)
+        {
+            CommitAutotileAt(tileMapNode, mHoverCell);
         }
     }
 
@@ -853,6 +872,239 @@ void TilePaintManager::DoFlipClipboardY()
     }
     for (TileCell& c : mClipboard.mCells)
         c.mFlags ^= 0x02;
+}
+
+// ---------------------------------------------------------------------------
+// Cell grid overlay (Phase 4)
+// ---------------------------------------------------------------------------
+
+void TilePaintManager::DrawGridOverlay()
+{
+    if (!mOptions.mShowCellGrid)
+        return;
+
+    Node* selected = GetEditorState()->GetSelectedNode();
+    if (selected == nullptr || selected->GetType() != TileMap2D::GetStaticType())
+        return;
+
+    TileMap2D* tileMapNode = static_cast<TileMap2D*>(selected);
+    TileMap* tileMap = tileMapNode->GetTileMap();
+    if (tileMap == nullptr)
+        return;
+
+    glm::ivec2 tileSize = tileMap->GetTileSize();
+    if (tileSize.x <= 0 || tileSize.y <= 0)
+        return;
+
+    // Determine the grid range. Prefer the used bounds + a buffer; fall back
+    // to a window around the hover cell when the map is empty so the grid is
+    // visible while you start painting.
+    constexpr int32_t kBufferCells = 4;
+    constexpr int32_t kEmptyMapHalfRange = 12;
+    constexpr int32_t kMaxLinesPerAxis = 96;
+
+    int32_t minX, maxX, minY, maxY;
+    if (tileMap->HasContent())
+    {
+        glm::ivec2 minU = tileMap->GetMinUsed();
+        glm::ivec2 maxU = tileMap->GetMaxUsed();
+        minX = minU.x - kBufferCells;
+        maxX = maxU.x + kBufferCells;
+        minY = minU.y - kBufferCells;
+        maxY = maxU.y + kBufferCells;
+    }
+    else
+    {
+        // Empty map: anchor on the hover cell if we have one, otherwise fall
+        // back to a window centered at the node origin so the grid is visible
+        // even when the mouse is outside the viewport.
+        glm::ivec2 anchor = mHoverValid ? mHoverCell : glm::ivec2{ 0, 0 };
+        minX = anchor.x - kEmptyMapHalfRange;
+        maxX = anchor.x + kEmptyMapHalfRange;
+        minY = anchor.y - kEmptyMapHalfRange;
+        maxY = anchor.y + kEmptyMapHalfRange;
+    }
+
+    // Cap the line count so huge maps don't flood the debug-line buffer.
+    if (maxX - minX > kMaxLinesPerAxis)
+    {
+        int32_t mid = (minX + maxX) / 2;
+        minX = mid - kMaxLinesPerAxis / 2;
+        maxX = mid + kMaxLinesPerAxis / 2;
+    }
+    if (maxY - minY > kMaxLinesPerAxis)
+    {
+        int32_t mid = (minY + maxY) / 2;
+        minY = mid - kMaxLinesPerAxis / 2;
+        maxY = mid + kMaxLinesPerAxis / 2;
+    }
+
+    // Map cell coords back to world space. CellToWorld returns the cell's
+    // bottom-left corner so we can sweep from minX..maxX+1 cleanly.
+    glm::vec2 minWorld = tileMapNode->CellToWorld({ minX, minY });
+    glm::vec2 maxWorld = tileMapNode->CellToWorld({ maxX + 1, maxY + 1 });
+    float gridZ = tileMapNode->GetWorldPosition().z + 0.002f;
+
+    World* world = tileMapNode->GetWorld();
+    if (world == nullptr) return;
+
+    // Pull colors from Preferences > Appearance > Viewport > Tilemap Grid.
+    // Falls back to the original hardcoded values if the module isn't loaded
+    // yet (preferences register asynchronously during editor startup).
+    glm::vec4 minorColor(1.0f, 1.0f, 1.0f, 0.35f);
+    glm::vec4 majorColor(1.0f, 1.0f, 0.4f, 0.85f);
+    bool highlightAxes = true;
+    if (TilemapGridModule* prefs = TilemapGridModule::Get())
+    {
+        minorColor    = prefs->GetMinorColor();
+        majorColor    = prefs->GetAxisColor();
+        highlightAxes = prefs->GetHighlightAxes();
+    }
+
+    // World::UpdateLines decrements lifetime each tick and removes lines that
+    // hit <= 0, so adding a line with lifetime 0 means the very next frame
+    // erases it before the renderer ever sees it. Use a small positive
+    // lifetime — long enough to survive a frame, short enough to disappear
+    // promptly when the toggle is turned off. The dedup logic in
+    // World::AddLine bumps the lifetime back to this max each frame, so the
+    // grid persists as long as we keep re-adding it.
+    constexpr float kGridLineLifetime = 0.25f;
+
+    // Vertical lines
+    for (int32_t cx = minX; cx <= maxX + 1; ++cx)
+    {
+        glm::vec2 a = tileMapNode->CellToWorld({ cx, minY });
+        Line line;
+        line.mStart = glm::vec3(a.x, minWorld.y, gridZ);
+        line.mEnd   = glm::vec3(a.x, maxWorld.y, gridZ);
+        line.mColor = (highlightAxes && cx == 0) ? majorColor : minorColor;
+        line.mLifetime = kGridLineLifetime;
+        world->AddLine(line);
+    }
+    // Horizontal lines
+    for (int32_t cy = minY; cy <= maxY + 1; ++cy)
+    {
+        glm::vec2 a = tileMapNode->CellToWorld({ minX, cy });
+        Line line;
+        line.mStart = glm::vec3(minWorld.x, a.y, gridZ);
+        line.mEnd   = glm::vec3(maxWorld.x, a.y, gridZ);
+        line.mColor = (highlightAxes && cy == 0) ? majorColor : minorColor;
+        line.mLifetime = kGridLineLifetime;
+        world->AddLine(line);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Autotile (Phase 4)
+// ---------------------------------------------------------------------------
+
+// Neighbor offset table — must match AutotileRule::mNeighbors slot order.
+//   [0]=NW [1]=N [2]=NE
+//   [3]=W       [4]=E
+//   [5]=SW [6]=S [7]=SE
+// +Y is up in TileMap2D world space.
+static const int32_t kAutotileNeighborOffsets[8][2] =
+{
+    { -1,  1 }, {  0,  1 }, {  1,  1 },
+    { -1,  0 },             {  1,  0 },
+    { -1, -1 }, {  0, -1 }, {  1, -1 }
+};
+
+uint8_t TilePaintManager::ComputeAutotileSelfMask(TileMap2D* node, int32_t cellX, int32_t cellY,
+                                                  int32_t layer, int32_t autotileIdx,
+                                                  const std::set<int64_t>& pendingSelfCells) const
+{
+    TileMap* tileMap = node->GetTileMap();
+    if (tileMap == nullptr) return 0;
+    TileSet* tileSet = tileMap->GetTileSet();
+    if (tileSet == nullptr) return 0;
+
+    uint8_t mask = 0;
+    for (int32_t i = 0; i < 8; ++i)
+    {
+        int32_t nx = cellX + kAutotileNeighborOffsets[i][0];
+        int32_t ny = cellY + kAutotileNeighborOffsets[i][1];
+
+        // pendingSelfCells lets the caller treat freshly painted cells as
+        // members before the asset has been updated, which lets the rule
+        // evaluator see the cell we just painted as "self".
+        int64_t pendingKey = CellKey(nx, ny, layer);
+        bool isSelf = false;
+        if (pendingSelfCells.count(pendingKey) > 0)
+        {
+            isSelf = true;
+        }
+        else
+        {
+            int32_t neighborTile = tileMap->GetTile(nx, ny, layer);
+            if (neighborTile >= 0)
+                isSelf = tileSet->IsTileMemberOfAutotile(autotileIdx, neighborTile);
+        }
+
+        if (isSelf)
+            mask |= uint8_t(1u << i);
+    }
+    return mask;
+}
+
+void TilePaintManager::CommitAutotileAt(TileMap2D* node, glm::ivec2 cell)
+{
+    TileMap* tileMap = node->GetTileMap();
+    if (tileMap == nullptr) return;
+    TileSet* tileSet = tileMap->GetTileSet();
+    if (tileSet == nullptr) return;
+
+    int32_t autotileIdx = mOptions.mActiveAutotileIndex;
+    if (autotileIdx < 0 || autotileIdx >= int32_t(tileSet->GetAutotileSets().size()))
+    {
+        LogWarning("Autotile brush has no active autotile selected");
+        return;
+    }
+
+    int32_t layer = mOptions.mActiveLayer;
+
+    // The freshly painted cell counts as "self" for the purpose of
+    // recomputing neighbor masks. Track ALL pending self cells so multiple
+    // strokes in a row interact correctly.
+    std::set<int64_t> pendingSelf;
+    int64_t centerKey = CellKey(cell.x, cell.y, layer);
+    pendingSelf.insert(centerKey);
+    // Reuse mModifiedSet to find prior strokes from this brush stroke that
+    // already promoted cells to self.
+    for (int64_t k : mModifiedSet)
+        pendingSelf.insert(k);
+
+    // Recompute the painted cell + each of its 8 neighbors. Skip neighbors
+    // that aren't already members (we don't want to overwrite unrelated tiles).
+    auto rebuildAt = [&](int32_t cx, int32_t cy)
+    {
+        // Determine if this cell should participate in the autotile group.
+        // The painted cell always does. Neighbors only do if they're already
+        // members of the same group.
+        bool isCenter = (cx == cell.x && cy == cell.y);
+        if (!isCenter)
+        {
+            int32_t existing = tileMap->GetTile(cx, cy, layer);
+            if (existing < 0 || !tileSet->IsTileMemberOfAutotile(autotileIdx, existing))
+                return;
+        }
+
+        uint8_t selfMask = ComputeAutotileSelfMask(node, cx, cy, layer, autotileIdx, pendingSelf);
+        int32_t resultTile = tileSet->MatchAutotileRule(autotileIdx, selfMask);
+        if (resultTile < 0) return;
+
+        TileCell oldCell = tileMap->GetCell(cx, cy, layer);
+        TileCell newCell = oldCell;
+        newCell.mTileIndex = resultTile;
+        StageCellChange(cx, cy, layer, oldCell, newCell);
+    };
+
+    rebuildAt(cell.x, cell.y);
+    for (int32_t i = 0; i < 8; ++i)
+    {
+        rebuildAt(cell.x + kAutotileNeighborOffsets[i][0],
+                  cell.y + kAutotileNeighborOffsets[i][1]);
+    }
 }
 
 void TilePaintManager::DoRotateClipboard90()

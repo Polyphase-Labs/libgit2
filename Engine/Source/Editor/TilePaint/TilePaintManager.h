@@ -22,6 +22,7 @@ enum class TileSculptMode : uint8_t
     Line,
     NineBox,
     Select,
+    Autotile,
 
     Count
 };
@@ -46,9 +47,13 @@ struct TileSculptOptions
     // Index into TileSet::mNineBoxBrushes; -1 means none chosen.
     int32_t mActiveNineBoxIndex = -1;
 
+    // Index into TileSet::mAutotileSets; -1 means none chosen.
+    int32_t mActiveAutotileIndex = -1;
+
     // View toggles
     bool mShowCollisionOverlay = false;
     bool mShowTagOverlay = false;
+    bool mShowCellGrid = false;
     std::string mTagOverlayName = "";
 };
 
@@ -110,18 +115,26 @@ private:
     void CancelStroke();
     void DrawCursor();
     void DrawOverlays();
+    void DrawGridOverlay();
     void DrawSelectionOutline();
     void ApplyPencilOrEraser(TileMap2D* node, glm::ivec2 cell);
     void CommitRectFill(TileMap2D* node, glm::ivec2 a, glm::ivec2 b);
     void CommitLine(TileMap2D* node, glm::ivec2 a, glm::ivec2 b);
     void CommitFloodFill(TileMap2D* node, glm::ivec2 origin);
     void CommitNineBox(TileMap2D* node, glm::ivec2 a, glm::ivec2 b);
+    void CommitAutotileAt(TileMap2D* node, glm::ivec2 cell);
     void StageCellChange(int32_t cellX, int32_t cellY, int32_t layer,
                          const TileCell& oldCell, const TileCell& newCell);
     TileCell BuildBrushCell(const TileCell& existing) const;
     int32_t PickNineBoxSlot(int32_t cx, int32_t cy,
                             int32_t minX, int32_t maxX,
                             int32_t minY, int32_t maxY) const;
+    // Compute the 8-neighbor "self mask" for the given cell. The pendingPaint
+    // map lets the caller pretend a set of cells are already members (used by
+    // autotile so the painted cell counts as self before the asset has it).
+    uint8_t ComputeAutotileSelfMask(TileMap2D* node, int32_t cellX, int32_t cellY,
+                                    int32_t layer, int32_t autotileIdx,
+                                    const std::set<int64_t>& pendingSelfCells) const;
 
     static int64_t CellKey(int32_t cellX, int32_t cellY, int32_t layer);
 

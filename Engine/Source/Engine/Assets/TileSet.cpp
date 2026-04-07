@@ -239,6 +239,86 @@ void TileSet::RemoveNineBoxBrush(int32_t index)
     mNineBoxBrushes.erase(mNineBoxBrushes.begin() + index);
 }
 
+int32_t TileSet::AddAutotileSet(const std::string& name)
+{
+    AutotileSet set;
+    set.mName = name.empty() ? std::string("Autotile ") + std::to_string(mAutotileSets.size()) : name;
+    mAutotileSets.push_back(std::move(set));
+    return int32_t(mAutotileSets.size() - 1);
+}
+
+void TileSet::RemoveAutotileSet(int32_t index)
+{
+    if (index < 0 || index >= int32_t(mAutotileSets.size()))
+        return;
+    mAutotileSets.erase(mAutotileSets.begin() + index);
+}
+
+bool TileSet::IsTileMemberOfAutotile(int32_t autotileIndex, int32_t tileIndex) const
+{
+    if (autotileIndex < 0 || autotileIndex >= int32_t(mAutotileSets.size()))
+        return false;
+    if (tileIndex < 0)
+        return false;
+
+    const AutotileSet& set = mAutotileSets[autotileIndex];
+
+    for (int32_t idx : set.mMemberTileIndices)
+    {
+        if (idx == tileIndex)
+            return true;
+    }
+
+    if (!set.mMemberTags.empty())
+    {
+        for (const std::string& tag : set.mMemberTags)
+        {
+            if (HasTileTag(tileIndex, tag))
+                return true;
+        }
+    }
+
+    return false;
+}
+
+int32_t TileSet::MatchAutotileRule(int32_t autotileIndex, uint8_t selfMask) const
+{
+    if (autotileIndex < 0 || autotileIndex >= int32_t(mAutotileSets.size()))
+        return -1;
+
+    const AutotileSet& set = mAutotileSets[autotileIndex];
+    for (const AutotileRule& rule : set.mRules)
+    {
+        bool match = true;
+        for (int32_t i = 0; i < 8; ++i)
+        {
+            AutotileNeighborState state = rule.mNeighbors[i];
+            if (state == AutotileNeighborState::DontCare)
+                continue;
+
+            bool neighborIsSelf = ((selfMask >> i) & 0x01u) != 0;
+            if (state == AutotileNeighborState::MustBeSelf && !neighborIsSelf)
+            {
+                match = false;
+                break;
+            }
+            if (state == AutotileNeighborState::MustNotBeSelf && neighborIsSelf)
+            {
+                match = false;
+                break;
+            }
+        }
+
+        if (match && !rule.mResultTiles.empty())
+        {
+            // First-result for now; weighted/random pick can come later.
+            return rule.mResultTiles[0];
+        }
+    }
+
+    return -1;
+}
+
 bool TileSet::HasTileTag(int32_t tileIndex, const std::string& tag) const
 {
     const TileDefinition* def = GetTileDef(tileIndex);
@@ -323,6 +403,39 @@ void TileSet::SaveStream(Stream& stream, Platform platform)
         stream.WriteInt32(b.mBottom);
         stream.WriteInt32(b.mBottomRight);
     }
+
+    // Autotile sets (Phase 4 — ASSET_VERSION_TILESET_AUTOTILE).
+    uint32_t numAutotiles = uint32_t(mAutotileSets.size());
+    stream.WriteUint32(numAutotiles);
+    for (uint32_t a = 0; a < numAutotiles; ++a)
+    {
+        const AutotileSet& set = mAutotileSets[a];
+        stream.WriteString(set.mName);
+
+        uint32_t numMemberTags = uint32_t(set.mMemberTags.size());
+        stream.WriteUint32(numMemberTags);
+        for (uint32_t t = 0; t < numMemberTags; ++t)
+            stream.WriteString(set.mMemberTags[t]);
+
+        uint32_t numMemberIdx = uint32_t(set.mMemberTileIndices.size());
+        stream.WriteUint32(numMemberIdx);
+        for (uint32_t m = 0; m < numMemberIdx; ++m)
+            stream.WriteInt32(set.mMemberTileIndices[m]);
+
+        uint32_t numRules = uint32_t(set.mRules.size());
+        stream.WriteUint32(numRules);
+        for (uint32_t r = 0; r < numRules; ++r)
+        {
+            const AutotileRule& rule = set.mRules[r];
+            for (int32_t n = 0; n < 8; ++n)
+                stream.WriteUint8(uint8_t(rule.mNeighbors[n]));
+
+            uint32_t numResults = uint32_t(rule.mResultTiles.size());
+            stream.WriteUint32(numResults);
+            for (uint32_t rt = 0; rt < numResults; ++rt)
+                stream.WriteInt32(rule.mResultTiles[rt]);
+        }
+    }
 }
 
 void TileSet::LoadStream(Stream& stream, Platform platform)
@@ -398,5 +511,41 @@ void TileSet::LoadStream(Stream& stream, Platform platform)
         b.mBottomLeft = stream.ReadInt32();
         b.mBottom = stream.ReadInt32();
         b.mBottomRight = stream.ReadInt32();
+    }
+
+    // Autotile sets (Phase 4)
+    if (mVersion >= ASSET_VERSION_TILESET_AUTOTILE)
+    {
+        uint32_t numAutotiles = stream.ReadUint32();
+        mAutotileSets.resize(numAutotiles);
+        for (uint32_t a = 0; a < numAutotiles; ++a)
+        {
+            AutotileSet& set = mAutotileSets[a];
+            stream.ReadString(set.mName);
+
+            uint32_t numMemberTags = stream.ReadUint32();
+            set.mMemberTags.resize(numMemberTags);
+            for (uint32_t t = 0; t < numMemberTags; ++t)
+                stream.ReadString(set.mMemberTags[t]);
+
+            uint32_t numMemberIdx = stream.ReadUint32();
+            set.mMemberTileIndices.resize(numMemberIdx);
+            for (uint32_t m = 0; m < numMemberIdx; ++m)
+                set.mMemberTileIndices[m] = stream.ReadInt32();
+
+            uint32_t numRules = stream.ReadUint32();
+            set.mRules.resize(numRules);
+            for (uint32_t r = 0; r < numRules; ++r)
+            {
+                AutotileRule& rule = set.mRules[r];
+                for (int32_t n = 0; n < 8; ++n)
+                    rule.mNeighbors[n] = AutotileNeighborState(stream.ReadUint8());
+
+                uint32_t numResults = stream.ReadUint32();
+                rule.mResultTiles.resize(numResults);
+                for (uint32_t rt = 0; rt < numResults; ++rt)
+                    rule.mResultTiles[rt] = stream.ReadInt32();
+            }
+        }
     }
 }

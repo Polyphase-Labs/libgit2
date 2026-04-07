@@ -713,6 +713,7 @@
     <ClCompile Include="Source\Editor\Preferences\General\GeneralModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\AppearanceModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Viewport\ViewportModule.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\Appearance\Viewport\TilemapGrid\TilemapGridModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Theme\EditorTheme.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Theme\ThemeModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Appearance\Theme\CssThemeParser.cpp" />
@@ -1157,6 +1158,7 @@
     <ClInclude Include="Source\Editor\Preferences\General\GeneralModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\AppearanceModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Viewport\ViewportModule.h" />
+    <ClInclude Include="Source\Editor\Preferences\Appearance\Viewport\TilemapGrid\TilemapGridModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Theme\EditorTheme.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Theme\ThemeModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Appearance\Theme\CssThemeParser.h" />

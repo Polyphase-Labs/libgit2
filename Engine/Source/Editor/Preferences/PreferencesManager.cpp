@@ -12,6 +12,7 @@
 #include "General/GeneralModule.h"
 #include "Appearance/AppearanceModule.h"
 #include "Appearance/Viewport/ViewportModule.h"
+#include "Appearance/Viewport/TilemapGrid/TilemapGridModule.h"
 #include "Appearance/Theme/ThemeModule.h"
 #include "External/ExternalModule.h"
 #include "External/LaunchersModule.h"
@@ -37,7 +38,11 @@ void PreferencesManager::Create()
     // Appearance module with sub-modules
     AppearanceModule* appearance = new AppearanceModule();
     appearance->AddSubModule(new ThemeModule());
-    appearance->AddSubModule(new ViewportModule());
+    {
+        ViewportModule* viewport = new ViewportModule();
+        viewport->AddSubModule(new TilemapGridModule());
+        appearance->AddSubModule(viewport);
+    }
     sInstance->RegisterModule(appearance);
 
     // External module with sub-modules

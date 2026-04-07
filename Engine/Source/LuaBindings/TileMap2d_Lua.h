@@ -60,6 +60,10 @@ struct TileMap2D_Lua
     static int ReplaceTilesWithTag(lua_State* L);
     static int CountTileUses(lua_State* L);
 
+    // Phase 4 nav helpers
+    static int RaycastTiles(lua_State* L);
+    static int GetReachableCells(lua_State* L);
+
     static void Bind();
 };
 

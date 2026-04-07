@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <set>
 #include <string>
 
 #if LUA_ENABLED
@@ -751,6 +752,148 @@ int TileMap2D_Lua::CountTileUses(lua_State* L)
     return 1;
 }
 
+// ---------------------------------------------------------------------------
+// Phase 4 — navigation helpers
+// ---------------------------------------------------------------------------
+
+int TileMap2D_Lua::RaycastTiles(lua_State* L)
+{
+    TileMap2D* node = CHECK_TILEMAP_2D(L, 1);
+    glm::vec3 start = CHECK_VECTOR(L, 2);
+    glm::vec3 end = CHECK_VECTOR(L, 3);
+    int32_t layer = GetOptionalLayer(L, 4);
+
+    TileMap* tileMap = node->GetTileMap();
+    TileSet* tileSet = (tileMap != nullptr) ? tileMap->GetTileSet() : nullptr;
+
+    auto pushHitResult = [&](bool hit, int32_t hitX, int32_t hitY,
+                             float hitWorldX, float hitWorldY, int32_t tileIdx)
+    {
+        lua_newtable(L);
+        lua_pushboolean(L, hit);                lua_setfield(L, -2, "hit");
+        lua_pushinteger(L, hitX);               lua_setfield(L, -2, "cellX");
+        lua_pushinteger(L, hitY);               lua_setfield(L, -2, "cellY");
+        lua_pushnumber(L, hitWorldX);           lua_setfield(L, -2, "worldX");
+        lua_pushnumber(L, hitWorldY);           lua_setfield(L, -2, "worldY");
+        lua_pushinteger(L, tileIdx);            lua_setfield(L, -2, "tileIndex");
+    };
+
+    if (tileMap == nullptr || tileSet == nullptr)
+    {
+        pushHitResult(false, 0, 0, 0.0f, 0.0f, -1);
+        return 1;
+    }
+
+    glm::ivec2 tileSize = tileMap->GetTileSize();
+    if (tileSize.x <= 0 || tileSize.y <= 0)
+    {
+        pushHitResult(false, 0, 0, 0.0f, 0.0f, -1);
+        return 1;
+    }
+
+    // 2D DDA in cell space.
+    glm::ivec2 startCell = node->WorldToCell(glm::vec2(start.x, start.y));
+    glm::ivec2 endCell = node->WorldToCell(glm::vec2(end.x, end.y));
+
+    float dx = float(endCell.x - startCell.x);
+    float dy = float(endCell.y - startCell.y);
+    float steps = std::max(std::fabs(dx), std::fabs(dy));
+    if (steps < 1.0f) steps = 1.0f;
+    float stepX = dx / steps;
+    float stepY = dy / steps;
+
+    constexpr int32_t kMaxRaySteps = 1024;
+    int32_t maxIter = std::min(int32_t(steps) + 1, kMaxRaySteps);
+
+    float cx = float(startCell.x);
+    float cy = float(startCell.y);
+    int32_t lastCellX = startCell.x;
+    int32_t lastCellY = startCell.y;
+
+    for (int32_t i = 0; i <= maxIter; ++i)
+    {
+        int32_t ix = int32_t(std::floor(cx + 0.5f));
+        int32_t iy = int32_t(std::floor(cy + 0.5f));
+        lastCellX = ix;
+        lastCellY = iy;
+
+        int32_t tileIdx = tileMap->GetTile(ix, iy, layer);
+        if (tileIdx >= 0 && tileSet->IsTileSolid(tileIdx))
+        {
+            glm::vec2 worldXY = node->CellCenterToWorld({ ix, iy });
+            pushHitResult(true, ix, iy, worldXY.x, worldXY.y, tileIdx);
+            return 1;
+        }
+
+        cx += stepX;
+        cy += stepY;
+    }
+
+    glm::vec2 endWorld = node->CellCenterToWorld({ lastCellX, lastCellY });
+    pushHitResult(false, lastCellX, lastCellY, endWorld.x, endWorld.y, -1);
+    return 1;
+}
+
+int TileMap2D_Lua::GetReachableCells(lua_State* L)
+{
+    TileMap2D* node = CHECK_TILEMAP_2D(L, 1);
+    int32_t startX = CHECK_INTEGER(L, 2);
+    int32_t startY = CHECK_INTEGER(L, 3);
+    int32_t maxDistance = CHECK_INTEGER(L, 4);
+    const char* passTag = nullptr;
+    if (!lua_isnone(L, 5) && !lua_isnil(L, 5))
+        passTag = lua_tostring(L, 5);
+    int32_t layer = GetOptionalLayer(L, 6);
+
+    lua_newtable(L);
+    int tableIdx = lua_gettop(L);
+
+    TileMap* tileMap = node->GetTileMap();
+    TileSet* tileSet = (tileMap != nullptr) ? tileMap->GetTileSet() : nullptr;
+    if (tileMap == nullptr) return 1;
+
+    // BFS, pruning by tag filter and capped by maxDistance (Manhattan).
+    constexpr int32_t kMaxReachable = 4096;
+    std::set<int64_t> visited;
+    struct ReachNode { int32_t cx, cy, dist; };
+    std::vector<ReachNode> queue;
+    queue.reserve(64);
+    queue.push_back({ startX, startY, 0 });
+
+    int32_t emitted = 0;
+    size_t qHead = 0;
+    while (qHead < queue.size() && emitted < kMaxReachable)
+    {
+        ReachNode cur = queue[qHead++];
+        int64_t key = (int64_t(uint32_t(cur.cx)) << 32) | int64_t(uint32_t(cur.cy));
+        if (visited.count(key) > 0) continue;
+        visited.insert(key);
+
+        // Apply tag filter — if a passTag is given, the cell's tile must
+        // either be empty (no tile) or carry that tag to be traversable.
+        if (passTag != nullptr && tileSet != nullptr)
+        {
+            int32_t tileIdx = tileMap->GetTile(cur.cx, cur.cy, layer);
+            if (tileIdx >= 0 && !tileSet->HasTileTag(tileIdx, passTag))
+                continue;
+        }
+
+        ++emitted;
+        lua_pushinteger(L, emitted);
+        PushCellInfoTable(L, node, cur.cx, cur.cy, layer);
+        lua_settable(L, tableIdx);
+
+        if (cur.dist < maxDistance)
+        {
+            queue.push_back({ cur.cx + 1, cur.cy,     cur.dist + 1 });
+            queue.push_back({ cur.cx - 1, cur.cy,     cur.dist + 1 });
+            queue.push_back({ cur.cx,     cur.cy + 1, cur.dist + 1 });
+            queue.push_back({ cur.cx,     cur.cy - 1, cur.dist + 1 });
+        }
+    }
+    return 1;
+}
+
 void TileMap2D_Lua::Bind()
 {
     lua_State* L = GetLua();
@@ -795,6 +938,10 @@ void TileMap2D_Lua::Bind()
     REGISTER_TABLE_FUNC(L, mtIndex, ReplaceTile);
     REGISTER_TABLE_FUNC(L, mtIndex, ReplaceTilesWithTag);
     REGISTER_TABLE_FUNC(L, mtIndex, CountTileUses);
+
+    // Phase 4 — navigation helpers
+    REGISTER_TABLE_FUNC(L, mtIndex, RaycastTiles);
+    REGISTER_TABLE_FUNC(L, mtIndex, GetReachableCells);
 
     lua_pop(L, 1);
     OCT_ASSERT(lua_gettop(L) == 0);

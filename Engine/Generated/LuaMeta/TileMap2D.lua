@@ -131,3 +131,14 @@ function TileMap2D:ReplaceTilesWithTag(tag, newIdx) end
 ---@param tileIdx integer
 ---@return integer
 function TileMap2D:CountTileUses(tileIdx) end
+
+---@param start Vector
+---@param end Vector
+---@return integer
+function TileMap2D:RaycastTiles(start, end) end
+
+---@param startX integer
+---@param startY integer
+---@param maxDistance integer
+---@return integer
+function TileMap2D:GetReachableCells(startX, startY, maxDistance) end
