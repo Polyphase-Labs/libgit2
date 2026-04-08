@@ -30,6 +30,7 @@ private:
     void DestroyRenderTargets();
     void FrameMesh();
     void ApplyOrbitCamera();
+    void BuildGrid();
     void HandleViewportInput();
     void SelectAnimation(int32_t index);
     void StepFrame(int32_t direction);
@@ -50,6 +51,7 @@ private:
     int32_t mSelectedAnimIndex = -1;
     bool mLoop = true;
     bool mPlaying = true;
+    bool mShowGrid = true;
     float mScrubTime = 0.0f;
     float mPreviewScale = 1.0f;
 

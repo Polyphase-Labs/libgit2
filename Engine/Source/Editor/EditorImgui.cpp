@@ -671,15 +671,45 @@ static void DrawDockspace()
     ImGui::PopStyleColor();
 
     // --- Animation Browser dock ---
+    // The browser is hidden until the user invokes "View Animations" on a
+    // SkeletalMesh asset (which calls AnimationBrowser::Open() and sets
+    // mShowAnimationBrowser = true). We still need BeginDock to run every
+    // frame so the dock stays registered in m_docks — that keeps DockTo
+    // (layout-reset block below) able to find it and makes close/reopen work.
+    //
+    // imgui_dock persists the per-dock "opened" flag in the imgui INI and on
+    // the first frame copies it back into our bool* (see imgui_dock.cpp line
+    // 1068). That would resurrect the tab from any prior session where it was
+    // left open, which the user explicitly does not want, so we force the
+    // flag back to false exactly once per editor session before the first
+    // BeginDock call.
+    {
+        static bool sAnimBrowserForceHiddenOnce = true;
+        if (sAnimBrowserForceHiddenOnce)
+        {
+            GetEditorState()->mShowAnimationBrowser = false;
+            sAnimBrowserForceHiddenOnce = false;
+        }
+    }
     {
         ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
         ImGui::PushStyleColor(ImGuiCol_ChildBg, bg);
     }
-    if (ImGui::BeginDock(ICON_SKELETON "  Animation Browser", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
     {
-        GetAnimationBrowser()->DrawPanel();
+        bool animOpen = GetEditorState()->mShowAnimationBrowser;
+        if (ImGui::BeginDock(ICON_SKELETON "  Animation Browser", &animOpen,
+                             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+        {
+            GetAnimationBrowser()->DrawPanel();
+        }
+        ImGui::EndDock();
+        // AND with the current state so a mid-frame close from inside
+        // DrawPanel() (e.g. the in-panel "Close" button calling
+        // AnimationBrowser::Close() which clears mShowAnimationBrowser) isn't
+        // clobbered by the stale animOpen captured at the start of the frame.
+        GetEditorState()->mShowAnimationBrowser =
+            animOpen && GetEditorState()->mShowAnimationBrowser;
     }
-    ImGui::EndDock();
     ImGui::PopStyleColor();
 
     // --- Node Graph dock ---
@@ -767,6 +797,7 @@ static void DrawDockspace()
             ImGui::DockTo("EditorDock", ICON_CURVEGRAPH "  Profiling", ICON_IC_BASELINE_SHARE "  Node Graph", ImGuiDockSlot_Tab);
             ImGui::DockTo("EditorDock", "Texture Atlas Viewer", ICON_CURVEGRAPH "  Profiling", ImGuiDockSlot_Tab);
             ImGui::DockTo("EditorDock", ICON_CONSOLE "  CLI Terminal", ICON_STREAMLINE_LOG_SOLID "  Debug Log", ImGuiDockSlot_Tab);
+            ImGui::DockTo("EditorDock", ICON_SKELETON "  Animation Browser", ICON_CONSOLE "  CLI Terminal", ImGuiDockSlot_Tab);
 
             // Defer activating the Viewport tab — docks call setActive() on their
             // first BeginDock frame, so we need to wait a couple frames for all
@@ -8477,9 +8508,9 @@ static void DrawMainMenuBar()
             if (ImGui::MenuItem("Node Graph"))
                 GetEditorState()->mShowNodeGraphPanel = !GetEditorState()->mShowNodeGraphPanel;
 
-            if (ImGui::MenuItem("Animation Browser"))
+            if (ImGui::MenuItem("Animation Browser")) {
                 GetEditorState()->mShowAnimationBrowser = !GetEditorState()->mShowAnimationBrowser;
-
+            }
             if (ImGui::MenuItem("Profiling"))
                 GetEditorState()->mShowProfilingPanel = !GetEditorState()->mShowProfilingPanel;
 

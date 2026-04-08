@@ -7,6 +7,7 @@
 #include "Engine.h"
 #include "Log.h"
 #include "EditorState.h"
+#include "EditorIcons.h"
 #include "Assets/SkeletalMesh.h"
 #include "Nodes/3D/Camera3d.h"
 #include "Nodes/3D/SkeletalMesh3d.h"
@@ -73,6 +74,7 @@ void AnimationBrowser::Close()
         mPreviewNode->StopAllAnimations(true);
     }
     mEnabled = false;
+    GetEditorState()->mShowAnimationBrowser = false;
 }
 
 void AnimationBrowser::EnsurePreviewWorld()
@@ -202,6 +204,55 @@ void AnimationBrowser::FrameMesh()
              mCamPivot.x, mCamPivot.y, mCamPivot.z,
              mCamDistance);
 #endif
+}
+
+void AnimationBrowser::BuildGrid()
+{
+    if (mPreviewWorld == nullptr)
+        return;
+
+    // Rebuilt every frame so the spacing can adapt to the camera distance.
+    // Lifetime -1 means "permanent until removed", but we clear first so
+    // stale lines from a previous spacing are not left behind.
+    mPreviewWorld->RemoveAllLines();
+
+    if (!mShowGrid)
+        return;
+
+    // Pick a "nice" power-of-ten spacing roughly tied to camera distance,
+    // so the grid stays usable across very small and very large meshes.
+    float target = glm::max(mCamDistance, 0.001f) * 0.1f;
+    float spacing = powf(10.0f, floorf(log10f(target)));
+    if (spacing <= 0.0f)
+        spacing = 1.0f;
+
+    const int32_t kHalfCount = 10;
+    float extent = spacing * (float)kHalfCount;
+    const float kY = 0.0f;
+
+    glm::vec4 minorColor(0.30f, 0.30f, 0.30f, 1.0f);
+    glm::vec4 majorColor(0.55f, 0.55f, 0.55f, 1.0f);
+    glm::vec4 xAxisColor(0.85f, 0.25f, 0.25f, 1.0f);
+    glm::vec4 zAxisColor(0.25f, 0.45f, 0.95f, 1.0f);
+
+    for (int32_t i = -kHalfCount; i <= kHalfCount; ++i)
+    {
+        float pos = (float)i * spacing;
+
+        glm::vec4 lineColor = (i % 5 == 0) ? majorColor : minorColor;
+
+        // Line parallel to Z axis at x = pos
+        glm::vec4 colZ = (i == 0) ? zAxisColor : lineColor;
+        mPreviewWorld->AddLine(Line(glm::vec3(pos, kY, -extent),
+                                    glm::vec3(pos, kY,  extent),
+                                    colZ, -1.0f));
+
+        // Line parallel to X axis at z = pos
+        glm::vec4 colX = (i == 0) ? xAxisColor : lineColor;
+        mPreviewWorld->AddLine(Line(glm::vec3(-extent, kY, pos),
+                                    glm::vec3( extent, kY, pos),
+                                    colX, -1.0f));
+    }
 }
 
 void AnimationBrowser::ApplyOrbitCamera()
@@ -410,6 +461,7 @@ void AnimationBrowser::Render()
     }
 
     ApplyOrbitCamera();
+    BuildGrid();
 
     float dt = GetEngineState()->mRealDeltaTime;
     mPreviewWorld->Update(dt);
@@ -553,17 +605,17 @@ void AnimationBrowser::DrawPanel()
             }
         }
         ImGui::SameLine();
-        if (ImGui::Button("<<"))
+        if (ImGui::Button(ICON_MATERIAL_SYMBOLS_ARROW_LEFT))
         {
             StepFrame(-1);
         }
         ImGui::SameLine();
-        if (ImGui::Button(mPlaying ? "Pause" : "Play"))
+        if (ImGui::Button(mPlaying ? ICON_MATERIAL_SYMBOLS_PAUSE : ICON_MDI_PLAY))
         {
             SetPlaying(!mPlaying);
         }
         ImGui::SameLine();
-        if (ImGui::Button(">>"))
+        if (ImGui::Button(ICON_MATERIAL_SYMBOLS_ARROW_RIGHT))
         {
             StepFrame(1);
         }
@@ -572,6 +624,8 @@ void AnimationBrowser::DrawPanel()
         {
             SyncLoopFlag();
         }
+        ImGui::SameLine();
+        ImGui::Checkbox("Grid", &mShowGrid);
     }
 
     // Scrubber
