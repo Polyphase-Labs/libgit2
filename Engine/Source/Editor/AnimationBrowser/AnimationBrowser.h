@@ -51,7 +51,7 @@ private:
     bool mLoop = true;
     bool mPlaying = true;
     float mScrubTime = 0.0f;
-    float mPreviewScale = 0.01f;
+    float mPreviewScale = 1.0f;
 
     // Offscreen render targets
     Image* mColorTarget = nullptr;

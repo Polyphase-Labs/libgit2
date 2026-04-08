@@ -1548,7 +1548,7 @@ void Renderer::RenderSelectedGeometry(World* world)
 #if EDITOR
 void Renderer::RenderSecondScreen(World* world, Image* colorTarget, Image* depthTarget,
                                    uint32_t width, uint32_t height, Camera3D* cameraOverride,
-                                   int32_t targetScreen)
+                                   int32_t targetScreen, bool drawAccumulatedDebugDraws)
 {
     if (world == nullptr || colorTarget == nullptr || depthTarget == nullptr)
         return;
@@ -1669,15 +1669,21 @@ void Renderer::RenderSecondScreen(World* world, Image* colorTarget, Image* depth
             GFX_SetPipelineState(PipelineConfig::Forward);
             RenderDraws(mPostShadowOpaqueDraws);
             RenderDraws(mTranslucentDraws);
-            RenderDebugDraws(mDebugDraws);
-            RenderDebugDraws(Gizmos::GetSolidDraws());
+            if (drawAccumulatedDebugDraws)
+            {
+                RenderDebugDraws(mDebugDraws);
+                RenderDebugDraws(Gizmos::GetSolidDraws());
+            }
 
             GFX_EnableMaterials(false);
         }
 
         RenderDraws(mWireframeDraws, PipelineConfig::Wireframe);
-        RenderDebugDraws(mDebugDraws, PipelineConfig::Wireframe);
-        RenderDebugDraws(Gizmos::GetWireDraws(), PipelineConfig::Wireframe);
+        if (drawAccumulatedDebugDraws)
+        {
+            RenderDebugDraws(mDebugDraws, PipelineConfig::Wireframe);
+            RenderDebugDraws(Gizmos::GetWireDraws(), PipelineConfig::Wireframe);
+        }
 
         GFX_DrawLines(world->GetLines());
         GFX_DrawLines(Gizmos::GetLines());

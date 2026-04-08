@@ -445,8 +445,13 @@ void AnimationBrowser::Render()
     bool prevProxy = Renderer::Get()->IsProxyRenderingEnabled();
     Renderer::Get()->EnableProxyRendering(false);
 
+    // Pass drawAccumulatedDebugDraws=false: mDebugDraws / Gizmos draws were
+    // populated during the main editor render and refer to nodes in the main
+    // world. Drawing them in this preview viewport leaks unrelated camera /
+    // light gizmos into the AnimationBrowser image.
     Renderer::Get()->RenderSecondScreen(mPreviewWorld, mColorTarget, mDepthTarget,
-                                        mCurrentWidth, mCurrentHeight, mPreviewCamera);
+                                        mCurrentWidth, mCurrentHeight, mPreviewCamera,
+                                        -1, false);
 
     Renderer::Get()->EnableProxyRendering(prevProxy);
 
