@@ -218,6 +218,9 @@ struct EditorState
 
     // Texture Atlas Viewer state
     bool mShowTextureAtlasViewer = false;
+
+    // Animation Browser Panel state
+    bool mShowAnimationBrowser = false;
     TimelineRef mEditedTimelineRef;
     TimelineInstance* mTimelinePreviewInstance = nullptr;
     float mTimelinePlayheadTime = 0.0f;

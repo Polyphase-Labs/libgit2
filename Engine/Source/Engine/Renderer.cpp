@@ -29,6 +29,7 @@
 #include "PaintManager.h"
 #include "SecondScreenPreview/SecondScreenPreview.h"
 #include "GamePreview/GamePreview.h"
+#include "AnimationBrowser/AnimationBrowser.h"
 #endif
 
 // TEMPORARY!
@@ -1462,6 +1463,11 @@ void Renderer::Render(World* world, int32_t screenIndex)
         if (GetGamePreview()->IsEnabled())
         {
             GetGamePreview()->Render();
+        }
+
+        if (GetAnimationBrowser()->IsEnabled())
+        {
+            GetAnimationBrowser()->Render();
         }
 
         // After secondary screen rendering, widget rects contain screen 1 coordinates.

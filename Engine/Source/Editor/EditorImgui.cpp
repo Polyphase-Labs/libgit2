@@ -132,6 +132,7 @@
 
 #include "SecondScreenPreview/SecondScreenPreview.h"
 #include "GamePreview/GamePreview.h"
+#include "AnimationBrowser/AnimationBrowser.h"
 
 
 static const char* GetNodeIcon(Node* node)
@@ -665,6 +666,18 @@ static void DrawDockspace()
     if (ImGui::BeginDock(ICON_IX_VIDEO_CAMERA_FILLED "  Game Preview", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
     {
         GetGamePreview()->DrawPanel();
+    }
+    ImGui::EndDock();
+    ImGui::PopStyleColor();
+
+    // --- Animation Browser dock ---
+    {
+        ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, bg);
+    }
+    if (ImGui::BeginDock(ICON_SKELETON "  Animation Browser", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+    {
+        GetAnimationBrowser()->DrawPanel();
     }
     ImGui::EndDock();
     ImGui::PopStyleColor();
@@ -5413,6 +5426,21 @@ static void DrawAssetsContextPopup(AssetStub* stub, AssetDir* dir)
         }
     }
 
+    if (stub && stub->mType == SkeletalMesh::GetStaticType())
+    {
+        if (ImGui::Selectable("View Animations"))
+        {
+            if (stub->mAsset == nullptr)
+                AssetManager::Get()->LoadAsset(*stub);
+
+            SkeletalMesh* skelMesh = stub->mAsset ? stub->mAsset->As<SkeletalMesh>() : nullptr;
+            if (skelMesh != nullptr)
+            {
+                GetAnimationBrowser()->Open(skelMesh);
+            }
+        }
+    }
+
     if (canInstantiate && ImGui::Selectable("Instantiate"))
     {
         if (stub->mAsset == nullptr)
@@ -7319,6 +7347,12 @@ static void DrawPropertiesPanel()
                         ImGui::Text(animations[a].mName.c_str());
                     }
                     ImGui::Unindent();
+
+                    ImGui::NewLine();
+                    if (ImGui::Button("View Animations"))
+                    {
+                        GetAnimationBrowser()->Open(skelMesh);
+                    }
                 }
                 else if (obj->As<SoundWave>())
                 {
@@ -8442,6 +8476,9 @@ static void DrawMainMenuBar()
 
             if (ImGui::MenuItem("Node Graph"))
                 GetEditorState()->mShowNodeGraphPanel = !GetEditorState()->mShowNodeGraphPanel;
+
+            if (ImGui::MenuItem("Animation Browser"))
+                GetEditorState()->mShowAnimationBrowser = !GetEditorState()->mShowAnimationBrowser;
 
             if (ImGui::MenuItem("Profiling"))
                 GetEditorState()->mShowProfilingPanel = !GetEditorState()->mShowProfilingPanel;
@@ -12426,15 +12463,15 @@ bool EditorImguiIsViewportHovered()
     if (!inRect)
         return false;
 
-    // If a floating ImGui window (e.g. Texture Crop Editor) is hovered over
-    // the viewport area, the viewport should not consume input.
-    // Docked panels have names like "Label##EditorDock" (appended by BeginDock).
-    // Standalone windows created with ImGui::Begin() do not have this suffix.
+    // If any ImGui window other than the main viewport dock is hovered (a floating
+    // popup, OR another docked editor panel that overlaps the viewport rect — e.g.
+    // Animation Browser tabbed inside the viewport node), the main viewport should
+    // not consume input. Only the actual "Viewport##EditorDock" window owns input.
     ImGuiContext* ctx = ImGui::GetCurrentContext();
     if (ctx != nullptr && ctx->HoveredWindow != nullptr)
     {
         const char* name = ctx->HoveredWindow->Name;
-        if (name != nullptr && strstr(name, "##EditorDock") == nullptr)
+        if (name == nullptr || strstr(name, "Viewport##EditorDock") == nullptr)
         {
             return false;
         }
