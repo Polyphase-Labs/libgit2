@@ -544,10 +544,14 @@ bool InputMap::LoadPreset(const std::string& name)
 {
     std::string filePath = GetPresetsDirectory() + "/" + name + ".json";
 
+    if (!SYS_DoesFileExist(filePath.c_str(), false)) {
+        return false;
+    }
     Stream stream;
+
     if (!stream.ReadFile(filePath.c_str(), false))
     {
-        LogError("Failed to load input preset: %s", name.c_str());
+        LogWarning("Failed to load input preset: %s", name.c_str());
         return false;
     }
 
@@ -557,7 +561,7 @@ bool InputMap::LoadPreset(const std::string& name)
 
     if (doc.HasParseError())
     {
-        LogError("Failed to parse input preset: %s", name.c_str());
+        LogWarning("Failed to parse input preset: %s", name.c_str());
         return false;
     }
 

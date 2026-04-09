@@ -24,6 +24,17 @@ public:
 
     bool IsEnabled() const { return mEnabled; }
 
+    // Returns true exactly once after Open() has been called, so the caller
+    // (DrawDockspace) can re-dock the AnimationBrowser tab next to the CLI
+    // Terminal before its BeginDock runs. Without this, the dock floats away
+    // because it was force-hidden on the editor's first frame.
+    bool ConsumePendingDock()
+    {
+        bool v = mPendingDock;
+        mPendingDock = false;
+        return v;
+    }
+
 private:
     void EnsurePreviewWorld();
     void CreateRenderTargets(uint32_t w, uint32_t h);
@@ -72,6 +83,7 @@ private:
     ImVec2 mImageMin = { 0, 0 };
     ImVec2 mImageMax = { 0, 0 };
     bool mPendingFocus = false;
+    bool mPendingDock = false;
 };
 
 AnimationBrowser* GetAnimationBrowser();

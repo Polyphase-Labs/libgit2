@@ -64,6 +64,7 @@ void AnimationBrowser::Open(SkeletalMesh* mesh)
 
     mEnabled = true;
     mPendingFocus = true;
+    mPendingDock = true;
     GetEditorState()->mShowAnimationBrowser = true;
 }
 
@@ -74,7 +75,6 @@ void AnimationBrowser::Close()
         mPreviewNode->StopAllAnimations(true);
     }
     mEnabled = false;
-    GetEditorState()->mShowAnimationBrowser = false;
 }
 
 void AnimationBrowser::EnsurePreviewWorld()
@@ -197,12 +197,12 @@ void AnimationBrowser::FrameMesh()
 
 #if LOGGING_ENABLED
     LogDebug("AnimationBrowser::FrameMesh: mesh='%s' bounds(c=%.3f,%.3f,%.3f r=%.3f) "
-             "scale=%.4f -> pivot(%.3f,%.3f,%.3f) dist=%.3f",
-             mesh->GetName().c_str(),
-             b.mCenter.x, b.mCenter.y, b.mCenter.z, b.mRadius,
-             mPreviewScale,
-             mCamPivot.x, mCamPivot.y, mCamPivot.z,
-             mCamDistance);
+        "scale=%.4f -> pivot(%.3f,%.3f,%.3f) dist=%.3f",
+        mesh->GetName().c_str(),
+        b.mCenter.x, b.mCenter.y, b.mCenter.z, b.mRadius,
+        mPreviewScale,
+        mCamPivot.x, mCamPivot.y, mCamPivot.z,
+        mCamDistance);
 #endif
 }
 
@@ -244,14 +244,14 @@ void AnimationBrowser::BuildGrid()
         // Line parallel to Z axis at x = pos
         glm::vec4 colZ = (i == 0) ? zAxisColor : lineColor;
         mPreviewWorld->AddLine(Line(glm::vec3(pos, kY, -extent),
-                                    glm::vec3(pos, kY,  extent),
-                                    colZ, -1.0f));
+            glm::vec3(pos, kY, extent),
+            colZ, -1.0f));
 
         // Line parallel to X axis at z = pos
         glm::vec4 colX = (i == 0) ? xAxisColor : lineColor;
         mPreviewWorld->AddLine(Line(glm::vec3(-extent, kY, pos),
-                                    glm::vec3( extent, kY, pos),
-                                    colX, -1.0f));
+            glm::vec3(extent, kY, pos),
+            colX, -1.0f));
     }
 }
 
@@ -300,11 +300,7 @@ void AnimationBrowser::HandleViewportInput()
             const float kPitchLimit = 1.55f;
             mCamPitch = glm::clamp(mCamPitch, -kPitchLimit, kPitchLimit);
 
-			// log out all the Node names in the mPreviewWorld for debugging purposes
-            mPreviewWorld->GetRootNode()->Traverse([](Node* node) -> bool {
-                LogDebug("[AnimationBrowser Node]: %s", node->GetName().c_str());
-                return true;
-				});
+          
         }
 
         if (ImGui::IsMouseDown(ImGuiMouseButton_Middle) ||
@@ -502,8 +498,8 @@ void AnimationBrowser::Render()
     // world. Drawing them in this preview viewport leaks unrelated camera /
     // light gizmos into the AnimationBrowser image.
     Renderer::Get()->RenderSecondScreen(mPreviewWorld, mColorTarget, mDepthTarget,
-                                        mCurrentWidth, mCurrentHeight, mPreviewCamera,
-                                        -1, false);
+        mCurrentWidth, mCurrentHeight, mPreviewCamera,
+        -1, false);
 
     Renderer::Get()->EnableProxyRendering(prevProxy);
 
@@ -534,7 +530,7 @@ void AnimationBrowser::DrawPanel()
     float avail = ImGui::GetContentRegionAvail().x;
     if (avail > 60.0f)
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (avail - 60.0f));
-    if (ImGui::SmallButton("Close"))
+    if (ImGui::SmallButton(ICON_DASHICONS_NO_ALT))
     {
         Close();
         return;
@@ -568,8 +564,8 @@ void AnimationBrowser::DrawPanel()
     if (mSelectedAnimIndex >= 0)
     {
         ImGui::TextDisabled("Lua: mesh:PlayAnimation(\"%s\", 0, %s)",
-                            anims[mSelectedAnimIndex].mName.c_str(),
-                            mLoop ? "true" : "false");
+            anims[mSelectedAnimIndex].mName.c_str(),
+            mLoop ? "true" : "false");
     }
     else
     {
@@ -579,13 +575,13 @@ void AnimationBrowser::DrawPanel()
     // Scale + Reset View
     {
         ImGui::SetNextItemWidth(180.0f);
-        if (ImGui::SliderFloat("Scale", &mPreviewScale, 0.001f, 100.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
+        if (ImGui::SliderFloat(ICON_MINGCUTE_SCALE_LINE " Scale", &mPreviewScale, 0.001f, 100.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
         {
             if (mPreviewNode != nullptr)
                 mPreviewNode->SetScale(glm::vec3(mPreviewScale));
         }
         ImGui::SameLine();
-        if (ImGui::Button("Reset View"))
+        if (ImGui::Button(ICON_MATERIAL_SYMBOLS_RESET_ISO " Reset View"))
         {
             FrameMesh();
         }
@@ -593,7 +589,7 @@ void AnimationBrowser::DrawPanel()
 
     // Transport toolbar
     {
-        if (ImGui::Button("|<"))
+        if (ImGui::Button(ICON_RI_REWIND_START_FILL))
         {
             mScrubTime = 0.0f;
             const char* name = GetCurrentAnimName();
@@ -620,12 +616,12 @@ void AnimationBrowser::DrawPanel()
             StepFrame(1);
         }
         ImGui::SameLine();
-        if (ImGui::Checkbox("Loop", &mLoop))
+        if (ImGui::Checkbox(ICON_MATERIAL_SYMBOLS_DEVICE_RESET, &mLoop))
         {
             SyncLoopFlag();
         }
         ImGui::SameLine();
-        ImGui::Checkbox("Grid", &mShowGrid);
+        ImGui::Checkbox(ICON_FLUENT_SPACE_3D_32_REGULAR, &mShowGrid);
     }
 
     // Scrubber
