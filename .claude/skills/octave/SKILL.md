@@ -255,27 +255,68 @@ LogError("Failed to initialize renderer");
 4. Call your panel's draw function from `EditorImguiDraw()` in `EditorImgui.cpp`.
 5. Add files to `Engine.vcxproj` and `Engine.vcxproj.filters`.
 
-### Visual Studio Project Integration
+### Build System Integration
 
-When adding **any** new source file:
+When adding **any** new source file you must update **three** build systems. Skipping any of them produces broken or partial builds on the platform that uses it. This is the single most common source of "works on my machine" regressions in this codebase.
 
-**`Engine.vcxproj`:**
+#### 1. `Engine/Engine.vcxproj` (Windows MSBuild)
+
 ```xml
 <ClCompile Include="Source\Path\To\File.cpp" />
 <ClInclude Include="Source\Path\To\File.h" />
 ```
 
-**`Engine.vcxproj.filters`:**
+Place near sibling files in the same directory so the diff is clean.
+
+#### 2. `Engine/Engine.vcxproj.filters` (Solution Explorer grouping)
+
 ```xml
 <ClCompile Include="Source\Path\To\File.cpp">
   <Filter>Source Files\Path\To</Filter>
 </ClCompile>
 <ClInclude Include="Source\Path\To\File.h">
-  <Filter>Header Files\Path\To</Filter>
+  <Filter>Source Files\Path\To</Filter>
 </ClInclude>
 ```
 
-Add a new `<Filter>` entry with a unique GUID if the folder group doesn't exist yet.
+If the folder group doesn't exist yet, also add a `<Filter>` entry with a unique GUID:
+
+```xml
+<Filter Include="Source Files\Path\To">
+  <UniqueIdentifier>{generate-a-guid-here}</UniqueIdentifier>
+</Filter>
+```
+
+> **Note:** Polyphase's existing filter convention uses `Source Files\…` for both `.cpp` and `.h` (not `Header Files\…`). Match the surrounding entries.
+
+#### 3. `Engine/Makefile_Linux` (Linux build) — **easy to forget**
+
+The Linux Makefile uses **directory-based wildcards** (`SOURCES := dir1 dir2 …`) plus `wildcard $(dir)/*.cpp`. This means:
+
+| Scenario | Action |
+|---|---|
+| Adding files to an **existing** source directory | **No Makefile change needed** — the wildcard picks them up automatically. |
+| Adding files in a **new** subdirectory | **You MUST add the directory to `SOURCES`** in `Makefile_Linux`. Otherwise the new files are silently dropped from the Linux build. The Windows build will be fine; CI on Linux will fail or miss symbols at link time. |
+
+There are **two** `SOURCES` lists in `Makefile_Linux`:
+- The base list around line 49 (engine + non-editor code).
+- An editor-only `SOURCES +=` at line ~96 inside `ifeq` for `POLYPHASE_EDITOR`. Editor-only directories (anything under `Source/Editor/`) go here.
+
+Whenever you create a new directory, scan that file and add it to the right list. Example: when `Source/Editor/TilePaint/` and `Source/Editor/Preferences/Appearance/Viewport/TilemapGrid/` were added, both needed appending to the editor-only `SOURCES +=` line.
+
+#### 4. CMake (`CMakeLists.txt`)
+
+CMake uses `file(GLOB_RECURSE SRC *.cpp *.c *.h)` so new files in any nested directory are picked up automatically. **No CMake update needed** for new files.
+
+#### Quick checklist when adding a new file
+
+1. ☐ Added `<ClCompile>` / `<ClInclude>` to `Engine.vcxproj`
+2. ☐ Added matching entries with `<Filter>` to `Engine.vcxproj.filters`
+3. ☐ If the directory is new: added a `<Filter Include="…">` block with a GUID in `Engine.vcxproj.filters`
+4. ☐ If the directory is new: added it to `SOURCES` in `Engine/Makefile_Linux` (base list OR editor `SOURCES +=`)
+5. ☐ If it's a new RTTI type: added `FORCE_LINK_CALL(MyType)` in `Engine.cpp::ForceLinkage()`
+6. ☐ If it's a new Lua binding: added `MyType_Lua::Bind()` call in `LuaBindings.cpp` and ran `python Tools/generate_lua_stubs.py`
+7. ☐ If it's a new asset type with new serialized fields: bumped `ASSET_VERSION_CURRENT` in `Asset.h` and version-gated the load path
 
 ---
 
@@ -312,12 +353,67 @@ Before fixing a bug or adding a feature:
 
 ## 8. Things to Watch Out For
 
-- **FORCE_LINK_CALL**: New RTTI types won't register without this in `Engine.cpp`. If your new type "doesn't exist" at runtime, this is why.
+### Build / registration
+
+- **FORCE_LINK_CALL**: New RTTI types won't register without this in `Engine.cpp::ForceLinkage()`. If your new type "doesn't exist" at runtime, this is why.
 - **Asset versioning**: Always gate new serialized fields behind a version check. Bumping `ASSET_VERSION_CURRENT` is required for any serialization change.
+- **vcxproj + filters + Makefile_Linux**: All three must be updated for new files. The Linux Makefile uses directory wildcards — files in *new* subdirectories are silently dropped on Linux unless you add the directory to `SOURCES`. See § "Build System Integration" above.
+- **Editor guards**: All editor code must be wrapped in `#if EDITOR`. Forgetting this causes link errors on non-editor builds. `Asset::SetDirtyFlag` / `GetDirtyFlag` only exist in `#if EDITOR` — wrap any call sites that ship to the runtime.
+- **Lua binding registration order**: Bind base classes before derived classes in `LuaBindings.cpp`.
+
+### Datum / Property reflection
+
+- **`HandlePropChange` is called BEFORE the value is written.** `Datum::SetInteger`/`SetAsset`/etc. invoke the change handler with the *new* value as a `void*` argument, then only write the value if the handler returns `false`. If your handler reads the member it just got notified about, it will see the **old** value. Either:
+  1. Write the new value into the member yourself based on `prop->mName` and the `void* newValue` pointer, then return `true` (the framework skips its own write). This is what `Texture::HandlePropChange` does.
+  2. Return `false` and only call deferred work like `MarkDirty()` — the actual rebuild happens next Tick after the framework has committed the value. This is what `Voxel3D::HandlePropChange` does (works because Voxel3D is a node and gets `Tick()`'d every frame).
+
+  Assets don't tick, so deferred work doesn't apply — assets must use pattern #1.
+
+### Vertex / mesh upload
+
+- **Vertex color scale (Wii/GameCube TEV compatibility):** the engine multiplies vertex colors by `GlobalUniforms::mColorScale` in `Forward.frag` (default `2.0` for retro fixed-function compatibility). Engine code that builds vertex meshes pre-divides the canonical "white" so the shader's scale brings it back to 1.0:
+  ```cpp
+  uint32_t white = 0xFFFFFFFFu;
+  if (GetEngineConfig()->mColorScale == 2) white = 0x7F7F7F7Fu;
+  if (GetEngineConfig()->mColorScale == 4) white = 0x3F3F3F3Fu;
+  ```
+  Forgetting this produces tiles/meshes that look 2× or 4× too bright. See `StaticMesh.cpp:154` and `PaintManager.cpp:514` for the canonical pattern.
+- **Mesh upload dirty flags are separate from mesh dirty.** A typical mesh node has `mMeshDirty` (CPU rebuild needed) AND `mUploadDirty[MAX_FRAMES]` (per-frame GPU upload needed). `RebuildMeshInternal()` only touches `mMeshDirty`. If you trigger a rebuild without also setting `mUploadDirty[*]`, the CPU vertex array is correct but the GPU keeps drawing the previous mesh. **Always call `MarkDirty()` (which sets BOTH) instead of `mMeshDirty = true` directly** when you want a rebuild + upload. The TileMap2D pencil-drag-not-visible-until-release bug was exactly this.
+- **`SM_Cube` is a 2-unit cube** (vertices at ±1), not a unit cube. Scaling by `(width, height, depth)` produces a `2*width × 2*height × 2*depth` cube. Halve your scale or use a different mesh.
+
+### Mouse input in editor
+
+- **`INP_GetMousePosition` is unreliable in editor builds during a held-button drag.** ImGui's Win32 backend handler runs first in `WndProc` (`System_Windows.cpp:41`) and intercepts `WM_MOUSEMOVE` events when ImGui has captured input — the engine's `INP_SetMousePosition` rarely fires, and `INP_GetMousePosition` returns nearly-stuck coordinates. **Use `ImGui::GetIO().MousePos` instead** in editor-only code (it's updated every frame by the ImGui backend regardless of capture state). Pattern:
+  ```cpp
+  ImVec2 mp = ImGui::GetIO().MousePos;
+  int32_t mouseX = int32_t(mp.x);
+  int32_t mouseY = int32_t(mp.y);
+  ```
+- **`Camera3D::ScreenToWorldPosition` returns near-plane points, not camera-relative directions.** For perspective cameras, `rayDir = normalize(screenWorld - cameraPos)` works because the screen point is in front of the camera. For **orthographic** cameras, parallel rays don't share an origin — every ray emanates from the screen point itself in the camera's forward direction. Branch on `camera->GetProjectionMode()`:
+  ```cpp
+  if (camera->GetProjectionMode() == ProjectionMode::ORTHOGRAPHIC) {
+      rayOrigin = camera->ScreenToWorldPosition(mouseX, mouseY);
+      rayDir = camera->GetForwardVector();
+  } else {
+      rayOrigin = camera->GetWorldPosition();
+      rayDir = glm::normalize(camera->ScreenToWorldPosition(mouseX, mouseY) - rayOrigin);
+  }
+  ```
+- **`Viewport3D::ShouldHandleInput()` returns false for any non-dock floating ImGui window**, even if the click started on the viewport. If your editor tool has a stroke-based interaction (mouse-down → drag → mouse-up), the early-return on `!ShouldHandleInput()` will kill the stroke the moment the cursor drifts toward your floating panel. Bypass the check during an active stroke:
+  ```cpp
+  if (!mStrokeActive && !GetEditorState()->GetViewport3D()->ShouldHandleInput())
+      return;
+  ```
+
+### World debug lines (`World::AddLine`)
+
+- **`Line::mLifetime = 0.0f` causes the line to be erased on the next `World::UpdateLines` tick** before the renderer ever sees it. `UpdateLines` decrements `mLifetime` by `deltaTime` and erases at `<= 0`. For per-frame "always visible while toggled on" debug lines, use a small positive lifetime (`0.05f` – `0.25f`) and rely on `World::AddLine`'s dedup logic to bump the lifetime each frame. Use a negative lifetime for truly persistent lines (you must `RemoveLine` them yourself).
+- **`Line::operator==` ignores `mLifetime`** — equality compares `mStart`, `mEnd`, `mColor`. That's how the dedup loop in `AddLine` works.
+
+### Misc
+
 - **ImGui ID conflicts**: ImGui uses string hashing for IDs. `###` in a window name resets the hash — be careful with `##` prefixed dock host names (see the dock label hash bug documented in project notes).
-- **Editor guards**: All editor code must be wrapped in `#if EDITOR`. Forgetting this causes link errors on non-editor builds.
-- **vcxproj + filters**: Both files must be updated. Missing one causes build errors or invisible files in Solution Explorer.
-- **Lua binding registration order**: Bind base classes before derived classes.
+- **`Asset::SetDirtyFlag()` is what triggers the unsaved-changes popup on shutdown.** If you mutate an asset programmatically (e.g. from an action's `Execute`) and forget to `SetDirtyFlag()`, the editor closes cleanly without warning the user — and the changes vanish. Wrap calls in `#if EDITOR` since the symbol only exists there.
 - **Thread safety in logging**: Log system uses `sMutex` via `LockLog()`/`UnlockLog()`. Don't hold the log lock while doing heavy work.
 
 ---

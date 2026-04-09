@@ -192,6 +192,7 @@ void ForceLinkage()
     FORCE_LINK_CALL(TextMesh3D);
     FORCE_LINK_CALL(Voxel3D);
     FORCE_LINK_CALL(Terrain3D);
+    FORCE_LINK_CALL(TileMap2D);
     FORCE_LINK_CALL(InstancedMesh3D);
     FORCE_LINK_CALL(TimelinePlayer);
     FORCE_LINK_CALL(NodeGraphPlayer);
@@ -210,6 +211,8 @@ void ForceLinkage()
     FORCE_LINK_CALL(SoundWave);
     FORCE_LINK_CALL(StaticMesh);
     FORCE_LINK_CALL(Texture);
+    FORCE_LINK_CALL(TileSet);
+    FORCE_LINK_CALL(TileMap);
     FORCE_LINK_CALL(TinyLLMAsset);
     FORCE_LINK_CALL(TinyLLMTokenizerAsset);
     FORCE_LINK_CALL(Font);

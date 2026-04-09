@@ -37,7 +37,14 @@
       "Bash(wc -l \"/M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine/Engine/Source/LuaBindings\"/*.cpp)",
       "Bash(find /M/Projects/Polyphase/Polyphase/CODE/mergePolyphase/polyphase-engine -path *Graphics/GX* -o -path *Graphics/C3D*)",
       "Bash(xargs cat:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(where MSBuild.exe)",
+      "Bash(where devenv.exe)",
+      "Bash(where cl.exe)",
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\MSBuild.exe\" Polyphase.sln -p:Configuration=DebugEditor -p:Platform=x64 -m -nologo -clp:Summary)",
+      "Bash(python Tools/generate_lua_stubs.py)",
+      "Read(//c/Program Files/Microsoft Visual Studio/2022/**)",
+      "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio/2022/**)"
     ]
   }
 }

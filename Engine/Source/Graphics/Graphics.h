@@ -127,6 +127,13 @@ void GFX_DestroyTerrain3DResource(Terrain3D* terrain);
 void GFX_UpdateTerrain3DResource(Terrain3D* terrain, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
 void GFX_DrawTerrain3D(Terrain3D* terrain);
 
+// TileMap2D
+class TileMap2D;
+void GFX_CreateTileMap2DResource(TileMap2D* tileMap);
+void GFX_DestroyTileMap2DResource(TileMap2D* tileMap);
+void GFX_UpdateTileMap2DResource(TileMap2D* tileMap, const std::vector<VertexColor>& vertices, const std::vector<IndexType>& indices);
+void GFX_DrawTileMap2D(TileMap2D* tileMap);
+
 // ParticleComp
 void GFX_CreateParticleCompResource(Particle3D* particleComp);
 void GFX_DestroyParticleCompResource(Particle3D* particleComp);
