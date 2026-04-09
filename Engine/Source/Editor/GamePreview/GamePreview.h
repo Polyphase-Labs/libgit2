@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "EngineTypes.h"
 
 class Image;
 class Buffer;
@@ -37,6 +38,11 @@ public:
     void AddResolutionPreset(const std::string& name, uint32_t w, uint32_t h);
     void RemoveResolutionPreset(const std::string& name);
     const std::vector<ResolutionPreset>& GetAddonPresets() const { return mAddonPresets; }
+
+    // Returns the canonical preview resolution for a target platform.
+    // Used by Game Preview's "Target Platform" preset and the Canvas inspector's
+    // "Set Size To Build Profile Resolution" button.
+    static void GetPlatformResolution(Platform platform, uint32_t& outWidth, uint32_t& outHeight, const char*& outName);
 
 private:
     bool mEnabled = true;

@@ -186,8 +186,8 @@ ResolutionPreset GamePreview::GetCurrentPreset()
     return { "Default  640x480", 640, 480 };
 }
 
-// Helper to get resolution for a platform
-static void GetPlatformResolution(Platform platform, uint32_t& outWidth, uint32_t& outHeight, const char*& outName)
+// Returns the canonical preview resolution for a target platform.
+void GamePreview::GetPlatformResolution(Platform platform, uint32_t& outWidth, uint32_t& outHeight, const char*& outName)
 {
     switch (platform)
     {

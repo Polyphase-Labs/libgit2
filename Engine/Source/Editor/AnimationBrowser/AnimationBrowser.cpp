@@ -372,7 +372,7 @@ void AnimationBrowser::SelectAnimation(int32_t index)
     mSelectedAnimIndex = index;
     mScrubTime = 0.0f;
     mPreviewNode->PlayAnimation(anims[index].mName.c_str(), mLoop, 1.0f, 1.0f, 0);
-    mPreviewNode->SetAnimationPaused(!mPlaying);
+    mPreviewNode->SetAnimationSpeed(mPlaying ? 1.0f : 0.0f);
 }
 
 void AnimationBrowser::SetPlaying(bool playing)
@@ -380,7 +380,13 @@ void AnimationBrowser::SetPlaying(bool playing)
     mPlaying = playing;
     if (mPreviewNode != nullptr)
     {
-        mPreviewNode->SetAnimationPaused(!mPlaying);
+        // Use animation speed (not the pause flag) so that scrub-time changes
+        // still drive bone evaluation. SkeletalMesh3D::Tick skips the entire
+        // pose-evaluation block when mAnimationPaused is true, which would
+        // freeze the visible mesh and make the scrubber look unresponsive.
+        // Speed=0 stops time advancement but lets each Tick re-pose to the
+        // current mTime, which is what we set when the user drags the slider.
+        mPreviewNode->SetAnimationSpeed(mPlaying ? 1.0f : 0.0f);
     }
 }
 
@@ -397,7 +403,7 @@ void AnimationBrowser::SyncLoopFlag()
     float savedTime = mScrubTime;
     mPreviewNode->StopAllAnimations(true);
     mPreviewNode->PlayAnimation(name, mLoop, 1.0f, 1.0f, 0);
-    mPreviewNode->SetAnimationPaused(!mPlaying);
+    mPreviewNode->SetAnimationSpeed(mPlaying ? 1.0f : 0.0f);
 
     ActiveAnimation* active = mPreviewNode->FindActiveAnimation(name);
     if (active != nullptr)
@@ -629,7 +635,7 @@ void AnimationBrowser::DrawPanel()
         float duration = GetCurrentDuration();
         if (duration <= 0.0f) duration = 0.0001f;
         ImGui::SetNextItemWidth(-FLT_MIN);
-        bool changed = ImGui::SliderFloat("##scrub", &mScrubTime, 0.0f, duration, "%.3f s");
+        bool changed = ImGui::SliderFloat("##scrub", &mScrubTime, 0.0f, duration * 0.001f, "%.3f s");
         if (ImGui::IsItemActive() || changed)
         {
             SetPlaying(false);
