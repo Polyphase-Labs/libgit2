@@ -68,6 +68,8 @@
 #include "EditorUIHookManager.h"
 #include "BuildDependencyWindow.h"
 #include "InputMapWindow.h"
+#include "Hotkeys/EditorHotkeyMap.h"
+#include "Hotkeys/EditorHotkeysWindow.h"
 #include "PlayerInputEditor.h"
 #include "PlayerInputDebugger.h"
 #include "DebugLog/DebugLogWindow.h"
@@ -2043,7 +2045,7 @@ static void DrawNodeProperty(Property& prop, uint32_t index, Object* owner, Prop
 
         if (node != nullptr &&
             ImGui::IsItemHovered() &&
-            IsKeyJustDown(POLYPHASE_KEY_DELETE))
+            EditorHotkeyMap::Get()->IsActionJustTriggered(EditorAction::Edit_DeleteSelected))
         {
             am->EXE_EditProperty(owner, ownerType, prop.mName, index, (Node*) nullptr);
         }
@@ -2468,7 +2470,7 @@ void DrawAssetProperty(Property& prop, uint32_t index, Object* owner, PropertyOw
 
         if (asset != nullptr &&
             ImGui::IsItemHovered() &&
-            IsKeyJustDown(POLYPHASE_KEY_DELETE))
+            EditorHotkeyMap::Get()->IsActionJustTriggered(EditorAction::Edit_DeleteSelected))
         {
             if (ownerType == PropertyOwnerType::Node || ownerType == PropertyOwnerType::Asset)
             {
@@ -5114,13 +5116,9 @@ static void DrawScenePanel()
     // If no popup is open and we aren't inputting text...
     if (!ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup) &&
         ImGui::IsWindowHovered() &&
-        !ImGui::GetIO().WantTextInput && 
+        !ImGui::GetIO().WantTextInput &&
         !sNodeContextActive)
     {
-        const bool ctrlDown = IsControlDown();
-        const bool shiftDown = IsShiftDown();
-        const bool altDown = IsAltDown();
-
         if (ImGui::IsMouseReleased(ImGuiMouseButton_Right))
         {
             ImGui::OpenPopup("Null Node Context");
@@ -5136,11 +5134,12 @@ static void DrawScenePanel()
             Node* parent = node->GetParent();
             int32_t childIndex = parent->FindChildIndex(node);
 
-            if (IsKeyJustDown(POLYPHASE_KEY_MINUS))
+            EditorHotkeyMap* hotkeys = EditorHotkeyMap::Get();
+            if (hotkeys->IsActionJustTriggered(EditorAction::Hier_ReorderUp))
             {
                 am->EXE_AttachNode(node, parent, glm::max<int32_t>(childIndex - 1, 0), -1);
             }
-            else if (IsKeyJustDown(POLYPHASE_KEY_PLUS))
+            else if (hotkeys->IsActionJustTriggered(EditorAction::Hier_ReorderDown))
             {
                 am->EXE_AttachNode(node, parent, childIndex + 1, -1);
             }
@@ -5148,11 +5147,12 @@ static void DrawScenePanel()
 
         if (selNodes.size() > 0)
         {
-            if (IsKeyJustDown(POLYPHASE_KEY_DELETE))
+            EditorHotkeyMap* hotkeys = EditorHotkeyMap::Get();
+            if (hotkeys->IsActionJustTriggered(EditorAction::Edit_DeleteSelected))
             {
                 am->EXE_DeleteNodes(selNodes);
             }
-            else if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_D))
+            else if (hotkeys->IsActionJustTriggered(EditorAction::Edit_Duplicate))
             {
                 if (selNodes.size() == 1)
                 {
@@ -5167,7 +5167,7 @@ static void DrawScenePanel()
                     am->DuplicateNodes(selNodes);
                 }
             }
-            else if (!ctrlDown && IsKeyJustDown(POLYPHASE_KEY_F2))
+            else if (hotkeys->IsActionJustTriggered(EditorAction::Hier_Rename))
             {
                 ImGui::OpenPopup("Rename Node F2");
                 strncpy(sPopupInputBuffer, selNodes[0]->GetName().c_str(), kPopupInputBufferSize - 1);
@@ -6790,8 +6790,6 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
         ImGui::IsWindowHovered() &&
         !ImGui::GetIO().WantTextInput)
     {
-        const bool ctrlDown = IsControlDown();
-
         if (ImGui::IsMouseReleased(ImGuiMouseButton_Right))
         {
             ImGui::OpenPopup("Null Context");
@@ -6800,22 +6798,24 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
         AssetDir* currentDir = GetEditorState()->GetAssetDirectory();
         if (currentDir != nullptr && !currentDir->mAddonDir)
         {
-            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_N))
+            EditorHotkeyMap* hotkeys = EditorHotkeyMap::Get();
+
+            if (hotkeys->IsActionJustTriggered(EditorAction::Asset_CreateScene))
             {
                 CreateNewAsset(Scene::GetStaticType(), "SC_Scene");
             }
 
-            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_M))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Asset_CreateMaterial))
             {
                 CreateNewAsset(MaterialLite::GetStaticType(), "M_Material");
             }
 
-            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_P))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Asset_CreateParticle))
             {
                 CreateNewAsset(ParticleSystem::GetStaticType(), "P_Particle");
             }
 
-            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_D))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Edit_Duplicate))
             {
                 AssetStub* srcStub = GetEditorState()->GetSelectedAssetStub();
 
@@ -6830,7 +6830,7 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
                 }
             }
 
-            if (IsKeyJustDown(POLYPHASE_KEY_DELETE))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Edit_DeleteSelected))
             {
                 const auto& selectedStubs = GetEditorState()->GetSelectedAssetStubs();
                 if (!selectedStubs.empty())
@@ -6844,7 +6844,7 @@ static void DrawAssetBrowser(AssetDir* rootDir, const std::string& filterLower, 
                 }
             }
 
-            if (!ctrlDown && IsKeyJustDown(POLYPHASE_KEY_F2))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Asset_Rename))
             {
                 AssetStub* selStub = GetEditorState()->GetSelectedAssetStub();
                 if (selStub != nullptr && !selStub->mEngineAsset)
@@ -7481,10 +7481,8 @@ static void DrawPropertiesPanel()
         ImGui::IsWindowHovered() &&
         !ImGui::GetIO().WantTextInput)
     {
-        bool ctrlDown = IsControlDown();
-
         // Hotkey for toggling lock.
-        if (IsKeyJustDown(POLYPHASE_KEY_L))
+        if (EditorHotkeyMap::Get()->IsActionJustTriggered(EditorAction::Inspector_ToggleLock))
         {
             GetEditorState()->LockInspect(!GetEditorState()->IsInspectLocked());
         }
@@ -8425,6 +8423,11 @@ static void DrawMainMenuBar()
                 GetPreferencesWindow()->Open();
             }
 
+            if (ImGui::MenuItem("Editor Hotkeys..."))
+            {
+                GetEditorHotkeysWindow()->Open();
+            }
+
             // Draw plugin menu items for Edit menu
             {
                 EditorUIHookManager* hookMgr = EditorUIHookManager::Get();
@@ -9250,31 +9253,29 @@ static void DrawMainMenuBar()
         // Hotkey Menus
         if (GetEditorState()->GetViewport3D()->ShouldHandleInput())
         {
-            const bool ctrlDown = IsControlDown();
-            bool shiftDown = IsShiftDown();
-            const bool altDown = IsAltDown();
+            EditorHotkeyMap* hotkeys = EditorHotkeyMap::Get();
 
-            if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_Q))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Basic3DMenu))
             {
                 ImGui::OpenPopup("Spawn Basic 3D");
             }
 
-            if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_W))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_BasicWidgetMenu))
             {
                 ImGui::OpenPopup("Spawn Basic Widget");
             }
 
-            if (shiftDown && IsKeyJustDown(POLYPHASE_KEY_A))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_NodeMenu))
             {
                 ImGui::OpenPopup("Spawn Node");
             }
 
-            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_N))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Asset_CreateScene))
             {
                 GetEditorState()->OpenEditScene(nullptr);
             }
 
-            if (ctrlDown && IsKeyJustDown(POLYPHASE_KEY_R))
+            if (hotkeys->IsActionJustTriggered(EditorAction::Edit_ReloadScripts))
             {
                 ReloadAllScripts();
                 NativeAddonManager* nam = NativeAddonManager::Get();
@@ -12419,6 +12420,7 @@ void EditorImguiDraw()
         GetPackagingWindow()->Draw();
         GetBuildDependencyWindow()->Draw();
         GetInputMapWindow()->Draw();
+        GetEditorHotkeysWindow()->Draw();
         GetPlayerInputEditor()->Draw();
         GetPlayerInputDebugger()->Draw();
         ActionManager::Get()->DrawBuildModal();

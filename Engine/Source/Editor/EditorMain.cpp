@@ -50,6 +50,7 @@
 #include "BuildDependencyWindow.h"
 #include "Input/InputMap.h"
 #include "Input/PlayerInputSystem.h"
+#include "Hotkeys/EditorHotkeyMap.h"
 #include "Utilities.h"
 
 void OctPreInitialize(EngineConfig& config);
@@ -124,6 +125,7 @@ void EditorMain(int32_t argc, char** argv)
     BuildCache::Create();
     InputManager::Create();
     InputMap::Create();
+    EditorHotkeyMap::Create();
     PlayerInputSystem::Create();
     PreferencesManager::Create();
 
@@ -295,6 +297,7 @@ void EditorMain(int32_t argc, char** argv)
     BuildCache::Destroy();
     PreferencesManager::Destroy();
     PlayerInputSystem::Destroy();
+    EditorHotkeyMap::Destroy();
     InputMap::Destroy();
     GetEditorState()->Shutdown();
     Shutdown();

@@ -41,6 +41,7 @@
 #include "imgui.h"
 #include "./ImGuizmo/ImGuizmo.h"
 #include "EditorImgui.h"
+#include "Hotkeys/EditorHotkeyMap.h"
 
 constexpr float sMaxCameraPitch = 89.99f;
 
@@ -137,7 +138,6 @@ void Viewport3D::HandleDefaultControls()
         const bool controlDown = IsControlDown();
         const bool shiftDown = IsShiftDown();
         const bool altDown = IsAltDown();
-        const bool cmdKeyDown = (controlDown || shiftDown || altDown);
 
         // Tile paint mode locks camera rotation — Pilot mode would let the
         // user mouse-look + WASD around, breaking the top-down framing.
@@ -239,85 +239,80 @@ void Viewport3D::HandleDefaultControls()
             }
         }
 
+        EditorHotkeyMap* hotkeys = EditorHotkeyMap::Get();
+
         if (GetEditorState()->GetSelectedNode() != nullptr &&
             GetEditorState()->GetSelectedNode()->IsNode3D())
         {
-            // Space+G/R/S keys set the gizmo operation mode (Blender-style shortcuts)
-            const bool spaceDown = IsKeyDown(POLYPHASE_KEY_SPACE);
-
-            if (!controlDown && !altDown && !spaceDown && IsKeyJustDown(POLYPHASE_KEY_G))
+            // Plain G / Space+G set ImGuizmo to translate.
+            if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_Translate) ||
+                hotkeys->IsActionJustTriggered(EditorAction::Gizmo_TranslateImGuizmo))
             {
                 GetEditorState()->mGizmoOperation = ImGuizmo::TRANSLATE;
             }
-            if (!controlDown && !altDown && spaceDown && IsKeyJustDown(POLYPHASE_KEY_G))
-            {
-                GetEditorState()->mGizmoOperation = ImGuizmo::TRANSLATE;
-            }
-            if (!controlDown && !altDown && spaceDown && IsKeyJustDown(POLYPHASE_KEY_R))
-            {
-                GetEditorState()->mGizmoOperation = ImGuizmo::ROTATE;
-            }
-            if (!controlDown && !altDown && spaceDown && IsKeyJustDown(POLYPHASE_KEY_S))
-            {
-                GetEditorState()->mGizmoOperation = ImGuizmo::SCALE;
-            }
 
-            if (!controlDown && !altDown && !spaceDown && IsKeyJustDown(POLYPHASE_KEY_R))
+            // Space+R sets ImGuizmo to rotate (operation only, no cursor-locked entry).
+            if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_RotateImGuizmo))
             {
                 GetEditorState()->mGizmoOperation = ImGuizmo::ROTATE;
             }
 
-            if (!controlDown && !altDown && !spaceDown && IsKeyJustDown(POLYPHASE_KEY_S))
+            // Space+S sets ImGuizmo to scale (operation only).
+            if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_ScaleImGuizmo))
             {
                 GetEditorState()->mGizmoOperation = ImGuizmo::SCALE;
             }
 
-            if (!controlDown && !altDown && !spaceDown && IsKeyJustDown(POLYPHASE_KEY_R))
+            // Plain R: set ImGuizmo + enter cursor-locked rotate mode.
+            if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_Rotate))
             {
+                GetEditorState()->mGizmoOperation = ImGuizmo::ROTATE;
                 GetEditorState()->SetControlMode(ControlMode::Rotate);
                 SavePreTransforms();
             }
 
-            if (!controlDown && !altDown && !spaceDown && IsKeyJustDown(POLYPHASE_KEY_S))
+            // Plain S: set ImGuizmo + enter cursor-locked scale mode.
+            if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_Scale))
             {
+                GetEditorState()->mGizmoOperation = ImGuizmo::SCALE;
                 GetEditorState()->SetControlMode(ControlMode::Scale);
                 SavePreTransforms();
             }
         }
 
-        if (!cmdKeyDown && IsKeyJustDown(POLYPHASE_KEY_Z))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Debug_Wireframe))
         {
             renderer->SetDebugMode((renderer->GetDebugMode() != DEBUG_WIREFRAME) ? DEBUG_WIREFRAME : DEBUG_NONE);
         }
 
-        if (IsKeyJustDown(POLYPHASE_KEY_K))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Debug_Collision))
         {
             renderer->SetDebugMode((renderer->GetDebugMode() != DEBUG_COLLISION) ? DEBUG_COLLISION : DEBUG_NONE);
         }
 
-        if (!controlDown && !altDown && IsKeyJustDown(POLYPHASE_KEY_P))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Debug_Proxy))
         {
             renderer->EnableProxyRendering(!renderer->IsProxyRenderingEnabled());
         }
 
-        if (altDown && IsKeyJustDown(POLYPHASE_KEY_L))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Debug_PathTracing))
         {
             renderer->EnablePathTracing(!renderer->IsPathTracingEnabled());
         }
 
-        if (!controlDown && IsKeyJustDown(POLYPHASE_KEY_B))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Debug_BoundsCycle))
         {
             uint32_t boundsMode = (uint32_t) renderer->GetBoundsDebugMode();
             boundsMode = (boundsMode + 1) % uint32_t(BoundsDebugMode::Count);
             renderer->SetBoundsDebugMode(BoundsDebugMode(boundsMode));
         }
 
-        if (controlDown && IsKeyJustDown(POLYPHASE_KEY_G))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_GridToggle))
         {
             ToggleGrid();
         }
 
-        if (controlDown && IsKeyJustDown(POLYPHASE_KEY_T))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Gizmo_TransformLocalToggle))
         {
             ToggleTransformMode();
             // Also toggle the ImGuizmo mode to stay in sync
@@ -325,12 +320,14 @@ void Viewport3D::HandleDefaultControls()
             edState->mGizmoMode = (edState->mGizmoMode == ImGuizmo::LOCAL) ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
         }
 
-        if (IsKeyJustDown(POLYPHASE_KEY_NUMPAD5))
+        if (hotkeys->IsActionJustTriggered(EditorAction::View_PerspToggle))
         {
             GetEditorState()->ToggleEditorCameraProjection();
         }
 
-        if ((IsKeyDown(POLYPHASE_KEY_F) && GetEditorState()->GetPaintMode() == PaintMode::None) ||
+        // View_FocusSelection is checked as held (matches existing IsKeyDown semantics).
+        // The original code also accepted Numpad . (DECIMAL) -- migrate that as a held check.
+        if ((hotkeys->IsActionDown(EditorAction::View_FocusSelection) && GetEditorState()->GetPaintMode() == PaintMode::None) ||
             IsKeyDown(POLYPHASE_KEY_DECIMAL))
         {
             // Focus on selected object
@@ -373,98 +370,85 @@ void Viewport3D::HandleDefaultControls()
             }
         }
 
-        if (IsKeyJustDown(POLYPHASE_KEY_NUMPAD1))
+        // View direction snaps. Front/Back/Left/Right/Top/Bottom are six separate
+        // remappable actions because users on AZERTY keyboards may want them moved.
+        if (hotkeys->IsActionJustTriggered(EditorAction::View_Back))
         {
-            // Back
-            if (controlDown)
-            {
-                camera->SetWorldRotation(glm::vec3(0.0f, 180.0f, 0.0f));
-                camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, 0.0f, -1.0f));
-            }
-            // Front
-            else
-            {
-                camera->SetWorldRotation(glm::vec3(0.0f, 0.0f, 0.0f));
-                camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, 0.0f, 1.0f));
-            }
+            camera->SetWorldRotation(glm::vec3(0.0f, 180.0f, 0.0f));
+            camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, 0.0f, -1.0f));
+        }
+        else if (hotkeys->IsActionJustTriggered(EditorAction::View_Front))
+        {
+            camera->SetWorldRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+            camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, 0.0f, 1.0f));
         }
 
-        if (IsKeyJustDown(POLYPHASE_KEY_NUMPAD3))
+        if (hotkeys->IsActionJustTriggered(EditorAction::View_Left))
         {
-            // Left
-            if (controlDown)
-            {
-                camera->SetWorldRotation(glm::vec3(0.0f, 270.0f, 0.0f));
-                camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(-1.0f, 0.0f, 0.0f));
-            }
-            // Right
-            else
-            {
-                camera->SetWorldRotation(glm::vec3(0.0f, 90.0f, 0.0f));
-                camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(1.0f, 0.0f, 0.0f));
-            }
+            camera->SetWorldRotation(glm::vec3(0.0f, 270.0f, 0.0f));
+            camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(-1.0f, 0.0f, 0.0f));
+        }
+        else if (hotkeys->IsActionJustTriggered(EditorAction::View_Right))
+        {
+            camera->SetWorldRotation(glm::vec3(0.0f, 90.0f, 0.0f));
+            camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(1.0f, 0.0f, 0.0f));
         }
 
-        if (IsKeyJustDown(POLYPHASE_KEY_NUMPAD7))
+        if (hotkeys->IsActionJustTriggered(EditorAction::View_Bottom))
         {
-            // Bottom
-            if (controlDown)
-            {
-                camera->SetWorldRotation(glm::vec3(90.0f, 0.0f, 0.0f));
-                camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, -1.0f, 0.0f));
-            }
-            // Top
-            else
-            {
-                camera->SetWorldRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
-                camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, 1.0f, 0.0f));
-            }
+            camera->SetWorldRotation(glm::vec3(90.0f, 0.0f, 0.0f));
+            camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, -1.0f, 0.0f));
+        }
+        else if (hotkeys->IsActionJustTriggered(EditorAction::View_Top))
+        {
+            camera->SetWorldRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
+            camera->SetWorldPosition(focus + mFocalDistance * glm::vec3(0.0f, 1.0f, 0.0f));
         }
 
         glm::vec3 spawnPos = camera->GetWorldPosition() + mFocalDistance * camera->GetForwardVector();
-        if (altDown && IsKeyJustDown(POLYPHASE_KEY_1))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_StaticMesh))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_STATIC_MESH, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_2))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_PointLight))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_POINT_LIGHT, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_3))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Node3D))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_NODE_3D, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_4))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_DirLight))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_DIRECTIONAL_LIGHT, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_5))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_SkeletalMesh))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_SKELETAL_MESH, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_6))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Box))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_BOX, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_7))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Sphere))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_SPHERE, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_8))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Particle))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_PARTICLE, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_9))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Audio))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_AUDIO, nullptr, nullptr, true, spawnPos);
         }
-        else if (altDown && IsKeyJustDown(POLYPHASE_KEY_0))
+        else if (hotkeys->IsActionJustTriggered(EditorAction::Spawn_Scene))
         {
             ActionManager::Get()->SpawnBasicNode(BASIC_SCENE, nullptr, nullptr, true, spawnPos);
         }
 
 
-        if (IsKeyJustDown(POLYPHASE_KEY_DELETE))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Edit_DeleteSelected))
         {
             Node* selNode = GetEditorState()->GetSelectedNode();
             int32_t selInstance = GetEditorState()->GetSelectedInstance();
@@ -490,7 +474,7 @@ void Viewport3D::HandleDefaultControls()
             }
         }
 
-        if (controlDown && IsKeyJustDown(POLYPHASE_KEY_D))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Edit_Duplicate))
         {
             // Duplicate node
             const std::vector<Node*>& selectedNodes = GetEditorState()->GetSelectedNodes();
@@ -507,11 +491,11 @@ void Viewport3D::HandleDefaultControls()
             }
         }
 
-        if (altDown && IsKeyJustDown(POLYPHASE_KEY_A))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Edit_DeselectAll))
         {
             GetEditorState()->SetSelectedNode(nullptr);
         }
-        if (controlDown && IsKeyJustDown(POLYPHASE_KEY_A))
+        if (hotkeys->IsActionJustTriggered(EditorAction::Edit_SelectAll))
         {
             std::vector<Node*> nodes = GetWorld(0)->GatherNodes();
 
@@ -521,8 +505,9 @@ void Viewport3D::HandleDefaultControls()
             }
         }
 
-        // Actor placement hotkeys
-        if (IsKeyJustDown(POLYPHASE_KEY_END) || IsKeyJustDown(POLYPHASE_KEY_INSERT))
+        // Actor placement hotkeys (End = drop to ground, Insert = drop and align to surface)
+        if (hotkeys->IsActionJustTriggered(EditorAction::Tool_DropActorToGround) ||
+            hotkeys->IsActionJustTriggered(EditorAction::Tool_DropActorWithRotation))
         {
             static glm::vec3 sLastNormal = { 0.0f, 1.0f, 0.0f };
             static float sLastPressedTime = 0.0f;
@@ -560,7 +545,7 @@ void Viewport3D::HandleDefaultControls()
                      glm::vec3 startPos = {};
                      glm::vec3 endPos = {};
 
-                     if (IsKeyJustDown(POLYPHASE_KEY_INSERT))
+                     if (hotkeys->IsActionJustTriggered(EditorAction::Tool_DropActorWithRotation))
                      {
                          int32_t iMouseX = 0;
                          int32_t iMouseY = 0;
@@ -640,7 +625,7 @@ void Viewport3D::HandleDefaultControls()
         }
 
         // Position selected component at camera transform
-        if (IsKeyJustDown(POLYPHASE_KEY_NUMPAD0))
+        if (hotkeys->IsActionJustTriggered(EditorAction::View_PositionAtCamera))
         {
             glm::mat4 camTransform = camera->GetTransform();
 
@@ -730,38 +715,40 @@ void Viewport3D::HandlePilotControls()
     float xc = cos(angleX);
     float xs = sin(angleX);
 
-    if (IsKeyDown(POLYPHASE_KEY_A))
+    EditorHotkeyMap* hotkeys = EditorHotkeyMap::Get();
+
+    if (hotkeys->IsActionDown(EditorAction::Camera_Left))
     {
         cameraPosition.x -= c * (mFirstPersonMoveSpeed * deltaTime);
         cameraPosition.z += s * (mFirstPersonMoveSpeed * deltaTime);
     }
 
-    if (IsKeyDown(POLYPHASE_KEY_D))
+    if (hotkeys->IsActionDown(EditorAction::Camera_Right))
     {
         cameraPosition.x += c * (mFirstPersonMoveSpeed * deltaTime);
         cameraPosition.z -= s * (mFirstPersonMoveSpeed * deltaTime);
     }
 
-    if (IsKeyDown(POLYPHASE_KEY_W))
+    if (hotkeys->IsActionDown(EditorAction::Camera_Forward))
     {
         cameraPosition.z -= xc * (c * (mFirstPersonMoveSpeed * deltaTime));
         cameraPosition.x -= xc * (s * (mFirstPersonMoveSpeed * deltaTime));
         cameraPosition.y += xs * (mFirstPersonMoveSpeed * deltaTime);
     }
 
-    if (IsKeyDown(POLYPHASE_KEY_S))
+    if (hotkeys->IsActionDown(EditorAction::Camera_Back))
     {
         cameraPosition.z += xc * (c * (mFirstPersonMoveSpeed * deltaTime));
         cameraPosition.x += xc * (s * (mFirstPersonMoveSpeed * deltaTime));
         cameraPosition.y -= xs * (mFirstPersonMoveSpeed * deltaTime);
     }
 
-    if (IsKeyDown(POLYPHASE_KEY_E))
+    if (hotkeys->IsActionDown(EditorAction::Camera_Up))
     {
         cameraPosition.y += (mFirstPersonMoveSpeed * deltaTime);
     }
 
-    if (IsKeyDown(POLYPHASE_KEY_Q))
+    if (hotkeys->IsActionDown(EditorAction::Camera_Down))
     {
         cameraPosition.y -= (mFirstPersonMoveSpeed * deltaTime);
     }
@@ -985,7 +972,7 @@ void Viewport3D::HandleTransformControls()
         }
     }
 
-    if (IsControlDown() && IsKeyJustDown(POLYPHASE_KEY_T))
+    if (EditorHotkeyMap::Get()->IsActionJustTriggered(EditorAction::Gizmo_TransformLocalToggle))
     {
         ToggleTransformMode();
     }

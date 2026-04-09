@@ -23,6 +23,7 @@
 #include "Network/NetworkModule.h"
 #include "Updates/UpdatesModule.h"
 #include "Input/InputMapModule.h"
+#include "EditorHotkeys/EditorHotkeysModule.h"
 
 PreferencesManager* PreferencesManager::sInstance = nullptr;
 
@@ -65,6 +66,9 @@ void PreferencesManager::Create()
 
     // Input mapping module
     sInstance->RegisterModule(new InputMapModule());
+
+    // Editor hotkey bindings module
+    sInstance->RegisterModule(new EditorHotkeysModule());
 
     // Load all settings on startup
     sInstance->LoadAllSettings();

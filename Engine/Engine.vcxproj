@@ -724,6 +724,10 @@
     <ClCompile Include="Source\Editor\Preferences\Network\NetworkModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Updates\UpdatesModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Input\InputMapModule.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\EditorHotkeys\EditorHotkeysModule.cpp" />
+    <ClCompile Include="Source\Editor\Hotkeys\EditorAction.cpp" />
+    <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeyMap.cpp" />
+    <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeysWindow.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\HttpClient_Windows.cpp" />
@@ -1171,6 +1175,10 @@
     <ClInclude Include="Source\Editor\Preferences\Network\NetworkModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Updates\UpdatesModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Input\InputMapModule.h" />
+    <ClInclude Include="Source\Editor\Preferences\EditorHotkeys\EditorHotkeysModule.h" />
+    <ClInclude Include="Source\Editor\Hotkeys\EditorAction.h" />
+    <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeyMap.h" />
+    <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeysWindow.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\HttpClient.h" />

@@ -207,6 +207,12 @@
     <Filter Include="Source Files\Editor\Preferences\Input">
       <UniqueIdentifier>{c0d1e2f3-4a5b-6c7d-8e9f-a0b1c2d3e4f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\Preferences\EditorHotkeys">
+      <UniqueIdentifier>{d1e2f3a4-5b6c-7d8e-9fa0-b1c2d3e4f5a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor\Hotkeys">
+      <UniqueIdentifier>{e2f3a4b5-6c7d-8e9f-a0b1-c2d3e4f5a6b7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Editor\AutoUpdater">
       <UniqueIdentifier>{c0d1e2f3-4a5b-6c7d-8e9f-a0b1c2d3e4f5}</UniqueIdentifier>
     </Filter>
@@ -1159,6 +1165,18 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\Preferences\Input\InputMapModule.cpp">
       <Filter>Source Files\Editor\Preferences\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Preferences\EditorHotkeys\EditorHotkeysModule.cpp">
+      <Filter>Source Files\Editor\Preferences\EditorHotkeys</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Hotkeys\EditorAction.cpp">
+      <Filter>Source Files\Editor\Hotkeys</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeyMap.cpp">
+      <Filter>Source Files\Editor\Hotkeys</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeysWindow.cpp">
+      <Filter>Source Files\Editor\Hotkeys</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp">
       <Filter>Source Files\Editor\AutoUpdater</Filter>
@@ -2429,6 +2447,18 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\Preferences\Input\InputMapModule.h">
       <Filter>Source Files\Editor\Preferences\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Preferences\EditorHotkeys\EditorHotkeysModule.h">
+      <Filter>Source Files\Editor\Preferences\EditorHotkeys</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Hotkeys\EditorAction.h">
+      <Filter>Source Files\Editor\Hotkeys</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeyMap.h">
+      <Filter>Source Files\Editor\Hotkeys</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeysWindow.h">
+      <Filter>Source Files\Editor\Hotkeys</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h">
       <Filter>Source Files\Editor\AutoUpdater</Filter>
