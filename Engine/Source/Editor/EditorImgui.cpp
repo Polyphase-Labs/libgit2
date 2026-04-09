@@ -132,6 +132,7 @@
 
 #include "SecondScreenPreview/SecondScreenPreview.h"
 #include "GamePreview/GamePreview.h"
+#include "AnimationBrowser/AnimationBrowser.h"
 
 
 static const char* GetNodeIcon(Node* node)
@@ -309,7 +310,7 @@ static bool sViewportDockActive = false;
 // A known dock label that must exist in a valid layout.
 // If imgui.ini has dock data but this label is missing, the layout is stale.
 // Update kDockLayoutVersion when dock panel names change to force a reset.
-static constexpr uint32_t kDockLayoutVersion = 10;
+static constexpr uint32_t kDockLayoutVersion = 12;
 
 static void ValidateDockLayoutIni()
 {
@@ -669,6 +670,52 @@ static void DrawDockspace()
     ImGui::EndDock();
     ImGui::PopStyleColor();
 
+   
+    {
+        static bool sAnimBrowserForceHiddenOnce = true;
+        if (sAnimBrowserForceHiddenOnce)
+        {
+            GetEditorState()->mShowAnimationBrowser = false;
+            sAnimBrowserForceHiddenOnce = false;
+        }
+    }
+    {
+        ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, bg);
+    }
+    {
+        // If Open() was called this/last frame, re-dock the AnimationBrowser
+        // tab next to CLI Terminal before BeginDock runs. The browser is
+        // force-hidden on the editor's first frame which leaves it Float and
+        // detached from the layout, so without this it would auto-dock to
+        // whatever the dock root happens to be (typically the bottom-left
+        // tab group with Assets/Scripts/Debug Log) instead of following the
+        // CLI Terminal location.
+        if (GetAnimationBrowser()->ConsumePendingDock())
+        {
+            ImGui::DockTo("EditorDock",
+                          ICON_SKELETON "  Animation Browser",
+                          ICON_CONSOLE "  CLI Terminal",
+                          ImGuiDockSlot_Tab);
+            ImGui::SetDockActive("EditorDock", ICON_SKELETON "  Animation Browser");
+        }
+
+        bool animOpen = GetEditorState()->mShowAnimationBrowser;
+        if (ImGui::BeginDock(ICON_SKELETON "  Animation Browser", &animOpen,
+                             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+        {
+            GetAnimationBrowser()->DrawPanel();
+        }
+        ImGui::EndDock();
+        // AND with the current state so a mid-frame close from inside
+        // DrawPanel() (e.g. the in-panel "Close" button calling
+        // AnimationBrowser::Close() which clears mShowAnimationBrowser) isn't
+        // clobbered by the stale animOpen captured at the start of the frame.
+        GetEditorState()->mShowAnimationBrowser =
+            animOpen && GetEditorState()->mShowAnimationBrowser;
+    }
+    ImGui::PopStyleColor();
+
     // --- Node Graph dock ---
     {
         ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
@@ -754,6 +801,7 @@ static void DrawDockspace()
             ImGui::DockTo("EditorDock", ICON_CURVEGRAPH "  Profiling", ICON_IC_BASELINE_SHARE "  Node Graph", ImGuiDockSlot_Tab);
             ImGui::DockTo("EditorDock", "Texture Atlas Viewer", ICON_CURVEGRAPH "  Profiling", ImGuiDockSlot_Tab);
             ImGui::DockTo("EditorDock", ICON_CONSOLE "  CLI Terminal", ICON_STREAMLINE_LOG_SOLID "  Debug Log", ImGuiDockSlot_Tab);
+            ImGui::DockTo("EditorDock", ICON_SKELETON "  Animation Browser", ICON_CONSOLE "  CLI Terminal", ImGuiDockSlot_Tab);
 
             // Defer activating the Viewport tab — docks call setActive() on their
             // first BeginDock frame, so we need to wait a couple frames for all
@@ -5413,6 +5461,21 @@ static void DrawAssetsContextPopup(AssetStub* stub, AssetDir* dir)
         }
     }
 
+    if (stub && stub->mType == SkeletalMesh::GetStaticType())
+    {
+        if (ImGui::Selectable("View Animations"))
+        {
+            if (stub->mAsset == nullptr)
+                AssetManager::Get()->LoadAsset(*stub);
+
+            SkeletalMesh* skelMesh = stub->mAsset ? stub->mAsset->As<SkeletalMesh>() : nullptr;
+            if (skelMesh != nullptr)
+            {
+                GetAnimationBrowser()->Open(skelMesh);
+            }
+        }
+    }
+
     if (canInstantiate && ImGui::Selectable("Instantiate"))
     {
         if (stub->mAsset == nullptr)
@@ -7319,6 +7382,12 @@ static void DrawPropertiesPanel()
                         ImGui::Text(animations[a].mName.c_str());
                     }
                     ImGui::Unindent();
+
+                    ImGui::NewLine();
+                    if (ImGui::Button("View Animations"))
+                    {
+                        GetAnimationBrowser()->Open(skelMesh);
+                    }
                 }
                 else if (obj->As<SoundWave>())
                 {
@@ -8443,6 +8512,9 @@ static void DrawMainMenuBar()
             if (ImGui::MenuItem("Node Graph"))
                 GetEditorState()->mShowNodeGraphPanel = !GetEditorState()->mShowNodeGraphPanel;
 
+            if (ImGui::MenuItem("Animation Browser")) {
+                GetEditorState()->mShowAnimationBrowser = !GetEditorState()->mShowAnimationBrowser;
+            }
             if (ImGui::MenuItem("Profiling"))
                 GetEditorState()->mShowProfilingPanel = !GetEditorState()->mShowProfilingPanel;
 
@@ -11095,11 +11167,11 @@ void EditorImguiDraw()
                 // Mode selection
                 const char* brushTypeNames[] =
                 {
-                    "Raise",
-                    "Lower",
-                    "Flatten",
-                    "Smooth",
-                    "Paint Material"
+                    ICON_TERRAIN_RAISE " Raise",
+                    ICON_TERRAIN_LOWER " Lower",
+                    ICON_TERRAIN_FLATTEN " Flatten",
+                    ICON_TERRAIN_SMOOTH " Smooth",
+                    ICON_HEROICONS_PAINT_BRUSH_20_SOLID " Paint Material"
                 };
 
                 int mode = (int)mgr->mOptions.mMode;
@@ -11108,7 +11180,7 @@ void EditorImguiDraw()
                     mode = (int)TerrainSculptMode::Raise;
                 }
 
-                ImGui::Text("Brush");
+                ImGui::Text(ICON_HEROICONS_PAINT_BRUSH_20_SOLID " Brush");
                 ImGui::SetNextItemWidth(-1.0f);
                 ImGui::Combo("##BrushType", &mode, brushTypeNames, IM_ARRAYSIZE(brushTypeNames));
                 mgr->mOptions.mMode = (TerrainSculptMode)mode;
@@ -11556,23 +11628,43 @@ void EditorImguiDraw()
 
                 // Tool selection
                 ImGui::TextUnformatted("Tool:");
-                int mode = int(mgr->mOptions.mMode);
-                if (ImGui::RadioButton("Pencil",     &mode, int(TileSculptMode::Pencil)))     {}
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Eraser",     &mode, int(TileSculptMode::Eraser)))     {}
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Picker",     &mode, int(TileSculptMode::Picker)))     {}
-                if (ImGui::RadioButton("Rect Fill",  &mode, int(TileSculptMode::RectFill)))   {}
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Flood Fill", &mode, int(TileSculptMode::FloodFill))) {}
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Line",       &mode, int(TileSculptMode::Line)))       {}
-                if (ImGui::RadioButton("9-Box",      &mode, int(TileSculptMode::NineBox)))    {}
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Select",     &mode, int(TileSculptMode::Select)))     {}
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Autotile",   &mode, int(TileSculptMode::Autotile)))   {}
-                mgr->mOptions.mMode = TileSculptMode(mode);
+                struct TileToolEntry { TileSculptMode mode; const char* icon; const char* name; };
+                static const TileToolEntry kTileTools[] = {
+                    { TileSculptMode::Pencil,    ICON_MDI_PENCIL,                  "Pencil"    },
+                    { TileSculptMode::Eraser,    ICON_MDI_ERASER,                  "Eraser"    },
+                    { TileSculptMode::Picker,    ICON_BOXICONS_EYEDROPPER_FILLED,  "Picker"    },
+                    { TileSculptMode::RectFill,  ICON_RECTFILL,                    "Rect Fill" },
+                    { TileSculptMode::FloodFill, ICON_RI_PAINT_FILL,               "Flood Fill"},
+                    { TileSculptMode::Line,      ICON_LINEICONS_VECTOR_NODES_7,    "Line"      },
+                    { TileSculptMode::NineBox,   ICON_9POINT,                      "9 Box"     },
+                    { TileSculptMode::Select,    ICON_RI_CURSOR_FILL,              "Select"    },
+                    { TileSculptMode::Autotile,  ICON_FLUENT_MDL2_FIVE_TILE_GRID,  "Autotile"  },
+                };
+
+                const TileToolEntry* current = &kTileTools[0];
+                for (const TileToolEntry& e : kTileTools)
+                {
+                    if (e.mode == mgr->mOptions.mMode) { current = &e; break; }
+                }
+
+                char previewLabel[64];
+                snprintf(previewLabel, sizeof(previewLabel), "%s %s", current->icon, current->name);
+                if (ImGui::BeginCombo("##TileTool", previewLabel))
+                {
+                    for (const TileToolEntry& e : kTileTools)
+                    {
+                        char itemLabel[64];
+                        snprintf(itemLabel, sizeof(itemLabel), "%s %s", e.icon, e.name);
+                        bool selected = (e.mode == mgr->mOptions.mMode);
+                        if (ImGui::Selectable(itemLabel, selected))
+                        {
+                            mgr->mOptions.mMode = e.mode;
+                        }
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
 
                 // Cache the atlas descriptor via the shared TilePicker helper
                 Texture* atlasTex = (tileSet != nullptr) ? tileSet->GetTexture() : nullptr;
@@ -11588,7 +11680,7 @@ void EditorImguiDraw()
                     mgr->mOptions.mSelectedTileIndex, tilesX, tilesY, 32.0f);
 
                 // Tile palette grid
-                if (ImGui::CollapsingHeader("Tile Palette", ImGuiTreeNodeFlags_DefaultOpen))
+                if (ImGui::CollapsingHeader(ICON_FLUENT_MDL2_PICTURE_TILE " Tile Palette", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     int32_t pickedIdx = mgr->mOptions.mSelectedTileIndex;
                     if (TilePicker::DrawInlineTileGrid("##TilePalette", atlasImId,
@@ -11599,7 +11691,7 @@ void EditorImguiDraw()
                 }
 
                 // Layer panel
-                if (tileMap != nullptr && ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen))
+                if (tileMap != nullptr && ImGui::CollapsingHeader(ICON_LAYERS " Layers", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     int32_t numLayers = tileMap->GetNumLayers();
                     if (mgr->mOptions.mActiveLayer >= numLayers)
@@ -11663,7 +11755,7 @@ void EditorImguiDraw()
                         ImGui::PopID();
                     }
 
-                    if (ImGui::Button("+ Add Layer"))
+                    if (ImGui::Button(ICON_MDI_ANIMATION_PLUS " Layer"))
                     {
                         // Cheap version: append by setting a far-future cell index
                         // through the EnsureLayer pathway. Replace with a public
@@ -11676,16 +11768,17 @@ void EditorImguiDraw()
                 }
 
                 // 9-Box Brushes (Phase 3)
-                if (tileSet != nullptr && ImGui::CollapsingHeader("9-Box Brushes"))
+                if (tileSet != nullptr && ImGui::CollapsingHeader( ICON_9POINT " 9-Box Brushes"))
                 {
                     auto& brushes = tileSet->GetNineBoxBrushesMutable();
 
                     if (ImGui::Button("+ New Brush"))
                     {
-                        int32_t newIdx = tileSet->AddNineBoxBrush("Brush");
+                        int32_t newIdx = tileSet->AddNineBoxBrush(ICON_HEROICONS_PAINT_BRUSH_20_SOLID);
                         mgr->mOptions.mActiveNineBoxIndex = newIdx;
                         tileSet->SetDirtyFlag();
                     }
+
                     ImGui::SameLine();
                     ImGui::Text("(%d defined)", int(brushes.size()));
 
@@ -11765,7 +11858,7 @@ void EditorImguiDraw()
                 }
 
                 // Autotile Brushes (Phase 4)
-                if (tileSet != nullptr && ImGui::CollapsingHeader("Autotile Brushes"))
+                if (tileSet != nullptr && ImGui::CollapsingHeader(ICON_FLUENT_MDL2_FIVE_TILE_GRID " Autotile Brushes"))
                 {
                     auto& sets = tileSet->GetAutotileSetsMutable();
                     if (ImGui::Button("+ New Autotile"))
@@ -11801,7 +11894,7 @@ void EditorImguiDraw()
                         if (ImGui::SmallButton("X")) removeAutoIdx = int32_t(ai);
 
                         // Member tags
-                        ImGui::TextUnformatted("Member Tags:");
+                        ImGui::TextUnformatted( "Member Tags:");
                         int32_t removeMemberTag = -1;
                         for (size_t t = 0; t < set.mMemberTags.size(); ++t)
                         {
@@ -11831,7 +11924,7 @@ void EditorImguiDraw()
                         }
 
                         // Rules
-                        ImGui::TextUnformatted("Rules:");
+                        ImGui::TextUnformatted(ICON_MAGE_SCALE_UP " Rules:");
                         int32_t removeRuleIdx = -1;
                         for (size_t ri = 0; ri < set.mRules.size(); ++ri)
                         {
@@ -11930,7 +12023,7 @@ void EditorImguiDraw()
                 }
 
                 // Selection / Clipboard / Transforms (Phase 3)
-                if (ImGui::CollapsingHeader("Selection & Clipboard"))
+                if (ImGui::CollapsingHeader(ICON_UIWIDGET " Selection & Clipboard"))
                 {
                     if (mgr->HasSelection())
                     {
@@ -11945,21 +12038,30 @@ void EditorImguiDraw()
                     }
                     ImGui::TextDisabled("Shift+drag = add to selection. Ctrl+drag = remove.");
 
-                    if (ImGui::Button("Copy"))     mgr->DoCopy();
+                    if (ImGui::Button(ICON_CLAPPERBOARD_OPEN))     mgr->DoCopy();
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Copy");
                     ImGui::SameLine();
-                    if (ImGui::Button("Cut"))      mgr->DoCut();
+                    if (ImGui::Button(ICON_MINGCUTE_SCISSORS_FILL))      mgr->DoCut();
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Cut");
                     ImGui::SameLine();
-                    if (ImGui::Button("Paste"))    mgr->DoPasteAtCursor();
+                    if (ImGui::Button(ICON_MDI_CONTENT_PASTE))    mgr->DoPasteAtCursor();
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Paste");
                     ImGui::SameLine();
-                    if (ImGui::Button("Clear"))    mgr->ClearSelection();
+                    if (ImGui::Button(ICON_ZONDICONS_TRASH))    mgr->ClearSelection();
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Clear");
 
                     bool hasClip = mgr->HasClipboard();
                     if (!hasClip) ImGui::BeginDisabled();
-                    if (ImGui::Button("Flip X"))   mgr->DoFlipClipboardX();
+                    if (ImGui::Button(ICON_OCTICON_MIRROR_Y))   mgr->DoFlipClipboardX();
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Flip X");
+                    ImGui::SameLine();                
+
+                    if (ImGui::Button(ICON_OCTICON_MIRROR_Y ))   mgr->DoFlipClipboardY();
+
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Flip Y");
                     ImGui::SameLine();
-                    if (ImGui::Button("Flip Y"))   mgr->DoFlipClipboardY();
-                    ImGui::SameLine();
-                    if (ImGui::Button("Rotate 90")) mgr->DoRotateClipboard90();
+                    if (ImGui::Button(ICON_BOXICONS_SHAPE_ROTATE_CW)) mgr->DoRotateClipboard90();
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Rotate 90");
                     if (!hasClip) ImGui::EndDisabled();
 
                     ImGui::TextDisabled(hasClip ? "Clipboard ready (paste at cursor)." : "Clipboard empty.");
@@ -11973,7 +12075,7 @@ void EditorImguiDraw()
                                         mgr->mOptions.mActiveNineBoxIndex >= 0 &&
                                         mgr->mOptions.mActiveNineBoxIndex < int32_t(tileSet->GetNineBoxBrushes().size());
                     if (!canApply9Box) ImGui::BeginDisabled();
-                    if (ImGui::Button("Fill Selection With 9-Box Brush"))
+                    if (ImGui::Button(ICON_9POINT " Fill Selection With 9-Box Brush"))
                     {
                         mgr->DoApply9BoxToSelection();
                     }
@@ -11990,11 +12092,11 @@ void EditorImguiDraw()
                 }
 
                 // View overlays (Phase 3 + Phase 4 cell grid)
-                if (ImGui::CollapsingHeader("View"))
+                if (ImGui::CollapsingHeader(ICON_MDI_EYE " View"))
                 {
-                    ImGui::Checkbox("Cell Grid",         &mgr->mOptions.mShowCellGrid);
-                    ImGui::Checkbox("Collision Overlay", &mgr->mOptions.mShowCollisionOverlay);
-                    ImGui::Checkbox("Tag Overlay",       &mgr->mOptions.mShowTagOverlay);
+                    ImGui::Checkbox(ICON_BXS_GRID " Cell Grid",         &mgr->mOptions.mShowCellGrid);
+                    ImGui::Checkbox( ICON_FLUENT_MDL2_CUBE_SHAPE " Collision Overlay", &mgr->mOptions.mShowCollisionOverlay);
+                    ImGui::Checkbox(ICON_FLUENT_TAG_24_FILLED " Tag Overlay",       &mgr->mOptions.mShowTagOverlay);
                     if (mgr->mOptions.mShowTagOverlay)
                     {
                         char tagBuf[64];
@@ -12426,15 +12528,15 @@ bool EditorImguiIsViewportHovered()
     if (!inRect)
         return false;
 
-    // If a floating ImGui window (e.g. Texture Crop Editor) is hovered over
-    // the viewport area, the viewport should not consume input.
-    // Docked panels have names like "Label##EditorDock" (appended by BeginDock).
-    // Standalone windows created with ImGui::Begin() do not have this suffix.
+    // If any ImGui window other than the main viewport dock is hovered (a floating
+    // popup, OR another docked editor panel that overlaps the viewport rect — e.g.
+    // Animation Browser tabbed inside the viewport node), the main viewport should
+    // not consume input. Only the actual "Viewport##EditorDock" window owns input.
     ImGuiContext* ctx = ImGui::GetCurrentContext();
     if (ctx != nullptr && ctx->HoveredWindow != nullptr)
     {
         const char* name = ctx->HoveredWindow->Name;
-        if (name != nullptr && strstr(name, "##EditorDock") == nullptr)
+        if (name == nullptr || strstr(name, "Viewport##EditorDock") == nullptr)
         {
             return false;
         }
