@@ -11628,35 +11628,43 @@ void EditorImguiDraw()
 
                 // Tool selection
                 ImGui::TextUnformatted("Tool:");
-                int mode = int(mgr->mOptions.mMode);
-                if (ImGui::RadioButton(ICON_MDI_PENCIL,     &mode, int(TileSculptMode::Pencil)))     {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Pencil");
+                struct TileToolEntry { TileSculptMode mode; const char* icon; const char* name; };
+                static const TileToolEntry kTileTools[] = {
+                    { TileSculptMode::Pencil,    ICON_MDI_PENCIL,                  "Pencil"    },
+                    { TileSculptMode::Eraser,    ICON_MDI_ERASER,                  "Eraser"    },
+                    { TileSculptMode::Picker,    ICON_BOXICONS_EYEDROPPER_FILLED,  "Picker"    },
+                    { TileSculptMode::RectFill,  ICON_RECTFILL,                    "Rect Fill" },
+                    { TileSculptMode::FloodFill, ICON_RI_PAINT_FILL,               "Flood Fill"},
+                    { TileSculptMode::Line,      ICON_LINEICONS_VECTOR_NODES_7,    "Line"      },
+                    { TileSculptMode::NineBox,   ICON_9POINT,                      "9 Box"     },
+                    { TileSculptMode::Select,    ICON_RI_CURSOR_FILL,              "Select"    },
+                    { TileSculptMode::Autotile,  ICON_FLUENT_MDL2_FIVE_TILE_GRID,  "Autotile"  },
+                };
 
-                ImGui::SameLine();
-                if (ImGui::RadioButton(ICON_MDI_ERASER,     &mode, int(TileSculptMode::Eraser)))     {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Eraser");
+                const TileToolEntry* current = &kTileTools[0];
+                for (const TileToolEntry& e : kTileTools)
+                {
+                    if (e.mode == mgr->mOptions.mMode) { current = &e; break; }
+                }
 
-
-                ImGui::SameLine();
-                if (ImGui::RadioButton(ICON_BOXICONS_EYEDROPPER_FILLED,     &mode, int(TileSculptMode::Picker)))     {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Picker");
-                if (ImGui::RadioButton(ICON_RECTFILL,  &mode, int(TileSculptMode::RectFill)))   {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Rect Fill");
-                ImGui::SameLine();
-                if (ImGui::RadioButton(ICON_RI_PAINT_FILL, &mode, int(TileSculptMode::FloodFill))) {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Flood Fill");
-                ImGui::SameLine();
-                if (ImGui::RadioButton(ICON_LINEICONS_VECTOR_NODES_7,       &mode, int(TileSculptMode::Line)))       {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Line");
-                if (ImGui::RadioButton(ICON_9POINT,      &mode, int(TileSculptMode::NineBox)))    {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("9 Box");
-                ImGui::SameLine();
-                if (ImGui::RadioButton(ICON_RI_CURSOR_FILL,     &mode, int(TileSculptMode::Select)))     {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select");
-                ImGui::SameLine();
-                if (ImGui::RadioButton(ICON_FLUENT_MDL2_FIVE_TILE_GRID,   &mode, int(TileSculptMode::Autotile)))   {}
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Autotile");
-                mgr->mOptions.mMode = TileSculptMode(mode);
+                char previewLabel[64];
+                snprintf(previewLabel, sizeof(previewLabel), "%s %s", current->icon, current->name);
+                if (ImGui::BeginCombo("##TileTool", previewLabel))
+                {
+                    for (const TileToolEntry& e : kTileTools)
+                    {
+                        char itemLabel[64];
+                        snprintf(itemLabel, sizeof(itemLabel), "%s %s", e.icon, e.name);
+                        bool selected = (e.mode == mgr->mOptions.mMode);
+                        if (ImGui::Selectable(itemLabel, selected))
+                        {
+                            mgr->mOptions.mMode = e.mode;
+                        }
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
 
                 // Cache the atlas descriptor via the shared TilePicker helper
                 Texture* atlasTex = (tileSet != nullptr) ? tileSet->GetTexture() : nullptr;
