@@ -219,6 +219,9 @@ struct EditorState
     // Texture Atlas Viewer state
     bool mShowTextureAtlasViewer = false;
 
+    // Git Panel state
+    bool mShowGitPanel = false;
+
     // Animation Browser Panel state
     bool mShowAnimationBrowser = false;
     TimelineRef mEditedTimelineRef;
