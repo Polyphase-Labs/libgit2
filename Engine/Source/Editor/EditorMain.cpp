@@ -51,6 +51,7 @@
 #include "Input/InputMap.h"
 #include "Input/PlayerInputSystem.h"
 #include "Hotkeys/EditorHotkeyMap.h"
+#include "Git/GitService.h"
 #include "Utilities.h"
 
 void OctPreInitialize(EngineConfig& config);
@@ -126,6 +127,7 @@ void EditorMain(int32_t argc, char** argv)
     InputManager::Create();
     InputMap::Create();
     EditorHotkeyMap::Create();
+    GitService::Create();
     PlayerInputSystem::Create();
     PreferencesManager::Create();
 
@@ -224,6 +226,7 @@ void EditorMain(int32_t argc, char** argv)
         InputManager::Get()->Update();
         ActionManager::Get()->Update();
         AutoUpdater::Get()->Update();
+        GitService::Get()->Update();
 
         bool playInEditor = GetEditorState()->mPlayInEditor;
 
@@ -289,6 +292,7 @@ void EditorMain(int32_t argc, char** argv)
         EditorUIHookManager::Get()->FireOnEditorShutdown();
     }
 
+    GitService::Destroy();
     AutoUpdater::Destroy();
     NativeAddonManager::Destroy();
     EditorUIHookManager::Destroy();

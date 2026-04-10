@@ -24,6 +24,7 @@
 #include "Updates/UpdatesModule.h"
 #include "Input/InputMapModule.h"
 #include "EditorHotkeys/EditorHotkeysModule.h"
+#include "Git/GitPreferencesModule.h"
 
 PreferencesManager* PreferencesManager::sInstance = nullptr;
 
@@ -69,6 +70,9 @@ void PreferencesManager::Create()
 
     // Editor hotkey bindings module
     sInstance->RegisterModule(new EditorHotkeysModule());
+
+    // Git version control module
+    sInstance->RegisterModule(new GitPreferencesModule());
 
     // Load all settings on startup
     sInstance->LoadAllSettings();

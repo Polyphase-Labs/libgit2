@@ -70,6 +70,25 @@
 #include "InputMapWindow.h"
 #include "Hotkeys/EditorHotkeyMap.h"
 #include "Hotkeys/EditorHotkeysWindow.h"
+#include "Git/GitWorkspaceWindow.h"
+#include "Git/GitService.h"
+#include "Git/GitRepository.h"
+#include "Git/GitOperationQueue.h"
+#include "Git/GitStatusBarWidget.h"
+#include "Git/Dialogs/GitCloneDialog.h"
+#include "Git/Dialogs/GitOpenDialog.h"
+#include "Git/Dialogs/GitInitDialog.h"
+#include "Git/Dialogs/GitCreateBranchDialog.h"
+#include "Git/Dialogs/GitCheckoutConfirmDialog.h"
+#include "Git/Dialogs/GitCreateTagDialog.h"
+#include "Git/Dialogs/GitDeleteConfirmDialog.h"
+#include "Git/Dialogs/GitPushDialog.h"
+#include "Git/Dialogs/GitPullDialog.h"
+#include "Git/Dialogs/GitFetchDialog.h"
+#include "Git/Dialogs/GitRemoteEditDialog.h"
+#include "Git/Dialogs/GitMergeDialog.h"
+#include "Git/Dialogs/GitCliStatusDialog.h"
+#include "Git/Dialogs/GitOperationProgressDialog.h"
 #include "PlayerInputEditor.h"
 #include "PlayerInputDebugger.h"
 #include "DebugLog/DebugLogWindow.h"
@@ -8443,6 +8462,76 @@ static void DrawMainMenuBar()
             if (hookMgr != nullptr) hookMgr->DrawTopLevelMenusAtPosition(1);
         }
 
+        if (ImGui::BeginMenu("Version Control"))
+        {
+            if (ImGui::BeginMenu("Git"))
+            {
+                if (ImGui::MenuItem("Open Git Panel"))
+                {
+                    GetGitWorkspaceWindow()->Open();
+                }
+
+                ImGui::Separator();
+
+                bool repoOpen = GitService::Get() && GitService::Get()->IsRepositoryOpen();
+
+                if (ImGui::MenuItem("Fetch", nullptr, false, repoOpen))
+                {
+                    if (GitService::Get()->GetCurrentRepo())
+                    {
+                        GitOperationRequest req;
+                        req.mKind = GitOperationKind::Fetch;
+                        req.mRepoPath = GitService::Get()->GetCurrentRepo()->GetPath();
+                        req.mCancelToken = CreateCancelToken();
+                        GitService::Get()->GetOperationQueue()->Enqueue(req);
+                    }
+                }
+
+                if (ImGui::MenuItem("Pull...", nullptr, false, repoOpen))
+                {
+                    if (GitService::Get()->GetCurrentRepo())
+                    {
+                        GitOperationRequest req;
+                        req.mKind = GitOperationKind::Pull;
+                        req.mRepoPath = GitService::Get()->GetCurrentRepo()->GetPath();
+                        req.mCancelToken = CreateCancelToken();
+                        GitService::Get()->GetOperationQueue()->Enqueue(req);
+                    }
+                }
+
+                if (ImGui::MenuItem("Push...", nullptr, false, repoOpen))
+                {
+                    GitRepository* pushRepo = GitService::Get()->GetCurrentRepo();
+                    if (pushRepo)
+                    {
+                        GitOperationRequest req;
+                        req.mKind = GitOperationKind::Push;
+                        req.mRepoPath = pushRepo->GetPath();
+                        req.mBranchName = pushRepo->GetCurrentBranch();
+                        std::vector<GitRemoteInfo> pushRemotes = pushRepo->GetRemotes();
+                        if (!pushRemotes.empty())
+                            req.mRemoteName = pushRemotes[0].mName;
+                        req.mCancelToken = CreateCancelToken();
+                        GitService::Get()->GetOperationQueue()->Enqueue(req);
+                    }
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Refresh", nullptr, false, repoOpen))
+                {
+                    if (GitService::Get()->GetCurrentRepo())
+                    {
+                        GitService::Get()->GetCurrentRepo()->RefreshStatus();
+                    }
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("View"))
         {
             Camera3D* cam = GetEditorState()->GetEditorCamera();
@@ -12421,6 +12510,21 @@ void EditorImguiDraw()
         GetBuildDependencyWindow()->Draw();
         GetInputMapWindow()->Draw();
         GetEditorHotkeysWindow()->Draw();
+        GetGitWorkspaceWindow()->Draw();
+        GetGitCloneDialog()->Draw();
+        GetGitOpenDialog()->Draw();
+        GetGitInitDialog()->Draw();
+        GetGitCreateBranchDialog()->Draw();
+        GetGitCheckoutConfirmDialog()->Draw();
+        GetGitCreateTagDialog()->Draw();
+        GetGitDeleteConfirmDialog()->Draw();
+        GetGitPushDialog()->Draw();
+        GetGitPullDialog()->Draw();
+        GetGitFetchDialog()->Draw();
+        GetGitRemoteEditDialog()->Draw();
+        GetGitMergeDialog()->Draw();
+        GetGitCliStatusDialog()->Draw();
+        GetGitOperationProgressDialog()->Draw();
         GetPlayerInputEditor()->Draw();
         GetPlayerInputDebugger()->Draw();
         ActionManager::Get()->DrawBuildModal();

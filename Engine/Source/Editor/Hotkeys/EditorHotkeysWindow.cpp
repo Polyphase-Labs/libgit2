@@ -42,6 +42,7 @@ static const char* sCategoryOrder[] =
     "Inspector",
     "Tool",
     "Paint",
+    "Version Control",
 };
 static const int sCategoryCount = (int)(sizeof(sCategoryOrder) / sizeof(sCategoryOrder[0]));
 

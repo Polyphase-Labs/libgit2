@@ -122,6 +122,16 @@ enum class EditorAction : int32_t
     Paint_ToggleErase,
     Paint_BrushAdjust,
 
+    // ----- Version Control -----
+    Git_OpenPanel,
+    Git_Commit,
+    Git_RefreshStatus,
+    Git_Fetch,
+    Git_Pull,
+    Git_Push,
+    Git_QuickSwitchBranch,
+    Git_SearchHistory,
+
     Count
 };
 

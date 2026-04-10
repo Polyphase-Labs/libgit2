@@ -140,6 +140,16 @@ static const EditorActionInfo sActionMetadata[(int32_t)EditorAction::Count] =
     // ----- Paint -----
     { "Paint: Toggle Erase",      "Paint", "Toggle paint erase mode",                                            "Paint_ToggleErase",          KB(POLYPHASE_KEY_E) },
     { "Paint: Adjust Brush",      "Paint", "Hold and drag to adjust brush radius/opacity",                       "Paint_BrushAdjust",          KB(POLYPHASE_KEY_F) },
+
+    // ----- Version Control -----
+    { "Git: Open Panel",          "Version Control", "Open the Git workspace panel",                            "Git_OpenPanel",              KB(0) },
+    { "Git: Commit",              "Version Control", "Commit staged changes",                                   "Git_Commit",                 KB(0) },
+    { "Git: Refresh Status",      "Version Control", "Refresh Git repository status",                           "Git_RefreshStatus",          KB(POLYPHASE_KEY_F5) },
+    { "Git: Fetch",               "Version Control", "Fetch from remote",                                       "Git_Fetch",                  KB(0) },
+    { "Git: Pull",                "Version Control", "Pull from remote",                                        "Git_Pull",                   KB(0) },
+    { "Git: Push",                "Version Control", "Push to remote",                                          "Git_Push",                   KB(0) },
+    { "Git: Quick Switch Branch", "Version Control", "Open quick branch switcher",                              "Git_QuickSwitchBranch",      KB(0) },
+    { "Git: Search History",      "Version Control", "Search commit history",                                   "Git_SearchHistory",          KB(0) },
 };
 
 const EditorActionInfo& GetEditorActionInfo(EditorAction action)

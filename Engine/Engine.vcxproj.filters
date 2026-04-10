@@ -213,6 +213,15 @@
     <Filter Include="Source Files\Editor\Hotkeys">
       <UniqueIdentifier>{e2f3a4b5-6c7d-8e9f-a0b1-c2d3e4f5a6b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor\Git">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7a8b-9c0d-e1f2a3b4c5d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor\Git\Dialogs">
+      <UniqueIdentifier>{b2c3d4e5-f6a7-8b9c-0d1e-f2a3b4c5d6e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor\Preferences\Git">
+      <UniqueIdentifier>{c3d4e5f6-a7b8-9c0d-1e2f-a3b4c5d6e7f8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Editor\AutoUpdater">
       <UniqueIdentifier>{c0d1e2f3-4a5b-6c7d-8e9f-a0b1c2d3e4f5}</UniqueIdentifier>
     </Filter>
@@ -1177,6 +1186,78 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeysWindow.cpp">
       <Filter>Source Files\Editor\Hotkeys</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitService.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitRepository.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitOperationQueue.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitProcessRunner.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitProgressParser.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitCliProbe.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitErrorMap.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitWorkspaceWindow.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\GitStatusBarWidget.cpp">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCloneDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitOpenDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitInitDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCreateBranchDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCheckoutConfirmDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCreateTagDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitDeleteConfirmDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitPushDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitPullDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitFetchDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitRemoteEditDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitMergeDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCliStatusDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\Preferences\Git\GitPreferencesModule.cpp">
+      <Filter>Source Files\Editor\Preferences\Git</Filter>
     </ClCompile>
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp">
       <Filter>Source Files\Editor\AutoUpdater</Filter>
@@ -2459,6 +2540,84 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeysWindow.h">
       <Filter>Source Files\Editor\Hotkeys</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitTypes.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitService.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitRepository.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitOperationQueue.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitOperationRequest.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitProcessRunner.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitProgressParser.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitCliProbe.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitErrorMap.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitWorkspaceWindow.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\GitStatusBarWidget.h">
+      <Filter>Source Files\Editor\Git</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCloneDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitOpenDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitInitDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCreateBranchDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCheckoutConfirmDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCreateTagDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitDeleteConfirmDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitPushDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitPullDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitFetchDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitRemoteEditDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitMergeDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCliStatusDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Preferences\Git\GitPreferencesModule.h">
+      <Filter>Source Files\Editor\Preferences\Git</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h">
       <Filter>Source Files\Editor\AutoUpdater</Filter>
