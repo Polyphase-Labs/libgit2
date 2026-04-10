@@ -90,7 +90,7 @@
         "xtree": "cpp",
         "xutility": "cpp"
     },
-    "window.title": "${dirty}${activeEditorShort}${separator}${rootName}${separator}${profileName}${separator}${appName}${separator}[Branch: tilemap2d]",
+    "window.title": "${dirty}${activeEditorShort}${separator}${rootName}${separator}${profileName}${separator}${appName}${separator}[Branch: feature/editor/git/panel]",
     "workbench.colorCustomizations": {
         "activityBar.background": "#04099E",
         "titleBar.activeBackground": "#050DDD",

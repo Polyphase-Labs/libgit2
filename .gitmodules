@@ -13,3 +13,6 @@
 [submodule "Engine/External/PolyVox"]
 	path = Engine/External/PolyVox
 	url = https://github.com/polyphase-engine/polyvox.git
+[submodule "Engine/External/libgit2"]
+	path = Engine/External/libgit2
+	url = https://github.com/libgit2/libgit2.git

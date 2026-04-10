@@ -255,6 +255,49 @@ LogError("Failed to initialize renderer");
 4. Call your panel's draw function from `EditorImguiDraw()` in `EditorImgui.cpp`.
 5. Add files to `Engine.vcxproj` and `Engine.vcxproj.filters`.
 
+### New Editor Hotkey
+
+**NEVER add `IsKeyJustDown(POLYPHASE_KEY_*)` checks directly in editor code.**
+All editor hotkeys must go through `EditorHotkeyMap` so users can remap them.
+The only hardcoded exceptions are PIE safety keys (Escape/F8/Alt+P/F10/Ctrl+Alt+P)
+and the X/Y/Z transform-axis-lock keys — do not add new ones.
+
+1. Add a new value to the `EditorAction` enum in
+   `Engine/Source/Editor/Hotkeys/EditorAction.h`. Pick the right category
+   prefix (`File_`, `Edit_`, `Camera_`, `Gizmo_`, `Debug_`, `UI_`, etc.) or
+   add a new category if none fits.
+2. Add a row to the `sActionMetadata` table in `EditorAction.cpp`
+   (order MUST match the enum). Each row supplies:
+   - Display name shown in the remap window
+   - Category string (matches the collapsing header in the UI; new categories
+     also need to be appended to `sCategoryOrder` in `EditorHotkeysWindow.cpp`)
+   - Tooltip description
+   - Stable serialize key (used in JSON presets — do not rename existing ones)
+   - Default `KeyBinding { keyCode, ctrl, shift, alt }` — use `KB(...)` /
+     `KB_Space(...)` helpers
+3. At the call site, use:
+   - `EditorHotkeyMap::Get()->IsActionJustTriggered(EditorAction::MyAction)`
+     for one-shot menu/toggle actions.
+   - `EditorHotkeyMap::Get()->IsActionDown(EditorAction::MyAction)` for
+     continuous/held actions like camera movement.
+   - `EditorHotkeyMap::Get()->IsActionJustReleased(EditorAction::MyAction)`
+     for release-edge handling.
+4. Do **not** wrap the call in `IsControlDown()` / `IsShiftDown()` / etc. —
+   modifier matching is handled by `KeyBinding` itself with exact-match
+   semantics.
+5. Both queries gate themselves on `AreEditorHotkeysActive()`, so they
+   automatically stop firing during captured PIE. No need to add manual
+   `mPlayInEditor` checks.
+6. If your site needs to clear a stuck modifier after handling (the legacy
+   "Ctrl+P opens project" pattern in `InputManager.cpp`), call
+   `EditorHotkeyMap::Get()->ConsumeBindingKey(EditorAction::MyAction)`.
+7. **No build-system change needed** for adding an enum value — it lives in
+   existing files.
+8. Adding a new action does **NOT** require a JSON version bump. Bump the
+   `version` field in `EditorHotkeyMap::SerializeToJson` only if you change
+   the on-disk schema (new fields per binding, etc). Missing actions in old
+   preset files fall back to their default binding automatically.
+
 ### Build System Integration
 
 When adding **any** new source file you must update **three** build systems. Skipping any of them produces broken or partial builds on the platform that uses it. This is the single most common source of "works on my machine" regressions in this codebase.

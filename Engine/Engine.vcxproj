@@ -278,7 +278,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow;$(ProjectDir)External/libgit2/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -288,7 +288,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>spirv-cross-cored.lib;shaderc_combinedd.lib;vulkan-1.lib;Xinput.lib;Xaudio2.lib;Ws2_32.lib;Iphlpapi.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>spirv-cross-cored.lib;shaderc_combinedd.lib;vulkan-1.lib;Xinput.lib;Xaudio2.lib;Ws2_32.lib;Iphlpapi.lib;Shell32.lib;git2d.lib;winhttp.lib;crypt32.lib;secur32.lib;rpcrt4.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(VULKAN_SDK)/Bin32;$(SolutionDir)Engine/External/lib/Lib/;$(VULKAN_SDK)/Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
@@ -349,7 +349,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow;$(ProjectDir)External/libgit2/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=0;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -429,7 +429,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;$(ProjectDir)Include;$(ProjectDir)Include/Engine;$(ProjectDir)../External;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)Include/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow;$(ProjectDir)External/libgit2/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -441,7 +441,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>spirv-cross-core.lib;shaderc_combined.lib;vulkan-1.lib;Xinput.lib;Xaudio2.lib;Ws2_32.lib;Iphlpapi.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>spirv-cross-core.lib;shaderc_combined.lib;vulkan-1.lib;Xinput.lib;Xaudio2.lib;Ws2_32.lib;Iphlpapi.lib;Shell32.lib;git2.lib;winhttp.lib;crypt32.lib;secur32.lib;rpcrt4.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(VULKAN_SDK)/Bin32;$(SolutionDir)Engine/External/lib/Lib/;$(VULKAN_SDK)/Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
@@ -502,7 +502,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)../External;$(VULKAN_SDK)/Include;$(ProjectDir)Source;$(ProjectDir)Source/Engine;$(ProjectDir)../External/Assimp;$(ProjectDir)../External/Assimp/contrib/rapidjson;$(ProjectDir)../External/Bullet;$(ProjectDir)External/PolyVox/include;$(ProjectDir)../External/recastnavigation/Recast/Include;$(ProjectDir)../External/recastnavigation/Detour/Include;$(ProjectDir)Source/Editor;$(ProjectDir)../External/Lua;$(ProjectDir)../External/Vorbis;$(ProjectDir)../External/Imgui;$(ProjectDir)../External/EOS/Include/;$(ProjectDir)../External/Steam/public/steam/;$(ProjectDir)../External/zep/include;$(ProjectDir)../External/asio;$(ProjectDir)../External/Crow;$(ProjectDir)External/libgit2/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NET_PLATFORM_STEAM=0;PLATFORM_WINDOWS=1;API_VULKAN=1;EDITOR=1;POLYPHASE_IMGUI_EXPORT;POLYPHASE_ENGINE_EXPORT;WIN32;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;ASIO_STANDALONE;ASIO_NO_DEPRECATED;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -724,6 +724,35 @@
     <ClCompile Include="Source\Editor\Preferences\Network\NetworkModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Updates\UpdatesModule.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Input\InputMapModule.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\EditorHotkeys\EditorHotkeysModule.cpp" />
+    <ClCompile Include="Source\Editor\Hotkeys\EditorAction.cpp" />
+    <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeyMap.cpp" />
+    <ClCompile Include="Source\Editor\Hotkeys\EditorHotkeysWindow.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitService.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitRepository.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitOperationQueue.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitProcessRunner.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitProgressParser.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitCliProbe.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitErrorMap.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitWorkspaceWindow.cpp" />
+    <ClCompile Include="Source\Editor\Git\GitStatusBarWidget.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCloneDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitOpenDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitInitDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCreateBranchDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCheckoutConfirmDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCreateTagDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitDeleteConfirmDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitPushDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitPullDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitFetchDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitRemoteEditDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitMergeDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitCliStatusDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitSyncBranchDialog.cpp" />
+    <ClCompile Include="Source\Editor\Preferences\Git\GitPreferencesModule.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\HttpClient_Windows.cpp" />
@@ -1171,6 +1200,37 @@
     <ClInclude Include="Source\Editor\Preferences\Network\NetworkModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Updates\UpdatesModule.h" />
     <ClInclude Include="Source\Editor\Preferences\Input\InputMapModule.h" />
+    <ClInclude Include="Source\Editor\Preferences\EditorHotkeys\EditorHotkeysModule.h" />
+    <ClInclude Include="Source\Editor\Hotkeys\EditorAction.h" />
+    <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeyMap.h" />
+    <ClInclude Include="Source\Editor\Hotkeys\EditorHotkeysWindow.h" />
+    <ClInclude Include="Source\Editor\Git\GitTypes.h" />
+    <ClInclude Include="Source\Editor\Git\GitService.h" />
+    <ClInclude Include="Source\Editor\Git\GitRepository.h" />
+    <ClInclude Include="Source\Editor\Git\GitOperationQueue.h" />
+    <ClInclude Include="Source\Editor\Git\GitOperationRequest.h" />
+    <ClInclude Include="Source\Editor\Git\GitProcessRunner.h" />
+    <ClInclude Include="Source\Editor\Git\GitProgressParser.h" />
+    <ClInclude Include="Source\Editor\Git\GitCliProbe.h" />
+    <ClInclude Include="Source\Editor\Git\GitErrorMap.h" />
+    <ClInclude Include="Source\Editor\Git\GitWorkspaceWindow.h" />
+    <ClInclude Include="Source\Editor\Git\GitStatusBarWidget.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCloneDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitOpenDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitInitDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCreateBranchDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCheckoutConfirmDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCreateTagDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitDeleteConfirmDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitPushDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitPullDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitFetchDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitRemoteEditDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitMergeDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitCliStatusDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitSyncBranchDialog.h" />
+    <ClInclude Include="Source\Editor\Preferences\Git\GitPreferencesModule.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\HttpClient.h" />
