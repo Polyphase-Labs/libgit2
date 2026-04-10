@@ -4,9 +4,11 @@
 #include "../GitService.h"
 #include "../GitRepository.h"
 #include "../GitProcessRunner.h"
+#include "Log.h"
 #include "imgui.h"
 #include <cstring>
 #include <thread>
+#include <atomic>
 
 static GitMergeDialog sInstance;
 
@@ -19,10 +21,15 @@ void GitMergeDialog::Open()
 {
     mIsOpen = true;
     mJustOpened = true;
+    mMode = 0;
     mSelectedSourceBranch = 0;
-    mFastForwardOnly = false;
+    mNoFastForward = false;
     mMergeInProgress = false;
+    mMergeDone = false;
     mMergeResult.clear();
+    mMergeResultLevel = 0;
+    mTargetCommitOid.clear();
+    mTargetCommitSummary.clear();
 
     mBranchNames.clear();
     mCurrentBranch.clear();
@@ -36,13 +43,18 @@ void GitMergeDialog::Open()
         std::vector<GitBranchInfo> branches = repo->GetBranches();
         for (const auto& branch : branches)
         {
-            // Include all branches except the current one
             if (branch.mName != mCurrentBranch)
-            {
                 mBranchNames.push_back(branch.mName);
-            }
         }
     }
+}
+
+void GitMergeDialog::Open(const std::string& commitOid, const std::string& commitSummary)
+{
+    Open();
+    mMode = 1;
+    mTargetCommitOid = commitOid;
+    mTargetCommitSummary = commitSummary;
 }
 
 void GitMergeDialog::Draw()
@@ -51,7 +63,7 @@ void GitMergeDialog::Draw()
 
     if (mJustOpened)
     {
-        ImGui::OpenPopup("Merge");
+        ImGui::OpenPopup("Merge###MergeDialog");
         mJustOpened = false;
     }
 
@@ -59,70 +71,82 @@ void GitMergeDialog::Draw()
     center.x *= 0.5f;
     center.y *= 0.5f;
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(460, 0), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(500, 0), ImGuiCond_Appearing);
 
-    if (ImGui::BeginPopupModal("Merge", &mIsOpen, ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::BeginPopupModal("Merge###MergeDialog", &mIsOpen, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        bool hasBranches = !mBranchNames.empty();
-
         // Current branch display
-        ImGui::Text("Current Branch");
-        ImGui::SetNextItemWidth(-1);
-        ImGui::BeginDisabled();
-        char currentBuf[256] = {0};
-        std::strncpy(currentBuf, mCurrentBranch.c_str(), sizeof(currentBuf) - 1);
-        ImGui::InputText("##MergeCurrentBranch", currentBuf, sizeof(currentBuf), ImGuiInputTextFlags_ReadOnly);
-        ImGui::EndDisabled();
+        ImGui::Text("Merge into:");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f), "%s", mCurrentBranch.c_str());
 
         ImGui::Spacing();
 
-        // Source branch picker
-        ImGui::Text("Merge From");
-        ImGui::SetNextItemWidth(-1);
-        if (hasBranches)
+        if (mMode == 0)
         {
-            if (ImGui::BeginCombo("##MergeSourceBranch", mBranchNames[mSelectedSourceBranch].c_str()))
+            // Branch mode
+            ImGui::Text("Merge from branch:");
+            ImGui::SetNextItemWidth(-1);
+            if (!mBranchNames.empty())
             {
-                for (int32_t i = 0; i < (int32_t)mBranchNames.size(); ++i)
+                if (ImGui::BeginCombo("##MergeSourceBranch", mBranchNames[mSelectedSourceBranch].c_str()))
                 {
-                    bool selected = (i == mSelectedSourceBranch);
-                    if (ImGui::Selectable(mBranchNames[i].c_str(), selected))
+                    for (int32_t i = 0; i < (int32_t)mBranchNames.size(); ++i)
                     {
-                        mSelectedSourceBranch = i;
+                        bool selected = (i == mSelectedSourceBranch);
+                        if (ImGui::Selectable(mBranchNames[i].c_str(), selected))
+                            mSelectedSourceBranch = i;
+                        if (selected) ImGui::SetItemDefaultFocus();
                     }
-                    if (selected) ImGui::SetItemDefaultFocus();
+                    ImGui::EndCombo();
                 }
-                ImGui::EndCombo();
+            }
+            else
+            {
+                ImGui::TextDisabled("No other branches available to merge.");
             }
         }
         else
         {
-            ImGui::TextDisabled("No other branches available to merge");
+            // Commit mode
+            ImGui::Text("Merge commit:");
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", mTargetCommitOid.substr(0, 7).c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", mTargetCommitSummary.c_str());
         }
 
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
 
-        ImGui::Checkbox("Fast-forward only (--ff-only)", &mFastForwardOnly);
+        ImGui::Checkbox("No fast-forward (--no-ff)", &mNoFastForward);
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("Always create a merge commit, even if the merge could be fast-forwarded.");
+        }
 
         ImGui::Spacing();
 
-        // Show merge result if available
+        // Conflict warning
+        ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.2f, 1.0f),
+            "If there are merge conflicts, resolve them in an external\n"
+            "editor and then commit the result manually.");
+
+        ImGui::Spacing();
+
+        // Merge result display
         if (!mMergeResult.empty())
         {
-            bool isError = (mMergeResult.find("Error") != std::string::npos ||
-                            mMergeResult.find("CONFLICT") != std::string::npos ||
-                            mMergeResult.find("failed") != std::string::npos);
-
-            if (isError)
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
-            }
+            ImVec4 resultColor;
+            if (mMergeResultLevel == 0)
+                resultColor = ImVec4(0.3f, 0.9f, 0.3f, 1.0f);
+            else if (mMergeResultLevel == 1)
+                resultColor = ImVec4(0.9f, 0.7f, 0.2f, 1.0f);
             else
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.9f, 0.3f, 1.0f));
-            }
+                resultColor = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+
+            ImGui::PushStyleColor(ImGuiCol_Text, resultColor);
             ImGui::TextWrapped("%s", mMergeResult.c_str());
             ImGui::PopStyleColor();
             ImGui::Spacing();
@@ -131,82 +155,90 @@ void GitMergeDialog::Draw()
         if (mMergeInProgress)
         {
             ImGui::TextDisabled("Merge in progress...");
+            ImGui::Spacing();
         }
 
         ImGui::Separator();
         ImGui::Spacing();
 
-        bool canMerge = hasBranches && !mMergeInProgress;
+        bool canMerge = !mMergeInProgress && !mMergeDone;
+        if (mMode == 0)
+            canMerge = canMerge && !mBranchNames.empty();
+
         if (!canMerge) ImGui::BeginDisabled();
 
         if (ImGui::Button("Merge", ImVec2(120, 0)))
         {
             mMergeInProgress = true;
+            mMergeDone = false;
             mMergeResult.clear();
-            mCancelToken = CreateCancelToken();
+            mMergeResultLevel = 0;
 
-            // Capture values for the thread
             std::string repoPath;
             GitService* service = GitService::Get();
             if (service && service->IsRepositoryOpen())
-            {
                 repoPath = service->GetCurrentRepo()->GetPath();
-            }
 
-            std::string sourceBranch = mBranchNames[mSelectedSourceBranch];
-            bool ffOnly = mFastForwardOnly;
-            GitCancelToken cancelToken = mCancelToken;
+            std::string mergeTarget;
+            if (mMode == 0)
+                mergeTarget = mBranchNames[mSelectedSourceBranch];
+            else
+                mergeTarget = mTargetCommitOid;
 
-            // Run merge via git CLI on a detached thread
-            std::thread mergeThread([this, repoPath, sourceBranch, ffOnly, cancelToken]()
+            bool noFF = mNoFastForward;
+
+            std::thread mergeThread([this, repoPath, mergeTarget, noFF]()
             {
                 std::vector<std::string> args;
                 args.push_back("git");
                 args.push_back("merge");
 
-                if (ffOnly)
-                {
-                    args.push_back("--ff-only");
-                }
+                if (noFF)
+                    args.push_back("--no-ff");
 
-                args.push_back(sourceBranch);
+                args.push_back(mergeTarget);
 
                 std::string stdoutAccum;
                 std::string stderrAccum;
 
+                GitCancelToken token = CreateCancelToken();
                 int32_t exitCode = GitProcessRunner::Run(
                     repoPath,
                     args,
                     [&stdoutAccum](const std::string& line) { stdoutAccum += line + "\n"; },
                     [&stderrAccum](const std::string& line) { stderrAccum += line + "\n"; },
-                    cancelToken
+                    token
                 );
 
-                if (cancelToken && cancelToken->load())
-                {
-                    mMergeResult = "Merge cancelled.";
-                }
-                else if (exitCode != 0)
-                {
-                    mMergeResult = "Error: merge failed (exit " + std::to_string(exitCode) + ").\n" + stderrAccum;
-                }
-                else
+                if (exitCode == 0)
                 {
                     mMergeResult = "Merge completed successfully.";
                     if (!stdoutAccum.empty())
-                    {
                         mMergeResult += "\n" + stdoutAccum;
+                    mMergeResultLevel = 0;
+                }
+                else
+                {
+                    std::string combined = stderrAccum + stdoutAccum;
+                    if (combined.find("CONFLICT") != std::string::npos ||
+                        combined.find("Merge conflict") != std::string::npos)
+                    {
+                        mMergeResult = "Merge has conflicts. Resolve them in an external editor,\nthen stage the files and commit.\n\n" + combined;
+                        mMergeResultLevel = 1;
+                    }
+                    else
+                    {
+                        mMergeResult = "Merge failed (exit " + std::to_string(exitCode) + ").\n" + combined;
+                        mMergeResultLevel = 2;
                     }
                 }
 
                 mMergeInProgress = false;
+                mMergeDone = true;
 
-                // Refresh repository status after merge
-                GitService* service = GitService::Get();
-                if (service && service->IsRepositoryOpen())
-                {
-                    service->GetCurrentRepo()->RefreshStatus();
-                }
+                GitService* svc = GitService::Get();
+                if (svc && svc->IsRepositoryOpen())
+                    svc->GetCurrentRepo()->RefreshStatus();
             });
 
             mergeThread.detach();
@@ -217,10 +249,6 @@ void GitMergeDialog::Draw()
         ImGui::SameLine();
         if (ImGui::Button("Close", ImVec2(120, 0)))
         {
-            if (mMergeInProgress && mCancelToken)
-            {
-                mCancelToken->store(true);
-            }
             mIsOpen = false;
             ImGui::CloseCurrentPopup();
         }

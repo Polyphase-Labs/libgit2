@@ -11,6 +11,8 @@
 #include "Dialogs/GitRemoteEditDialog.h"
 #include "Dialogs/GitCreateTagDialog.h"
 #include "Dialogs/GitCreateBranchDialog.h"
+#include "Dialogs/GitMergeDialog.h"
+#include "Dialogs/GitSyncBranchDialog.h"
 #include "Engine.h"
 #include "Log.h"
 #include <git2.h>
@@ -630,6 +632,12 @@ void GitWorkspaceWindow::DrawMainArea(float width, float height)
                 std::vector<GitBranchInfo> branches = repo->GetBranches();
                 std::string currentBranch = repo->GetCurrentBranch();
 
+                if (ImGui::Button("+ Branch"))
+                {
+                    GetGitCreateBranchDialog()->Open();
+                }
+                ImGui::Separator();
+
                 if (ImGui::CollapsingHeader("Local Branches", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     for (const auto& br : branches)
@@ -657,6 +665,11 @@ void GitWorkspaceWindow::DrawMainArea(float width, float height)
                                 mDiffDirty = true;
                                 mLogEntries.push_back({"Checked out branch: " + br.mName, 0});
                             }
+                            if (ImGui::MenuItem("Sync With Commit..."))
+                            {
+                                GetGitSyncBranchDialog()->Open(br.mName);
+                            }
+                            ImGui::Separator();
                             if (!br.mIsCurrent && ImGui::MenuItem("Delete"))
                             {
                                 repo->DeleteBranch(br.mName, false);
@@ -990,6 +1003,11 @@ void GitWorkspaceWindow::DrawHistoryView(float width, float height)
                     {
                         GetGitCreateTagDialog()->Open(commit->mOid);
                     }
+                    if (ImGui::MenuItem("Merge Into Current Branch..."))
+                    {
+                        GetGitMergeDialog()->Open(commit->mOid, commit->mSummary);
+                    }
+                    ImGui::Separator();
                     if (ImGui::MenuItem("Checkout..."))
                     {
                         // Check if any branches point at this commit

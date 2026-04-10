@@ -751,6 +751,7 @@
     <ClCompile Include="Source\Editor\Git\Dialogs\GitMergeDialog.cpp" />
     <ClCompile Include="Source\Editor\Git\Dialogs\GitCliStatusDialog.cpp" />
     <ClCompile Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.cpp" />
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitSyncBranchDialog.cpp" />
     <ClCompile Include="Source\Editor\Preferences\Git\GitPreferencesModule.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdater.cpp" />
     <ClCompile Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.cpp" />
@@ -1228,6 +1229,7 @@
     <ClInclude Include="Source\Editor\Git\Dialogs\GitMergeDialog.h" />
     <ClInclude Include="Source\Editor\Git\Dialogs\GitCliStatusDialog.h" />
     <ClInclude Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.h" />
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitSyncBranchDialog.h" />
     <ClInclude Include="Source\Editor\Preferences\Git\GitPreferencesModule.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdater.h" />
     <ClInclude Include="Source\Editor\AutoUpdater\AutoUpdaterWindow.h" />

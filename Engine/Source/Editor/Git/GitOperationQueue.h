@@ -32,6 +32,7 @@ private:
 
     std::thread mWorkerThread;
     std::atomic_bool mRunning{false};
+    std::atomic_bool mExecuting{false};
 
     std::mutex mQueueMutex;
     std::condition_variable mQueueCV;

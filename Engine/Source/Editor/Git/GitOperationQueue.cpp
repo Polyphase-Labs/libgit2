@@ -39,6 +39,8 @@ void GitOperationQueue::PollResults(std::vector<GitOperationResult>& outResults)
 
 bool GitOperationQueue::HasPendingOps() const
 {
+    if (mExecuting.load())
+        return true;
     std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(mQueueMutex));
     return !mPendingRequests.empty();
 }
@@ -66,7 +68,12 @@ void GitOperationQueue::WorkerLoop()
             mPendingRequests.pop_front();
         }
 
+        mExecuting.store(true);
         ExecuteOperation(request);
+        mExecuting.store(false);
+
+        // Reset progress after operation completes
+        mCurrentProgress = GitProgressEvent();
     }
 }
 

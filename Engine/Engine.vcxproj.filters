@@ -1256,6 +1256,9 @@
     <ClCompile Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.cpp">
       <Filter>Source Files\Editor\Git\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Editor\Git\Dialogs\GitSyncBranchDialog.cpp">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Editor\Preferences\Git\GitPreferencesModule.cpp">
       <Filter>Source Files\Editor\Preferences\Git</Filter>
     </ClCompile>
@@ -2614,6 +2617,9 @@
       <Filter>Source Files\Editor\Git\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\Git\Dialogs\GitOperationProgressDialog.h">
+      <Filter>Source Files\Editor\Git\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\Git\Dialogs\GitSyncBranchDialog.h">
       <Filter>Source Files\Editor\Git\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\Preferences\Git\GitPreferencesModule.h">

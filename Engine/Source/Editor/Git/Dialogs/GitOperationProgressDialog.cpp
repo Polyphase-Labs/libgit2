@@ -64,11 +64,10 @@ void GitOperationProgressDialog::Draw()
     GitOperationQueue* queue = service->GetOperationQueue();
     if (queue == nullptr) return;
 
-    bool isRunning = queue->HasPendingOps() || queue->IsRunning();
     const GitProgressEvent& progress = queue->GetCurrentProgress();
 
-    // Detect operation start: auto-open when an operation begins
-    bool operationActive = (progress.mPhase != GitProgressEvent::Unknown || progress.mTotal > 0 || isRunning);
+    // An operation is active only when there are pending or in-flight requests
+    bool operationActive = queue->HasPendingOps();
 
     if (operationActive && !mWasRunning)
     {

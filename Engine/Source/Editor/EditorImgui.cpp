@@ -89,6 +89,7 @@
 #include "Git/Dialogs/GitMergeDialog.h"
 #include "Git/Dialogs/GitCliStatusDialog.h"
 #include "Git/Dialogs/GitOperationProgressDialog.h"
+#include "Git/Dialogs/GitSyncBranchDialog.h"
 #include "PlayerInputEditor.h"
 #include "PlayerInputDebugger.h"
 #include "DebugLog/DebugLogWindow.h"
@@ -12525,6 +12526,7 @@ void EditorImguiDraw()
         GetGitMergeDialog()->Draw();
         GetGitCliStatusDialog()->Draw();
         GetGitOperationProgressDialog()->Draw();
+        GetGitSyncBranchDialog()->Draw();
         GetPlayerInputEditor()->Draw();
         GetPlayerInputDebugger()->Draw();
         ActionManager::Get()->DrawBuildModal();
