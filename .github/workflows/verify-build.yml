@@ -2,7 +2,7 @@ name: Verify Build
 
 on:
   push:
-    branches: ['version/*']
+    branches: ['version/*', 'beta/*']
 
 jobs:
   build-linux:
@@ -12,7 +12,7 @@ jobs:
 
       - name: Initialize submodules
         run: |
-          git submodule init -- External/bullet3 External/doxygen-awesome-css External/zep Engine/External/PolyVox Plugins/Blender/polyshade-gameengine-connect
+          git submodule init -- External/bullet3 External/doxygen-awesome-css External/zep Engine/External/PolyVox Engine/External/libgit2 Plugins/Blender/polyshade-gameengine-connect
           git submodule update --recursive
 
       - name: Install Vulkan SDK
@@ -34,7 +34,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libxcb1-dev libasound2-dev libx11-dev
+            libxcb1-dev libasound2-dev libx11-dev \
+            cmake
+
+      - name: Prebuild libgit2
+        run: bash Tools/prebuild_libgit2.sh
 
       - name: Build Engine (Linux Editor)
         run: make -C Standalone -f Makefile_Linux_Editor -j$(nproc)

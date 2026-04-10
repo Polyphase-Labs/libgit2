@@ -1,14 +1,14 @@
 ## Windows Developer Environment Setup
 
-
 ### Pull Submodules
+
 `git submodule update --init --recursive`
 
 ### Download and Install:
 
 - Visual Studio Community 2022 (with C++ support)
+- [CMake](https://cmake.org/download/) 
 - Vulkan SDK version 1.3.275.0 (During install select "Shader Toolchain Debug Symbols - 64 bit" and deselect all other options)
-
 - devkitPPC for GameCube/Wii development
 - devkitARM for 3DS development
 - Instructions for installing the devkitPro toolchains can be found in the devkitPro wiki [here](https://devkitpro.org/wiki/Getting_Started)
@@ -31,7 +31,7 @@
 
   - Accept overwriting if asked.
 - Restart computer if you've opened Visual Studio prior to installing `libogc2` to make sure the environment variables are found.
-- Build shaders by running compile.bat  in   `/Engine/Shaders/GLSL`.
+- Build shaders and ` libgit2`  by running `Tools\prebuild.bat`
 
 ### Visual Studio Setup & Editor Build
 

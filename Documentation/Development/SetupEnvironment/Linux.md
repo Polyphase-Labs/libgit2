@@ -1,6 +1,7 @@
 ## Linux Developer Environment Setup
 
 ### Pull Submodules
+
 `git submodule update --init --recursive`
 
 ### For Debian/Ubuntu based distros:
@@ -56,9 +57,8 @@ Note: libcurl4/curl is optional but required for the auto-update feature in the 
      - Accept overwriting if asked.
 4. 
 
-#### Compile Shaders
+#### Compile Shaders & libgit2cd Engine/Shaders/GLSL/
 
 ```bash
-cd Engine/Shaders/GLSL/
-bash ./compile.sh
+bash Tools/prebuild.sh
 ```
