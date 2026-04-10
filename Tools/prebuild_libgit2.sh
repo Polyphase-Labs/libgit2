@@ -24,7 +24,7 @@ cmake -B build -S . \
     -DREGEX_BACKEND=builtin
 
 echo "[libgit2] Building..."
-cmake --build build --target git2 -- -j$(nproc)
+cmake --build build --target libgit2package -- -j$(nproc)
 
 echo ""
 echo "[libgit2] Done. Static library at:"

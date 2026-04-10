@@ -14,7 +14,7 @@ echo ""
 
 # --- libgit2 ---
 echo "[1/2] Building libgit2..."
-"$SCRIPT_DIR/prebuild_libgit2.sh"
+bash "$SCRIPT_DIR/prebuild_libgit2.sh"
 echo ""
 
 # --- Shaders ---

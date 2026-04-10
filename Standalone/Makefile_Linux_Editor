@@ -70,7 +70,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map -rdynamic
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lEngineEditor -lspirv-cross-core -lshaderc_combined -lvulkan -lxcb -lasound -lAssimp -lBullet -lpthread -lm
+LIBS	:=	-lEngineEditor -lspirv-cross-core -lshaderc_combined -lvulkan -lxcb -lasound -lAssimp -lBullet -lgit2 -lssl -lcrypto -lpthread -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -120,7 +120,8 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 					-L$(CURDIR)/../External/Assimp/Build/Linux \
 					-L$(CURDIR)/../External/Bullet/Build/Linux \
-					-L$(CURDIR)/../Engine/Build/Linux
+					-L$(CURDIR)/../Engine/Build/Linux \
+					-L$(CURDIR)/../Engine/External/libgit2/build
 
 export OUTPUT	:=	$(OUTPUT_DIR)/$(TARGET)Editor.elf
 export ENGINE_LIB := $(CURDIR)/../Engine/Build/Linux/libEngineEditor.a

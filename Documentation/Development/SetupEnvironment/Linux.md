@@ -1,12 +1,15 @@
 ## Linux Developer Environment Setup
 
+### Pull Submodules
+`git submodule update --init --recursive`
+
 ### For Debian/Ubuntu based distros:
 
-`sudo apt install g++ make libx11-dev libasound2-dev libcurl4`
+`sudo apt install g++ make libx11-dev libasound2-dev libcurl4 cmake`
 
 ### For Arch-based distributions:
 
-`sudo pacman -S gcc make libx11 alsa-lib curl`
+`sudo pacman -S gcc make libx11 alsa-lib curl cmake`
 
 Note: arch users may get a dependency error when attempting to install `alsa-lib`, in this case try to install `lib32-alsa-lib`.
 Note: libcurl4/curl is optional but required for the auto-update feature in the editor.
