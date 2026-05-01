@@ -48,15 +48,16 @@ if(MSVC)
 	# /MD - Dynamically link the multithreaded release version of the CRT
 	# /O2 - Optimize for speed
 	# /Oy - Enable frame pointer omission (FPO) (otherwise CMake will automatically turn it off)
-	# /GL - Link time code generation (whole program optimization)
 	# /Gy - Function-level linking
-	set(CMAKE_C_FLAGS_RELEASE "/DNDEBUG /O2 /Oy /GL /Gy ${CRT_FLAG_RELEASE}")
+	# Note: /GL removed downstream — the consuming engine builds without WPO/LTCG,
+	# and a /GL'd git2.lib would force LTCG on the consumer (which ICEs on heavy templated code).
+	set(CMAKE_C_FLAGS_RELEASE "/DNDEBUG /O2 /Oy /Gy ${CRT_FLAG_RELEASE}")
 
 	# /Oy- - Disable frame pointer omission (FPO)
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "/DNDEBUG /Zi /O2 /Oy- /GL /Gy ${CRT_FLAG_RELEASE}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "/DNDEBUG /Zi /O2 /Oy- /Gy ${CRT_FLAG_RELEASE}")
 
 	# /O1 - Optimize for size
-	set(CMAKE_C_FLAGS_MINSIZEREL "/DNDEBUG /O1 /Oy /GL /Gy ${CRT_FLAG_RELEASE}")
+	set(CMAKE_C_FLAGS_MINSIZEREL "/DNDEBUG /O1 /Oy /Gy ${CRT_FLAG_RELEASE}")
 
 	# /IGNORE:4221 - Ignore empty compilation units
 	set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /IGNORE:4221")
